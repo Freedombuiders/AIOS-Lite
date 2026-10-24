@@ -148,6 +148,11 @@ const CLOSE_WAIT_MS = 2_000;
 
 export class ZaloCareConnector implements CareConnector {
   readonly kind = 'zalo-zca';
+  /**
+   * Care polls this connector itself (sync_poll jobs read the daemon's buffered live feed). Without this flag Care
+   * never scheduled a poll, so Zalo messages stayed in zalo_* and never reached the Care inbox.
+   */
+  readonly careManagedSync = true;
   readonly channel: CareChannel = 'zalo';
 
   private readonly transport: ZaloTransport;
@@ -361,6 +366,15 @@ export class ZaloCareConnector implements CareConnector {
   /** Acknowledges a live slice. Call ONLY after its events were durably ingested. */
   async commit(commit: ZaloLiveCommit): Promise<void> {
     await this.transport.ackLive(commit.accountId, commit.feedId, commit.upToSeq);
+  }
+
+  /**
+   * Care's hook after a sync slice was ingested. The feed is acknowledged only when EVERY event of the slice was
+   * stored; otherwise the slice is read again next poll and Care folds the duplicates.
+   */
+  async commitSync(_accountId: string, result: SyncResult, outcome: { failedEventIds: string[] }): Promise<void> {
+    if (outcome.failedEventIds.length > 0) return;
+    for (const c of (result as Partial<ZaloSyncResult>).commits ?? []) await this.commit(c);
   }
 
   private async messageEvents(

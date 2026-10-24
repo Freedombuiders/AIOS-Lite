@@ -3,7 +3,7 @@
 Công cụ port từ repo GỐC (fork claudeclaw-os) sang AIOS-Lite. Không thêm npm dependency.
 
 ## port/copy.mjs
-`node scripts/port/copy.mjs <manifest.json> [--dry-run] [--force] [--source <path>]` (mặc định nguồn: env `AIOS_PORT_SOURCE` hoặc `/Users/tonyhoang/Developer/GitHub/claudeclaw-os`).
+`node scripts/port/copy.mjs <manifest.json> [--dry-run] [--force] [--source <path>]` (mặc định nguồn: env `AIOS_PORT_SOURCE` hoặc `../claudeclaw-os`).
 Manifest: `{ "module": "care", "entries": [{ "from", "to", "kind": "A|B|D", "note" }], "drop": [{ "from", "reason" }] }`.
 Từ chối (exit 1, không ghi gì) nếu bất kỳ file nào tồn tại ở `upstream/main`; bỏ qua file thuộc `drop`; không ghi đè trừ khi `--force`; ghi log vào `modules/<module>/PORTING.md`.
 

@@ -8,6 +8,17 @@ export interface Cipher {
   decrypt(value: string): string;
 }
 
+/**
+ * First start without AIOS_ENCRYPTION_KEY: create a random one in .env (gitignored), so keys typed into the UI
+ * (integrations, module secrets, Zalo/Gmail data) are encrypted at rest from day one. Returns the key in use.
+ */
+export function ensureEncryptionKey(current: string | undefined, envFile: string, setKey: (file: string, key: string, value: string) => void): { key: string; created: boolean } {
+  if (current) return { key: current, created: false };
+  const key = crypto.randomBytes(32).toString('hex');
+  setKey(envFile, 'AIOS_ENCRYPTION_KEY', key);
+  return { key, created: true };
+}
+
 export function createCipher(secret: string | undefined): Cipher {
   if (!secret) {
     return { enabled: false, encrypt: (s) => s, decrypt: (s) => s };

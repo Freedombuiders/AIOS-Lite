@@ -257,7 +257,7 @@
 | [x] | P3-02 | e2e Playwright cho các luồng chính (lõi + care) | xanh |
 | [~] | P3-03 | Composio: đọc danh sách Page (đăng/xoá bài chưa làm — chủ chọn chỉ thử phần đọc) | ✅ đọc được 4 Page thật |
 | [~] | P3-04 | Gmail: liệt kê hộp thư qua Composio (chưa đồng bộ thư) | ✅ thấy hộp thư Gmail của chủ ở trạng thái ACTIVE (4 kết nối trùng trên Composio) |
-| [~] | P3-05 | Meta Ads: đồng bộ danh sách tài khoản (chưa chụp số liệu) | ✅ kết nối ACTIVE, 1 tài khoản `con_ads_chienthang` |
+| [~] | P3-05 | Meta Ads: đồng bộ danh sách tài khoản (chưa chụp số liệu) | ✅ kết nối ACTIVE, 1 tài khoản quảng cáo |
 | [ ] | P3-06 | **(hỏi bạn)** Zalo: bạn quét QR một nick thử; chỉ nhắn cho chính bạn | tin vào hộp thư, nháp được tạo |
 | [x] | P3-07 | `THIRD_PARTY_NOTICES.md`, LICENSE của lõi (**chờ bạn chọn**), `README.md` cài đặt | — |
 | [x] | P3-08 | Bài 1: Kiến trúc AIOS-Lite | `docs/lessons/01-*.md` |

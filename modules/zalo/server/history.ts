@@ -20,6 +20,7 @@ import { ingestMessage, type IngestContext } from './ingest.js';
 const GROUP_INFO_CHUNK = 50;
 const BACKFILL_MAX_GROUPS = 100;
 const BACKFILL_MESSAGES_PER_GROUP = 50;
+const GROUP_FAILS_TO_STOP = 5;
 const DM_MAX_PAGES = 50;
 const DM_IDLE_MS = 15_000;
 // Zalo watches for bots polling groups; a gentle cadence on groups that are
@@ -34,9 +35,26 @@ type Obj = Record<string, unknown>;
 /** The nick's group_read budget ran out: stop reading, don't treat it as a failure. */
 class BudgetExhausted extends Error {}
 
-/** Spend one group_read; without a limiter (tests) reads are unmetered. */
-function spendGroupRead(ctx: IngestContext): void {
-  if (ctx.limiter && !ctx.limiter.consume(ctx.accountId, 'group_read').ok) throw new BudgetExhausted('Đã dùng hết hạn mức đọc thông tin nhóm trong ngày của nick');
+const BURST_WAITS = 6;
+let sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+/** @internal tests only */
+export function _setHistorySleepForTests(fn: ((ms: number) => Promise<void>) | null): void {
+  sleep = fn ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
+}
+
+/**
+ * Spend one group_read; without a limiter (tests) reads are unmetered.
+ * A full burst window (e.g. 20 reads / 30 s right after the group list sync) is waited out with a little
+ * jitter; only the DAILY budget stops the backfill. Before this, the first login stopped after the group list.
+ */
+async function spendGroupRead(ctx: IngestContext): Promise<void> {
+  if (!ctx.limiter) return;
+  for (let attempt = 0; ; attempt++) {
+    const res = ctx.limiter.consume(ctx.accountId, 'group_read');
+    if (res.ok) return;
+    if (res.reason !== 'burst' || attempt >= BURST_WAITS) throw new BudgetExhausted('Đã dùng hết hạn mức đọc thông tin nhóm trong ngày của nick');
+    await sleep((res.retryAfterMs ?? 30_000) + 1_000 + Math.floor(Math.random() * 2_000));
+  }
 }
 
 export interface BackfillStats {
@@ -53,14 +71,14 @@ export interface BackfillStats {
  * getAllGroups() only returns ids; names come from getGroupInfo in chunks.
  */
 export async function syncGroupList(ctx: IngestContext): Promise<string[]> {
-  spendGroupRead(ctx);
+  await spendGroupRead(ctx);
   const res = await ctx.api.getAllGroups();
   const ids = Object.keys(res?.gridVerMap ?? {});
   for (let i = 0; i < ids.length; i += GROUP_INFO_CHUNK) {
     const chunk = ids.slice(i, i + GROUP_INFO_CHUNK);
     let infoMap: Record<string, Obj> = {};
     try {
-      spendGroupRead(ctx);
+      await spendGroupRead(ctx);
       const info = await ctx.api.getGroupInfo(chunk);
       infoMap = (info?.gridInfoMap ?? {}) as Record<string, Obj>;
     } catch (err) {
@@ -84,7 +102,7 @@ export async function syncGroupList(ctx: IngestContext): Promise<string[]> {
 }
 
 async function backfillGroup(ctx: IngestContext, groupId: string, count: number): Promise<number> {
-  spendGroupRead(ctx);
+  await spendGroupRead(ctx);
   const history = await ctx.api.getGroupChatHistory(groupId, count);
   let inserted = 0;
   for (const m of history?.groupMsgs ?? []) {
@@ -163,10 +181,12 @@ export async function backfillAccount(ctx: IngestContext): Promise<BackfillStats
     if (!(err instanceof BudgetExhausted)) stats.errors++;
     logger.warn({ accountId: ctx.accountId, err: String(err) }, 'zalo getAllGroups failed');
   }
+  let failedInARow = 0;
   for (const id of groupIds.slice(0, BACKFILL_MAX_GROUPS)) {
     try {
       stats.groupMessages += await backfillGroup(ctx, id, BACKFILL_MESSAGES_PER_GROUP);
       stats.groups++;
+      failedInARow = 0;
     } catch (err) {
       if (err instanceof BudgetExhausted) {
         logger.info({ accountId: ctx.accountId }, 'zalo history backfill stopped: group_read budget exhausted');
@@ -174,6 +194,11 @@ export async function backfillAccount(ctx: IngestContext): Promise<BackfillStats
       }
       stats.errors++;
       logger.warn({ accountId: ctx.accountId, groupId: id, err: String(err) }, 'zalo group history failed');
+      // Zalo refusing group history outright (e.g. 404 for every group): stop spending the nick's read budget
+      if (++failedInARow >= GROUP_FAILS_TO_STOP) {
+        logger.info({ accountId: ctx.accountId, failedInARow }, 'zalo history backfill stopped: Zalo keeps refusing group history');
+        break;
+      }
     }
   }
   try {

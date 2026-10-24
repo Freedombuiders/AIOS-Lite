@@ -6,7 +6,8 @@ import { createAuditService } from './access/audit.js';
 import { createConnectionsService } from './access/connections.js';
 import { createAgentRegistry } from './agents/registry.js';
 import { loadConfig, type AppConfig } from './core/config.js';
-import { createCipher } from './core/crypto.js';
+import { createCipher, ensureEncryptionKey } from './core/crypto.js';
+import { setEnvKey } from './core/env.js';
 import { migrateCore, openDb } from './core/db.js';
 import type { AppDeps } from './core/deps.js';
 import { createEventBus } from './core/events.js';
@@ -48,6 +49,11 @@ export function bootstrap(opts: BootstrapOptions = {}): AppDeps {
   const db = openDb(config.dbPath);
   migrateCore(db);
   const bus = createEventBus();
+  if (!opts.config) {
+    const ensured = ensureEncryptionKey(config.encryptionKey, config.envFile, setEnvKey);
+    if (ensured.created) log.warn('Chưa có AIOS_ENCRYPTION_KEY: đã tạo khoá ngẫu nhiên trong .env. Giữ file .env, mất khoá thì không đọc lại được dữ liệu đã mã hoá.');
+    config.encryptionKey = ensured.key;
+  }
   const cipher = createCipher(config.encryptionKey);
   const hooks: AppDeps['hooks'] = { taskFinished: new Set(), moduleContext: new Map(), moduleActions: new Map(), agentContext: new Map() };
 

@@ -7,7 +7,8 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const DEFAULT_SOURCE = '/Users/tonyhoang/Developer/GitHub/claudeclaw-os';
+// the private source repo the port came from; set AIOS_PORT_SOURCE or keep it next to this repo
+const DEFAULT_SOURCE = process.env.AIOS_PORT_SOURCE || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'claudeclaw-os');
 const INDEX = path.join(ROOT, 'scripts/provenance/upstream-index.txt');
 const ALLOW = path.join(ROOT, 'scripts/provenance/allow.txt');
 const EXTS = new Set(['.ts', '.tsx', '.js', '.mjs', '.cjs', '.css', '.py', '.sh', '.sql', '.html', '.md', '.json', '.yaml', '.yml']);

@@ -7,7 +7,8 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const TARGET_ROOT = path.resolve(HERE, '..', '..');
-const DEFAULT_SOURCE = '/Users/tonyhoang/Developer/GitHub/claudeclaw-os';
+// the private source repo the port came from; set AIOS_PORT_SOURCE or keep it next to this repo
+const DEFAULT_SOURCE = process.env.AIOS_PORT_SOURCE || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'claudeclaw-os');
 
 export function existsUpstream(source, rel, ref = 'upstream/main') {
   return spawnSync('git', ['-C', source, 'cat-file', '-e', `${ref}:${rel}`], { stdio: 'ignore' }).status === 0;

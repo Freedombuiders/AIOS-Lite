@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { loadConfig } from './config.js';
-import { createCipher } from './crypto.js';
+import { createCipher, ensureEncryptionKey } from './crypto.js';
 import { applyMigrations, migrateCore, openDb, tablesCreatedBy } from './db.js';
 import { parseEnv, resolveEnvRefs, setEnvKey } from './env.js';
 import { createEventBus } from './events.js';
@@ -48,6 +48,22 @@ describe('env + config', () => {
     expect(cfg.port).toBe(5000);
     expect(cfg.dbPath).toBe('/tmp/aios/data/aios.db');
     expect(cfg.maxParallel).toBe(3);
+  });
+});
+
+describe('encryption key bootstrap', () => {
+  it('creates a random key in .env once, keeps an existing one', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'aios-key-'));
+    const file = path.join(dir, '.env');
+    fs.writeFileSync(file, 'AIOS_PORT=4380\n');
+    const env: NodeJS.ProcessEnv = {};
+    const first = ensureEncryptionKey(undefined, file, (f, k, v) => setEnvKey(f, k, v, env));
+    expect(first.created).toBe(true);
+    expect(first.key).toMatch(/^[0-9a-f]{64}$/);
+    const text = fs.readFileSync(file, 'utf8');
+    expect(text).toContain('AIOS_PORT=4380');
+    expect(text).toContain(`AIOS_ENCRYPTION_KEY=${first.key}`);
+    expect(ensureEncryptionKey(first.key, file, () => { throw new Error('must not write'); })).toEqual({ key: first.key, created: false });
   });
 });
 

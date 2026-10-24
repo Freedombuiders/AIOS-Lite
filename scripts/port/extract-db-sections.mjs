@@ -17,7 +17,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
-const DEFAULT_SOURCE = '/Users/tonyhoang/Developer/GitHub/claudeclaw-os';
+// the private source repo the port came from; set AIOS_PORT_SOURCE or keep it next to this repo
+const DEFAULT_SOURCE = process.env.AIOS_PORT_SOURCE || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'claudeclaw-os');
 const MARKER = /^\s*(?:--|\/\/)\s*@([a-z0-9]+)-(schema|db|migrations)(?::([\w-]+))?\s*$/;
 const ANY_MARKER = /^\s*(?:--|\/\/)\s*@[a-z0-9]+-(?:schema|db|migrations)\b/;
 

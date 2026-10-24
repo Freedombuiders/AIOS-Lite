@@ -31,6 +31,18 @@ describe('live feed slices', () => {
     expect((await rig.connector.sync({ accountId: rig.account.id })).events).toEqual([]);
   });
 
+  it('care polls it (careManagedSync) and commitSync acks the feed only when the whole slice was stored', async () => {
+    rig = makeZaloRig();
+    expect(rig.connector.careManagedSync).toBe(true);
+    rig.transport.pushLive(rawIn({ threadId: 'peer-3', data: { uidFrom: 'peer-3' } }));
+    const slice = await rig.connector.sync({ accountId: rig.account.id });
+    const firstId = slice.events.find((e) => e.type === 'message.created')!.eventId;
+    await rig.connector.commitSync(rig.account.id, slice, { failedEventIds: [firstId] });
+    expect((await rig.connector.sync({ accountId: rig.account.id })).events.some((e) => e.eventId === firstId)).toBe(true);
+    await rig.connector.commitSync(rig.account.id, slice, { failedEventIds: [] });
+    expect((await rig.connector.sync({ accountId: rig.account.id })).events).toEqual([]);
+  });
+
   it('pages with a limit and reports hasMore; unusable payloads are counted, never ingested', async () => {
     rig = makeZaloRig();
     for (let i = 0; i < 3; i += 1) rig.transport.pushLive(rawIn());

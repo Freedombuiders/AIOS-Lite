@@ -2,7 +2,7 @@
 
 You are one of several agents building **AIOS-Lite** in parallel. AIOS-Lite is a teaching template: an agent OS where Claude Code, Codex, Grok and Hermes agents are declared, governed and given work, with add-on modules.
 
-Repo: `/Users/tonyhoang/Developer/GitHub/AIOS-Lite`. Node 22, TypeScript 5.9, ESM (NodeNext, `.js` import suffixes), better-sqlite3 (sync), Hono, zod 4, pino, Vitest 3. Web: Preact 10 + wouter-preact + Tailwind 4 + lucide-preact, alias `@/` = `web/src`, `@core/*` = `src/core/*` (type-only from web), `@modules/*` = `modules/*`.
+Repo: thư mục gốc AIOS-Lite. Node 22, TypeScript 5.9, ESM (NodeNext, `.js` import suffixes), better-sqlite3 (sync), Hono, zod 4, pino, Vitest 3. Web: Preact 10 + wouter-preact + Tailwind 4 + lucide-preact, alias `@/` = `web/src`, `@core/*` = `src/core/*` (type-only from web), `@modules/*` = `modules/*`.
 
 ## Read first
 
