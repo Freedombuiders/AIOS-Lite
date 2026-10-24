@@ -1,5 +1,6 @@
 import {
-  Bot, Brain, Calendar, Cable, ClipboardList, LayoutDashboard, MessageSquare, Puzzle, ScrollText, Settings, Sparkles, Library,
+  Bot, Brain, Briefcase, Calendar, Cable, ClipboardList, Handshake, LayoutDashboard, Library, Megaphone, MessageSquare, Puzzle,
+  ScrollText, Settings, Sparkles, Workflow,
 } from 'lucide-preact';
 import type { LucideIcon } from 'lucide-preact';
 
@@ -44,3 +45,29 @@ export function isActive(current: string, item: { path: string; match?: string[]
   const hit = (p: string) => (p === '/' ? current === '/' : current === p || current.startsWith(`${p}/`));
   return hit(item.path) || (item.match ?? []).some(hit);
 }
+
+// ---------------------------------------------------------------- collapsible sidebar groups
+
+export interface NavGroupDef {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  items: CoreNavItem[];
+  /** open the first time the sidebar is shown (before the viewer toggles it) */
+  defaultOpen?: boolean;
+}
+
+const byPath = (path: string): CoreNavItem => CORE_NAV.find((i) => i.path === path)!;
+
+/** Core groups under the WORKSPACE / AGENTS captions; module groups (sales, marketing…) are added between them. */
+export const WORK_GROUP: NavGroupDef = {
+  id: 'work', label: 'Làm việc', icon: Briefcase, defaultOpen: true,
+  items: [byPath('/tasks'), byPath('/schedules'), byPath('/chat')],
+};
+export const AGENT_GROUPS: NavGroupDef[] = [
+  { id: 'agents', label: 'Đội agent', icon: Bot, defaultOpen: true, items: [byPath('/agents'), byPath('/skills')] },
+  { id: 'knowledge', label: 'Tri thức', icon: Brain, items: [byPath('/brain'), byPath('/memory')] },
+];
+export const SYSTEM_GROUP: NavGroupDef = { id: 'system', label: 'Hệ thống', icon: Settings, items: BOTTOM_NAV };
+
+export const GROUP_ICON: Record<string, LucideIcon> = { sales: Handshake, marketing: Megaphone, ops: Workflow, other: Puzzle };
