@@ -216,6 +216,16 @@ resolveAccess(agent, task) → EffectiveAccess {
 - **Hermes trong chế độ `safe`** chạy qua CLI với `-t file,web,todo` (không có shell). Mỗi agent Hermes nên có `HERMES_HOME` riêng (`runtime_options.home`), để không nạp MCP cá nhân.
 - Muốn cách ly tuyệt đối thì chạy agent trong container (bài mở rộng).
 
+### 5.3b Integrations (Pancake, Botcake, Composio…)
+
+Ngoài MCP và khoá API trong `connections.yaml`, lõi có sẵn **danh mục integration** (code ở `src/integrations/`), mang từ bản gốc sang:
+- **Danh mục:** Pancake (POS và chat), Botcake, Composio + Google, Pexels, Freesound, ElevenLabs, FPT.AI.
+- **Kết nối:** chủ nhập key ở **Kết nối → Integrations**. Key chỉ được lưu khi bài kiểm tra đạt, và được mã hoá.
+- **Quyền theo agent:** `access.integrations.<id>`, gồm `read` / `ask` / `write`, hoặc dạng có `ask`/`allow` cho từng lệnh. Lệnh *destructive* luôn phải duyệt.
+- **Cách agent gọi:** qua MCP server dựng sẵn `aios-integrations` (`src/integrations/mcp-bridge/`). Mỗi lệnh được phép là một tool. Server gọi về `POST /api/integrations/call` bằng token theo lượt chạy, nên khoá không bao giờ tới tiến trình của agent.
+- **Duyệt:** ở mức `ask`, lệnh ghi tạo một mục "Cần bạn". Chủ duyệt thì lệnh chạy và kết quả được ghi thành bình luận của việc; việc chạy lại để agent đọc kết quả.
+- **Nhật ký:** mọi lệnh được ghi ở `integration_calls`. Mỗi integration có giới hạn 600 lệnh mỗi giờ.
+
 ### 5.4 Nhật ký truy cập
 
 `audit_log` ghi mỗi thay đổi quyền, mỗi lượt chạy (kèm bản chụp quyền), và mỗi hành động module làm thay agent (ví dụ "agent sales-a gửi tin Zalo cho khách X"). Mỗi dòng có `run_id`. Các lần gọi công cụ (kể cả MCP) trong một lượt chạy được ghi thành sự kiện `tool` ở `run_events` của Run đó, không phải ở `audit_log`.

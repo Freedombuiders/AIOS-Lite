@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import Database from 'better-sqlite3';
 import { CORE_MIGRATION_001 } from './migrations/001_core.js';
+import { CORE_MIGRATION_002 } from './migrations/002_integrations.js';
 
 export type DB = Database.Database;
 
@@ -46,7 +47,10 @@ export function applyMigrations(db: DB, owner: string, migrations: Migration[]):
   return applied;
 }
 
-export const CORE_MIGRATIONS: Migration[] = [{ id: '001_core', sql: CORE_MIGRATION_001 }];
+export const CORE_MIGRATIONS: Migration[] = [
+  { id: '001_core', sql: CORE_MIGRATION_001 },
+  { id: '002_integrations', sql: CORE_MIGRATION_002 },
+];
 
 export function migrateCore(db: DB): string[] {
   return applyMigrations(db, 'core', CORE_MIGRATIONS);

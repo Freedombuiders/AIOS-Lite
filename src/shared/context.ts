@@ -11,6 +11,8 @@ export interface ContextDeps {
   skills: Pick<SkillLibrary, 'read'>;
   board: Pick<BoardService, 'recent'>;
   /** module actions currently registered (see work/contracts RegisteredModuleAction) */
+  /** integration definitions (id, name, agentGuide) for the guide block */
+  listIntegrations?: () => { id: string; name: string; agentGuide?: string }[];
   listActions?: () => { moduleId: string; name: string; scope: string; description: string; example?: unknown }[];
 }
 
@@ -102,6 +104,23 @@ export function createContextBuilder(deps: ContextDeps): ContextBuilder {
             }
           }
           blocks.push(d.join('\n'));
+
+          const grants = Object.entries(agent.access.integrations ?? {})
+            .map(([id, g]) => [id, typeof g === 'string' ? g : g.grant] as const)
+            .filter(([, g]) => g !== 'off');
+          if (grants.length && access.mcpServers.some((m) => m.id === 'aios-integrations')) {
+            const defs = deps.listIntegrations?.() ?? [];
+            const lines = grants.map(([id, g]) => {
+              const def = defs.find((x) => x.id === id);
+              return `- ${def?.name ?? id} (quyền: ${g})${def?.agentGuide ? `: ${def.agentGuide.replace(/\s+/g, ' ').trim()}` : ''}`;
+            });
+            blocks.push([
+              '## Integration bạn được dùng',
+              'Gọi qua công cụ MCP `aios-integrations`: mỗi lệnh là một công cụ tên `<integration>__<lệnh>`, nhận một chuỗi `args` dạng dòng lệnh (ví dụ `--search 0901234567`).',
+              'Với quyền `ask`, lệnh ghi không chạy ngay mà chờ chủ duyệt; kết quả quay lại dưới dạng bình luận vào việc.',
+              ...lines,
+            ].join('\n'));
+          }
         }
 
         // 4. skills

@@ -3,6 +3,7 @@ import type { AgentRegistry } from '../agents/contracts.js';
 import type { AgentConfig } from '../core/types.js';
 import type { BrainService, SkillLibrary } from '../shared/contracts.js';
 import { globBaseDir, matchAnyGlob, matchGlob, normalizeRel } from '../shared/glob.js';
+import { bridgeCommand } from '../integrations/mcp-bridge/index.js';
 import type { AccessPolicy, ConnectionsService, DirGrant, EffectiveAccess, McpGrant } from './contracts.js';
 
 export interface AccessPolicyDeps {
@@ -11,6 +12,10 @@ export interface AccessPolicyDeps {
   connections: Pick<ConnectionsService, 'get' | 'resolveEnv'>;
   skills: Pick<SkillLibrary, 'resolve'>;
   isModuleEnabled: (moduleId: string) => boolean;
+  /** per-run token for the integrations MCP bridge; without it no bridge is granted */
+  integrationToken?: (agentId: string, taskId: string) => string;
+  /** API base the bridge calls back, e.g. http://127.0.0.1:4000 */
+  apiUrl?: string;
 }
 
 export function createAccessPolicy(deps: AccessPolicyDeps): AccessPolicy {
@@ -33,7 +38,7 @@ export function createAccessPolicy(deps: AccessPolicyDeps): AccessPolicy {
     return dirs;
   };
 
-  function resolve(agent: AgentConfig, task?: { contextProfile?: string }): EffectiveAccess {
+  function resolve(agent: AgentConfig, task?: { id?: string; contextProfile?: string }): EffectiveAccess {
     const readDirs = dirGrants(agent, 'read');
     const writeDirs = dirGrants(agent, 'write');
 
@@ -57,6 +62,18 @@ export function createAccessPolicy(deps: AccessPolicyDeps): AccessPolicy {
         for (const [k, v] of Object.entries(connections.resolveEnv(c))) if (v) envVars[k] = v;
       }
       // composio grants are ignored: modules use Composio server-side
+    }
+
+    const hasIntegrations = Object.values(agent.access.integrations ?? {}).some((g) => (typeof g === 'string' ? g : g.grant) !== 'off');
+    if (hasIntegrations && task?.id && task.contextProfile !== 'lean' && deps.integrationToken && deps.apiUrl) {
+      const { command, args } = bridgeCommand();
+      mcpServers.push({
+        id: 'aios-integrations',
+        command,
+        args,
+        env: { AIOS_API_URL: deps.apiUrl, AIOS_RUN_TOKEN: deps.integrationToken(agent.id, task.id) },
+        allowedTools: ['*'],
+      });
     }
 
     const moduleScopes: Record<string, string[]> = {};

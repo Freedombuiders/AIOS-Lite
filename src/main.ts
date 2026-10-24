@@ -16,6 +16,8 @@ import { createRuntimeRegistry } from './runtimes/index.js';
 import { createBoardService } from './shared/board.js';
 import { createBrainService } from './shared/brain.js';
 import { createContextBuilder } from './shared/context.js';
+import { integrationServiceFor } from './integrations/mount.js';
+import { INTEGRATIONS } from './integrations/registry.js';
 import { createMemoryService } from './shared/memory.js';
 import { createSkillLibrary } from './shared/skills.js';
 import { createAttentionService } from './work/attention.js';
@@ -55,11 +57,21 @@ export function bootstrap(opts: BootstrapOptions = {}): AppDeps {
   const memory = createMemoryService({ db, bus });
   const skills = createSkillLibrary({ dirs: config.skillsDirs, log });
   const board = createBoardService({ db, bus });
-  const context = createContextBuilder({ agents, brain, memory, skills, board, listActions: () => [...(hooks.moduleActions?.values() ?? [])] });
+  const context = createContextBuilder({
+    agents, brain, memory, skills, board,
+    listActions: () => [...(hooks.moduleActions?.values() ?? [])],
+    listIntegrations: () => INTEGRATIONS.map((d) => ({ id: d.id, name: d.name, agentGuide: d.agentGuide })),
+  });
 
   // modules and dispatcher are created last but referenced lazily by the services built before them
-  const lazy: { modules?: AppDeps['modules']; dispatcher?: AppDeps['dispatcher'] } = {};
-  const access = createAccessPolicy({ agents, brain, connections, skills, isModuleEnabled: (id) => lazy.modules?.isEnabled(id) ?? false });
+  const lazy: { modules?: AppDeps['modules']; dispatcher?: AppDeps['dispatcher']; deps?: AppDeps } = {};
+  const access = createAccessPolicy({
+    agents, brain, connections, skills,
+    isModuleEnabled: (id) => lazy.modules?.isEnabled(id) ?? false,
+    // integrations bridge (MCP server `aios-integrations`): calls back into this API with a per-task token
+    apiUrl: `http://${config.host}:${config.port}`,
+    integrationToken: (agentId, taskId) => integrationServiceFor(lazy.deps!).createRunToken(agentId, taskId),
+  });
 
   const tasks = createTaskService({ db, bus, agents, abort: (id) => lazy.dispatcher?.abort(id) ?? false });
   const runs = createRunService({ db, bus });
@@ -74,6 +86,7 @@ export function bootstrap(opts: BootstrapOptions = {}): AppDeps {
     config, db, bus, log, cipher, hooks, agents, runtimes, connections, access, audit, brain, memory, skills, board, context,
     tasks, runs, comments, attention, team, scheduler, chat, stats,
   } as unknown as AppDeps;
+  lazy.deps = deps;
   deps.engine = createEngine(deps);
   deps.dispatcher = createDispatcher({ db, config, agents, tasks, engine: deps.engine, log, bus });
   lazy.dispatcher = deps.dispatcher;

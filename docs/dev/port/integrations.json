@@ -1,0 +1,96 @@
+{
+ "module": "integrations",
+ "entries": [
+  {
+   "from": "src/integrations/types.ts",
+   "to": "src/integrations/types.ts",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "src/integrations/arg-helpers.ts",
+   "to": "src/integrations/arg-helpers.ts",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "src/integrations/media-http.ts",
+   "to": "src/integrations/media-http.ts",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "src/integrations/media-files.ts",
+   "to": "src/integrations/media-files.ts",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "src/integrations/test-fake.ts",
+   "to": "src/integrations/test-fake.ts",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "src/integrations/pancake",
+   "to": "src/integrations/pancake",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "src/integrations/botcake",
+   "to": "src/integrations/botcake",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "src/integrations/pexels",
+   "to": "src/integrations/pexels",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "src/integrations/freesound",
+   "to": "src/integrations/freesound",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "src/integrations/elevenlabs",
+   "to": "src/integrations/elevenlabs",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "src/integrations/fptai",
+   "to": "src/integrations/fptai",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "src/integrations/composio/client.ts",
+   "to": "src/integrations/composio/client.ts",
+   "kind": "B",
+   "note": "composio key source rewired"
+  },
+  {
+   "from": "src/integrations/composio/google.ts",
+   "to": "src/integrations/composio/google.ts",
+   "kind": "B",
+   "note": "composio key source rewired"
+  },
+  {
+   "from": "src/integrations/composio/index.ts",
+   "to": "src/integrations/composio/index.ts",
+   "kind": "B",
+   "note": "composio key source rewired"
+  },
+  {
+   "from": "src/integrations/composio/oauth-routes.ts",
+   "to": "src/integrations/composio/oauth-routes.ts",
+   "kind": "B",
+   "note": "composio key source rewired"
+  }
+ ],
+ "drop": []
+}

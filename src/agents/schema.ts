@@ -13,6 +13,12 @@ const folderGrant = z.strictObject({
   write: strList.default([]),
 });
 
+const integrationGrant = z.enum(['off', 'read', 'ask', 'write']);
+const integrationSetting = z.union([
+  integrationGrant,
+  z.strictObject({ grant: integrationGrant, ask: z.array(z.string()).optional(), allow: z.array(z.string()).optional() }),
+]);
+
 const accessSchema = z
   .strictObject({
     brain: z.record(z.string(), folderGrant).default({}),
@@ -20,8 +26,9 @@ const accessSchema = z
     skills: z.union([z.literal('all'), z.array(z.string())]).default([]),
     connections: z.record(z.string(), z.union([z.literal(true), z.array(z.string())])).default({}),
     modules: z.record(z.string(), z.array(z.string())).default({}),
+    integrations: z.record(z.string(), integrationSetting).default({}),
   })
-  .default({ brain: {}, memory: { team: false, private: true }, skills: [], connections: {}, modules: {} });
+  .default({ brain: {}, memory: { team: false, private: true }, skills: [], connections: {}, modules: {}, integrations: {} });
 
 const agentYamlSchema = z.strictObject({
   name: z.string().min(1).max(80),
@@ -110,6 +117,7 @@ export function parseAgentConfig(raw: unknown, ctx: ParseContext): AgentConfig {
     skills: y.access.skills,
     connections: y.access.connections,
     modules: y.access.modules,
+    ...(Object.keys(y.access.integrations).length ? { integrations: y.access.integrations } : {}),
   };
   const workspace = y.workspace ? path.resolve(ctx.repoRoot, expandHome(y.workspace)) : path.join(ctx.workspacesDir, ctx.id);
   return {
@@ -156,6 +164,7 @@ export function agentToYamlObject(cfg: AgentConfig, opts: { workspacesDir: strin
     skills: cfg.access.skills,
     connections: cfg.access.connections,
     modules: cfg.access.modules,
+    ...(cfg.access.integrations && Object.keys(cfg.access.integrations).length ? { integrations: cfg.access.integrations } : {}),
   };
   return o;
 }

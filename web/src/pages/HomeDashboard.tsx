@@ -8,6 +8,8 @@ import type { LucideIcon } from 'lucide-preact';
 import type { ComponentChildren } from 'preact';
 import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 import { Link } from 'wouter-preact';
+import { approvalIdFromKey } from '@/lib/integrations';
+import { ApprovalButtons } from '@/pages/connections/ApprovalButtons';
 import type { AttentionItem, BoardEntry, Run, Schedule, TaskStatus } from '@core/types';
 import { AgentAvatar } from '@/components/AgentAvatar';
 import { QuickAssign } from '@/components/QuickAssign';
@@ -93,6 +95,7 @@ function NeedsYou({ items, loaded, error, onChanged }: { items: AttentionItem[];
                   {a.detail && <p title={a.detail}>{a.detail}</p>}
                 </div>
                 <div class="hd-attn-actions">
+                  {approvalIdFromKey(a.key) && <ApprovalButtons id={approvalIdFromKey(a.key)!} onDone={onChanged} />}
                   <button type="button" class="hd-icon-btn" title="Đã xử lý" aria-label="Đã xử lý" disabled={busy === a.key} onClick={() => void resolve(a.key)}>
                     <CircleCheck size={14} />
                   </button>

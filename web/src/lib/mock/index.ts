@@ -4,6 +4,7 @@ import type { Memory, Message, Schedule, Task, TaskStatus } from '@core/types';
 import type { AppEvent } from '../events';
 import { ApiError } from '../errors';
 import * as d from './data';
+import * as ig from './integrations';
 
 export function mockEnabled(): boolean {
   try {
@@ -355,6 +356,49 @@ on('POST', '/modules/:id/purge', ([id], _q, b) => {
 on('GET', '/m/_template/notes', () => ({ items: [{ id: 1, text: 'Ghi chú mẫu đầu tiên', answer: null, created_at: d.NOW() }] }));
 on('GET', '/modules/:id/settings', () => ({}));
 on('PUT', '/modules/:id/settings', (_p, _q, b) => b);
+
+// ---- integrations (docs/dev/INTEGRATIONS-PLAN.md)
+if (!d.attention.some((a) => a.key.startsWith('integration:approval:'))) d.attention.push(ig.approvalAttention());
+const findIntegration = (id: string) => {
+  const i = ig.integrations.find((x) => x.id === id);
+  if (!i) throw new MockError(404, 'not_found', 'Không tìm thấy integration');
+  return i;
+};
+on('GET', '/integrations', () => ({ items: ig.integrations }));
+on('GET', '/integrations/approvals', (_p, q) => ({ items: ig.approvals.filter((a) => !q.get('status') || a.status === q.get('status')) }));
+const decide = (status: 'approved' | 'rejected'): Route => ([id], _q, b) => {
+  const a = ig.approvals.find((x) => String(x.id) === id);
+  if (!a || a.status !== 'pending') throw new MockError(404, 'not_found', 'Không tìm thấy lệnh đang chờ duyệt');
+  a.status = status;
+  a.decidedAt = d.NOW();
+  if (status === 'approved') a.result = { ok: true, always: !!b?.always };
+  const i = d.attention.findIndex((x) => x.key === `integration:approval:${a.id}`);
+  if (i >= 0) emit({ type: 'attention', item: d.attention.splice(i, 1)[0]!, resolved: true });
+  return a;
+};
+on('POST', '/integrations/approvals/:id/approve', decide('approved'));
+on('POST', '/integrations/approvals/:id/reject', decide('rejected'));
+on('PUT', '/integrations/:id', ([id], _q, b) => {
+  const i = findIntegration(id!);
+  const key = i.fields.find((f) => f.kind === 'secret');
+  if (key && !b.values[key.key] && !key.value) throw new MockError(400, 'bad_request', 'Không kết nối được: thiếu khoá.');
+  i.status = 'ok';
+  i.accountLabel = i.accountLabel || 'Tài khoản mẫu';
+  i.checkedAt = d.NOW();
+  for (const f of i.fields) if (f.kind === 'secret' && b.values[f.key]) f.value = `••••${String(b.values[f.key]).slice(-4)}`;
+  return i;
+});
+on('POST', '/integrations/:id/test', ([id]) => {
+  const i = findIntegration(id!);
+  return i.status === 'error' ? { ok: false, detail: i.statusDetail } : { ok: i.status !== 'not_configured', detail: i.status === 'not_configured' ? 'Chưa nhập khoá.' : 'Kết nối hoạt động.', accountLabel: i.accountLabel };
+});
+on('DELETE', '/integrations/:id', ([id]) => {
+  const i = findIntegration(id!);
+  Object.assign(i, { status: 'not_configured', accountLabel: '', statusDetail: '' });
+  return { ok: true };
+});
+on('GET', '/agents/:id/integrations', ([id]) => ({ grants: ig.agentGrants[id!] ?? {} }));
+on('PUT', '/agents/:id/integrations', ([id], _q, b) => ({ grants: (ig.agentGrants[id!] = b.grants) }));
 
 export async function mockRequest<T>(method: string, rawPath: string, body?: unknown): Promise<T> {
   await delay(120);

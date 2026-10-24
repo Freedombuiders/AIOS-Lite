@@ -12,7 +12,7 @@ import { protectValue, redactString, redactValue } from './redact.js';
 describe('db', () => {
   it('applies core migrations once and supports accent-insensitive FTS', () => {
     const db = openDb(':memory:');
-    expect(migrateCore(db)).toEqual(['001_core']);
+    expect(migrateCore(db)).toEqual(['001_core', '002_integrations']);
     expect(migrateCore(db)).toEqual([]);
     db.prepare("INSERT INTO memories (agent_id, content) VALUES (NULL, 'Khách hàng ưu tiên báo giá VND')").run();
     const hits = db.prepare("SELECT rowid FROM memories_fts WHERE memories_fts MATCH 'khach hang'").all();

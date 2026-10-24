@@ -1,0 +1,8 @@
+{
+ "module": "integrations-web",
+ "entries": [
+  { "from": "web/src/pages/Integrations.tsx", "to": "web/src/pages/connections/IntegrationsTab.tsx", "kind": "B", "note": "owner-only; adapted to /api/integrations contract, MCP hubs dropped" },
+  { "from": "web/src/lib/integrations.ts", "to": "web/src/lib/integrations.ts", "kind": "B", "note": "owner-only; rewritten to the AIOS contract" }
+ ],
+ "drop": []
+}

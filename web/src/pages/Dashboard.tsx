@@ -1,6 +1,8 @@
 import { Check, ExternalLink } from 'lucide-preact';
 import { useCallback } from 'preact/hooks';
 import { Link } from 'wouter-preact';
+import { approvalIdFromKey } from '@/lib/integrations';
+import { ApprovalButtons } from '@/pages/connections/ApprovalButtons';
 import type { AttentionItem, BoardEntry, TaskStatus } from '@core/types';
 import { AgentAvatar } from '@/components/AgentAvatar';
 import { PageHeader } from '@/components/PageHeader';
@@ -39,6 +41,7 @@ function AttentionList({ items, onChange }: { items: AttentionItem[]; onChange: 
             <div class="truncate text-[12.5px] font-medium">{a.title}</div>
             {a.detail && <div class="hint truncate">{a.detail}</div>}
           </div>
+          {approvalIdFromKey(a.key) && <ApprovalButtons id={approvalIdFromKey(a.key)!} onDone={onChange} />}
           {a.link && (
             <Link href={a.link} class="control-button control-sm no-underline">
               <ExternalLink size={11} /> Mở

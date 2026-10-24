@@ -24,7 +24,13 @@ export interface AgentAccessConfig {
   connections: Record<string, string[] | true>;
   /** module id → scopes declared by that module (`["inbox.read","reply.draft"]`) */
   modules: Record<string, string[]>;
+  /** integration id → grant (`pancake: read`), or per-command overrides (`{ grant: write, ask: [...], allow: [...] }`). Missing = off. */
+  integrations?: Record<string, IntegrationGrantSetting>;
 }
+
+/** off: not visible · read: read commands · ask: reads run, writes wait for the owner · write: reads + writes (destructive still asks) */
+export type IntegrationGrant = 'off' | 'read' | 'ask' | 'write';
+export type IntegrationGrantSetting = IntegrationGrant | { grant: IntegrationGrant; ask?: string[]; allow?: string[] };
 
 export interface AgentConfig {
   id: string;

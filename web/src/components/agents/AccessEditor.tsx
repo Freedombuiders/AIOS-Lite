@@ -8,6 +8,7 @@ import type { AccessEnforcement, AgentAccessResponse, BrainFolderView, Connectio
 import { pushToast } from '@/lib/toasts';
 import { useFetch } from '@/lib/useFetch';
 import { moduleInfos, scopeLabels } from '@/module-host/host';
+import { IntegrationGrants } from './IntegrationGrants';
 
 const ENF_LABEL: Record<Enforcement, string> = { hard: 'Chặn cứng', soft: 'Chỉ dặn trong prompt', none: 'Không chặn' };
 const ENF_TONE: Record<Enforcement, 'success' | 'warn' | 'error'> = { hard: 'success', soft: 'warn', none: 'error' };
@@ -186,6 +187,8 @@ export function AccessEditor({ agentId, access, runtimeLabel, onSaved }: { agent
           })}
         </div>
       </Card>
+
+      <IntegrationGrants agentId={agentId} />
 
       <Card title="Module (quyền theo module đang bật)">
         {enabledModules.length === 0 && <div class="hint">Chưa bật module nào. Vào trang Module để thêm.</div>}

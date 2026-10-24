@@ -11,6 +11,7 @@ import { agentsRoutes } from './routes/agents.js';
 import { brainRoutes } from './routes/brain.js';
 import { chatRoutes } from './routes/chat.js';
 import { connectionsRoutes } from './routes/connections.js';
+import { mountIntegrationRoutes, RUN_TOKEN_PATHS } from './routes/integrations.js';
 import { memoryRoutes } from './routes/memory.js';
 import { miscRoutes } from './routes/misc.js';
 import { modulesRoutes } from './routes/modules.js';
@@ -54,7 +55,7 @@ export function createApiServer(deps: AppDeps, opts: ApiServerOptions = {}): Api
   app.notFound((c) => c.json(errorBody('not_found', 'Không tìm thấy đường dẫn này.'), 404));
 
   app.use('/api/*', async (c, next) => {
-    if (token) {
+    if (token && !RUN_TOKEN_PATHS.includes(c.req.path)) {
       const header = c.req.header('authorization') ?? '';
       const bearer = header.toLowerCase().startsWith('bearer ') ? header.slice(7).trim() : '';
       const query = c.req.path === '/api/events' ? (c.req.query('token') ?? '') : '';
@@ -67,6 +68,7 @@ export function createApiServer(deps: AppDeps, opts: ApiServerOptions = {}): Api
   systemRoutes(app, deps);
   agentsRoutes(app, deps);
   connectionsRoutes(app, deps);
+  mountIntegrationRoutes(app, deps);
   tasksRoutes(app, deps);
   runsRoutes(app, deps);
   schedulesRoutes(app, deps);

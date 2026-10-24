@@ -193,6 +193,10 @@ Lưu ý: `npm test` đọc thư mục `agents/` thật để kiểm tra các age
 
 Khoá Composio nhập ở trang **Kết nối**; xem [docs/MODULES.md](docs/MODULES.md) để biết chi tiết từng module.
 
+## Integrations (Pancake, Botcake, Composio…)
+
+Vào **Kết nối → Integrations**, nhập key, bấm **Lưu & kiểm tra**. Sau đó vào **Agents → <agent> → Quyền → Integration** để chọn mức quyền: Tắt, Chỉ đọc, Hỏi trước, hoặc Đọc & ghi. Agent gọi lệnh qua tool MCP `aios-integrations` (cần runtime có MCP: Claude, Codex, Hermes; Grok chặn mềm). Lệnh chờ duyệt nằm ở tab **Chờ duyệt** và ở mục **Cần bạn**. Chi tiết: `docs/ARCHITECTURE.md` §5.3b.
+
 ## Giấy phép
 
 - **Lõi AIOS-Lite** theo giấy phép **MIT**, © 2026 Tony Hoang (xem [LICENSE](LICENSE)). Đây là quyết định của chủ dự án. Repo hiện nằm ở GitHub riêng tư `hoanghd218/AIOS-Lite` và dự kiến mở mã nguồn sau.

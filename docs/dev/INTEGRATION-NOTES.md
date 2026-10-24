@@ -17,3 +17,4 @@
 - [ ] Toast của lõi chưa có nút hành động ("Hoàn tác"). Marketing đã bỏ nút undo khi xoá lịch; thêm lại khi toast hỗ trợ `action`.
 - [x] Lõi: chỉ thị `<aios-action>` (`hooks.moduleActions`) và `agentContext` (`hooks.agentContext`) đã thêm, có test trong `src/work/actions.test.ts`.
 - [ ] Care: kiểm tra care hỗ trợ cả hai kiểu nhận tin. Zalo để care gọi `connector.sync()` theo chu kỳ (kéo); Gmail đẩy tin qua `careChannels.ingest()`. Kiểm khi ghép ở cổng P2.
+- [ ] P4: nối `main.ts` sau khi I1 xong: `createAccessPolicy({..., apiUrl, integrationToken})`, `createContextBuilder({..., listIntegrations})`; kiểm kiểu `taskId` của `createRunToken`.
