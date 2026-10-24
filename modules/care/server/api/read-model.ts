@@ -199,6 +199,13 @@ export class CareReadModel {
     this.wfEnv = env;
   }
 
+  /** Stored picture of a chat conversation (the channel's connector). Late-bound; without it rows carry none. */
+  private avatarOf: ((rec: CareConversationRecord) => string | null) | null = null;
+
+  useAvatars(source: (rec: CareConversationRecord) => string | null): void {
+    this.avatarOf = source;
+  }
+
   /** Accounts whose read gate is open. */
   readableAccountIds(): string[] {
     return (this.db.prepare('SELECT id FROM care_accounts ORDER BY created_at ASC, id ASC').all() as Array<{ id: string }>)
@@ -345,6 +352,14 @@ export class CareReadModel {
     lmRole: string | null,
     workflow?: CareConversationWorkflowDto,
   ): CareConversationDto {
+    let avatarUrl: string | null = null;
+    if (channel !== 'email' && this.avatarOf) {
+      try {
+        avatarUrl = this.avatarOf(rec);
+      } catch {
+        avatarUrl = null; // a picture is never worth failing the inbox for
+      }
+    }
     return {
       id: rec.id,
       accountId: rec.accountId,
@@ -365,6 +380,7 @@ export class CareReadModel {
       lastMessagePreview: rec.lastMessageId && this.canReadSource(rec.accountId) ? toPreview(this.stores.messages.getMessage(rec.lastMessageId)) : null,
       lastActivityMs: rec.lastMessageAtMs,
       revision: rec.revision,
+      ...(avatarUrl ? { avatarUrl } : {}),
       ...(workflow ? { workflow } : {}),
     };
   }
@@ -623,17 +639,22 @@ export class CareReadModel {
     const cursorOf = (m: CareMessageRecord): string => encodeCursor(m.sentAtMs, m.id);
     // Display names only in groups / topics; looked up once per distinct sender of the page.
     const kind = this.stores.conversations.getConversation(conversationId)?.kind;
-    const names = new Map<string, string | null>();
+    const names = new Map<string, { name: string | null; nativeId: string }>();
     const dto = (m: CareMessageRecord): CareMessageDto => {
       let name: string | null = null;
       if ((kind === 'group' || kind === 'topic') && m.senderIdentityId && m.senderRole === 'customer') {
         if (!names.has(m.senderIdentityId)) {
           const identity = this.stores.identities.getIdentity(m.senderIdentityId);
+          const nativeId = identity?.externalIdentityId.trim().toLowerCase() ?? '';
           // Ingest names an unknown sender after its native ID; that is an ID, not a name, so it is not shown.
           const display = identity?.displayName?.trim() || null;
-          names.set(m.senderIdentityId, display && display.toLowerCase() !== identity?.externalIdentityId.trim().toLowerCase() ? display : null);
+          names.set(m.senderIdentityId, { name: display && display.toLowerCase() !== nativeId ? display : null, nativeId });
         }
-        name = names.get(m.senderIdentityId) ?? null;
+        const known = names.get(m.senderIdentityId)!;
+        // No real name stored: the display name the channel sent with this message (Zalo's dName), same ID rule.
+        const sent = (m.metadata as { rawEnvelope?: { senderName?: unknown } }).rawEnvelope?.senderName;
+        const sentName = typeof sent === 'string' ? sent.trim().slice(0, 200) : '';
+        name = known.name ?? (sentName && sentName.toLowerCase() !== known.nativeId ? sentName : null);
       }
       return toMessageDto(m, name);
     };
@@ -680,6 +701,25 @@ export class CareReadModel {
         aroundId: null,
       };
     });
+  }
+
+  /** Customer senders of the newest `scan` messages of a conversation (identity id + native id), at most `limit`. */
+  recentSenders(conversationId: string, scan = 200, limit = 50): Array<{ identityId: string; nativeId: string }> {
+    const rows = this.db
+      .prepare(
+        `SELECT sender_identity_id AS id, MAX(sent_at) AS last FROM (
+           SELECT sender_identity_id, sent_at FROM care_messages
+           WHERE conversation_id = ? AND sender_role = 'customer' AND sender_identity_id IS NOT NULL
+           ORDER BY sent_at DESC LIMIT ?)
+         GROUP BY sender_identity_id ORDER BY last DESC LIMIT ?`,
+      )
+      .all(conversationId, scan, limit) as Array<{ id: string }>;
+    const out: Array<{ identityId: string; nativeId: string }> = [];
+    for (const r of rows) {
+      const identity = this.stores.identities.getIdentity(r.id);
+      if (identity) out.push({ identityId: identity.id, nativeId: identity.externalIdentityId });
+    }
+    return out;
   }
 
   /** Throws 404 unless the message belongs to the conversation; used by deep links and read markers. */

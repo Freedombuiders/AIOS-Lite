@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { defineModule, type ModuleContext } from '../../../src/modules/sdk.js';
 import type { CareConnector } from '../../_lib/care-kit/index.js';
+import { createCareProfiles } from './care-profiles.js';
 import { ZaloCareConnector } from './connectors/zalo/zalo-connector.js';
 import { createDaemonZaloTransport } from './connectors/zalo/daemon-transport.js';
 import { callZaloDaemon, DEFAULT_ZALO_CONTROL_PORT } from './control.js';
@@ -56,6 +57,7 @@ function runtime(ctx: ModuleContext): Runtime {
     log: ctx.log,
     env: { ZALO_MARKETING_ENABLED: ctx.settings.get<boolean>('marketingEnabled', true) ? '1' : '0' },
   });
+  const people = createCareProfiles();
   const connector = new ZaloCareConnector({
     transport: createDaemonZaloTransport(),
     // The daemon does not fence by epoch; follow care's value when it offers one.
@@ -64,6 +66,9 @@ function runtime(ctx: ModuleContext): Runtime {
       const t = getZaloThreadByExternal(accountId, externalKey);
       return t ? (t.thread_type === 'group' ? 'group' : 'user') : null;
     },
+    // Care's inbox shows the real names and avatars this module knows (resolved through the daemon's budgets).
+    profiles: (accountId, externalKey, senderUids) => people.profiles(accountId, externalKey, senderUids),
+    storedAvatarUrl: (accountId, externalKey) => people.storedAvatarUrl(accountId, externalKey),
   });
   rt = { supervisor, connector, linked: false, ensured: new Set(), pushed: null, noticeSeq: 0 };
   runtimes.set(ctx, rt);

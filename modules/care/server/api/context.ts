@@ -8,7 +8,9 @@ import type { CareReadModel } from './read-model.js';
 import type { CareApiChannel } from './dto.js';
 import type { CareAccountRecord } from '../../../_lib/care-kit/types.js';
 import type { CareCustomerOps } from '../application/customer-ops.js';
+import type { CareMediaCache } from '../application/media-cache.js';
 import type { CareOutboxService } from '../application/outbox-service.js';
+import type { ConnectorRegistry } from '../connectors/registry.js';
 import type { BacklogSource } from '../runtime/backlog.js';
 import type { CareWorkflowService } from '../workflow/contract.js';
 
@@ -31,6 +33,10 @@ export interface CareApiContext {
   actor: string;
   /** Inbox v2: workflow state, notes, canned replies. Throws a typed 503 like model() when the store is unavailable. */
   workflow(): CareWorkflowService;
+  /** Stored copies of chat images; absent: the media route answers 404. */
+  media: Pick<CareMediaCache, 'get'> | undefined;
+  /** Channel connectors (names and avatars); absent: the profiles route answers 404 and rows carry no picture. */
+  connectors: ConnectorRegistry | undefined;
 }
 
 const MAX_BODY_CHARS = 300_000;

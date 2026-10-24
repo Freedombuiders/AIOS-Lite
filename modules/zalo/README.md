@@ -30,7 +30,7 @@ AIOS (một tiến trình)                         Dịch vụ Zalo (tiến trì
 - **Tin đến:** daemon đệm tin websocket của mỗi nick; `care` đọc qua `connector.sync()` (feed) rồi xác nhận bằng `commit()`. Tin đồng thời vẫn được lưu vào `zalo_messages` để chạy marketing.
 - **Tin đi:** `connector.dispatch()` → route `/care/accounts/:id/send` của daemon → `api.sendMessage` qua bộ giới hạn chống khoá (trần ngày, giờ nghỉ, khoá nick). Mỗi lần gửi được ghi một lần theo `requestId`, gửi lại cùng yêu cầu không gửi lần hai.
 - **Mã tài khoản:** `care` dùng thẳng `zalo_accounts.id` làm mã tài khoản (không có bảng cầu nối).
-- **Ảnh cho lượt agent:** `ctx.modules.get('zalo').turnImages(accountId, externalKey)` tải tối đa 4 ảnh gần nhất của khách (chỉ từ CDN Zalo) vào thư mục tạm; gọi `cleanup()` khi lượt kết thúc.
+- **Ảnh và PDF cho lượt agent:** `care` tự lấy qua `connector.fetchAttachment` (chỉ CDN Zalo) trong `modules/care/server/application/turn-media.ts`: tối đa 4 ảnh và 2 PDF gần nhất của khách, chép vào thư mục tạm và xoá khi lượt kết thúc. `provides.turnImages()` cũ không còn ai gọi.
 - **Không có `care`:** Zalo vẫn lưu tin, quản lý nick và chạy marketing. **Agent không bao giờ chạy trong module này**; không còn đường trả lời riêng (đã bỏ `responder`, `gate`, `agent-turn`).
 - Giao diện: `provides['care.channelPanel']` là `ZaloChannelPanel`, `care` hiển thị trong thẻ tài khoản (trạng thái, đăng nhập QR, giới hạn từng nick, cài đặt chống khoá).
 
@@ -69,7 +69,7 @@ API ở `/api/m/zalo/*`: `status`, `settings`, `accounts[/:id[/:action]]`, `thre
 ## Agent mẫu và skill
 
 - Agent **`zalo-care`** (runtime `claude`, model `haiku`, context `lean`): quyền `care: inbox.read, reply.draft` và `zalo: messages.read`. Chỉ soạn; việc gửi do `care` quyết định.
-- Skill **`zalo-reply`**: trong nhóm chỉ lên tiếng khi có người cần hỗ trợ, không bao giờ bịa giá, kết quả là JSON `{action: reply|skip|handoff, text, reason}`.
+- Skill **`zalo-reply`**: trong nhóm chỉ lên tiếng khi có người cần hỗ trợ, không bao giờ bịa giá, kết quả theo đúng mẫu JSON của `care` (`reply` | `skip` | `handoff`). Ảnh và PDF của khách được `care` gửi kèm lượt agent (`turn-media.ts`).
 
 ## Kiểm thử
 

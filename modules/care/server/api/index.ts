@@ -30,6 +30,10 @@ import { registerDraftRoutes } from './routes-drafts.js';
 import { registerRuntimeRoutes } from './routes-runtime.js';
 import { registerHealthRoutes } from './routes-health.js';
 import { registerInboxDeliveryRoutes } from './routes-inbox-delivery.js';
+import { registerMediaRoutes } from './routes-media.js';
+import { registerProfileRoutes, storedAvatarSource } from './routes-profiles.js';
+import type { CareMediaCache } from '../application/media-cache.js';
+import type { ConnectorRegistry } from '../connectors/registry.js';
 import { registerWorkflowRoutes } from './routes-workflow.js';
 import { createCareWorkflowService, type CareWorkflowService } from '../workflow/index.js';
 
@@ -63,6 +67,10 @@ export interface CareApiDeps {
   signatureFor?: SignatureSource;
   /** Acting-party label recorded on audited writes. Default `dashboard`. */
   actor?: string;
+  /** Stored copies of chat images for `GET /messages/:id/media`. Default: none (the route answers 404). */
+  media?: Pick<CareMediaCache, 'get'>;
+  /** Channel connectors, for `GET /conversations/:id/profiles` and the list rows' `avatarUrl`. Default: none. */
+  connectors?: ConnectorRegistry;
   /** Data-access/module read gate. Evaluated per request and on every SSE tick. Default: allowed. */
   canRead?: () => boolean;
   now?: () => number;
@@ -100,6 +108,7 @@ export function registerCareRoutes(app: Hono, deps: CareApiDeps = {}): CareApiHa
       }
       if (!deps.db) throw new ApiError('READ_MODEL_UNAVAILABLE', 503);
       model = new CareReadModel(deps.db, stores, (accountId) => api.canReadSource(accountId));
+      if (deps.connectors) model.useAvatars(storedAvatarSource(stores, deps.connectors));
       return model;
     },
     get replyPort(): CareReplyPort | undefined {
@@ -149,6 +158,8 @@ export function registerCareRoutes(app: Hono, deps: CareApiDeps = {}): CareApiHa
       }
       return wf;
     },
+    media: deps.media,
+    connectors: deps.connectors,
   };
 
   const sub = new Hono();
@@ -168,6 +179,8 @@ export function registerCareRoutes(app: Hono, deps: CareApiDeps = {}): CareApiHa
 
   // Inbox v2 first: their paths are new and must win over nothing else, but keep them ahead of the generic groups.
   registerInboxDeliveryRoutes(sub, api);
+  registerMediaRoutes(sub, api);
+  registerProfileRoutes(sub, api);
   registerWorkflowRoutes(sub, api);
   registerReadRoutes(sub, api);
   registerReplyRoutes(sub, api);

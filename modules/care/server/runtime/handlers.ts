@@ -34,6 +34,8 @@ export interface HandlerDeps {
   connectors: ConnectorRegistry;
   /** Called after every finished agent turn (the module raises owner attention from it). Must not throw. */
   onTurnOutcome?: (outcome: AgentTurnOutcome, conversationId: string) => void;
+  /** Called with the id of every message a sync stored for the first time (the module copies its images). Must not throw. */
+  onMessageStored?: (messageId: string) => void;
   /** Pages one sync job reads before yielding (the next poll continues from the stored checkpoint). */
   syncMaxPages?: number;
   syncPageLimit?: number;
@@ -49,6 +51,13 @@ const isTerminalError = (e: unknown) => e instanceof CareError && (e.code === 'N
 export function createCareHandlers(deps: HandlerDeps): WorkerHandlers {
   const { stores, turn, dispatcher, ingest, connectors } = deps;
   const now = deps.now ?? (() => Date.now());
+  const messageStored = (messageId: string): void => {
+    try {
+      deps.onMessageStored?.(messageId);
+    } catch {
+      /* a side effect of ingest never fails the sync */
+    }
+  };
 
   const inbound_turn = async (ctx: JobContext): Promise<JobOutcome> => {
     const payload = ctx.job.payload as { conversationId?: unknown; messageId?: unknown };
@@ -143,7 +152,8 @@ export function createCareHandlers(deps: HandlerDeps): WorkerHandlers {
         for (const event of result.events) {
           ctx.assertAuthorised();
           try {
-            ingest.ingestNormalizedEvent({ ...event, epoch: event.epoch ?? ctx.epoch });
+            const res = ingest.ingestNormalizedEvent({ ...event, epoch: event.epoch ?? ctx.epoch });
+            if (res.outcome === 'created' && res.messageId) messageStored(res.messageId);
           } catch (e) {
             // lost authority: nothing may be committed
             if (!connector.commitSync || (e instanceof CareError && e.code === 'FENCING_REJECTED')) throw e;

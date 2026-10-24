@@ -8,6 +8,7 @@ export const MOCK_CAPABILITIES: RuntimeCapabilities = {
   systemPrompt: 'inline',
   reportsCost: true,
   images: false,
+  documents: false,
   noTools: true,
   enforces: {
     context: 'hard',

@@ -78,6 +78,7 @@ export interface RuntimeCapabilities {
   systemPrompt: 'native' | 'inline';
   reportsCost: boolean;
   images: boolean;
+  documents?: boolean;
   noTools: boolean;
   enforces: AccessEnforcement;
 }

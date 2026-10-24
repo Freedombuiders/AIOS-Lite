@@ -45,7 +45,7 @@ export function createModuleContext(
       trigger: 'module',
       source,
       priority: input.priority ?? 5,
-      meta: { ...input.meta, moduleContext: input.moduleContext, images: input.images },
+      meta: { ...input.meta, moduleContext: input.moduleContext, images: input.images, documents: input.documents },
     });
     try {
       const done = await deps.tasks.waitFor(task.id, { timeoutMs: input.timeoutMs ?? deps.config.runTimeoutMs, signal: input.signal });
@@ -102,6 +102,16 @@ export function createModuleContext(
       list: () => deps.agents.list(),
       get: (agentId) => deps.agents.get(agentId),
       runLean,
+      attachments: (agentId) => {
+        const runtime = deps.agents.get(agentId)?.runtime;
+        let caps: { images: boolean; documents: boolean } | undefined;
+        try {
+          caps = runtime ? deps.runtimes.get(runtime).capabilities : undefined;
+        } catch {
+          caps = undefined; // runtime not registered
+        }
+        return { images: caps?.images === true, documents: caps?.documents === true };
+      },
     },
     access: {
       can: (agentId, scope) => deps.access.can(agentId, id, scope),

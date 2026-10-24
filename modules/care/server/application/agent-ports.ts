@@ -84,6 +84,9 @@ export interface AgentRunRequest {
   boundary: AgentToolBoundary;
   timeoutMs: number;
   signal: AbortSignal;
+  /** Customer images / PDFs for this turn (absolute paths, removed after the turn). */
+  images?: string[];
+  documents?: string[];
 }
 
 export interface AgentRunOutput {

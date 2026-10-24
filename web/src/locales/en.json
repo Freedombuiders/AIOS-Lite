@@ -1835,8 +1835,7 @@
         "deleteFailed": "Could not delete the note"
       },
       "media": {
-        "open": "Open image {name}",
-        "saved": "saved in FreedomOS"
+        "open": "Open image {name}"
       },
       "alerts": {
         "group": "Notifications in this browser",

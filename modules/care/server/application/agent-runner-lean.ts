@@ -28,6 +28,8 @@ export function createLeanAgentRunner(ctx: LeanContext): AgentRunner {
         prompt: req.prompt,
         timeoutMs: req.timeoutMs,
         signal: req.signal,
+        ...(req.images?.length ? { images: req.images } : {}),
+        ...(req.documents?.length ? { documents: req.documents } : {}),
         meta: { runId: req.runId },
       });
       if (req.signal.aborted) throw new AgentRunnerError('aborted', 'aborted');

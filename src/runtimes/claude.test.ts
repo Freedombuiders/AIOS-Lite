@@ -1,7 +1,7 @@
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { buildClaudeArgs, claudeResultFrom, createClaudeParser, createClaudeRuntime } from './claude.js';
+import { buildClaudeArgs, buildClaudeInput, claudeResultFrom, createClaudeParser, createClaudeRuntime } from './claude.js';
 import { fixture, makeReq, tmpCwd } from './test-util.js';
 import type { McpGrant } from '../access/contracts.js';
 
@@ -86,6 +86,44 @@ describe('buildClaudeArgs', () => {
 });
 
 const line = (o: unknown) => JSON.stringify(o);
+
+describe('attachments', () => {
+  const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3]);
+  const PDF = Buffer.from('%PDF-1.7\n...');
+
+  it('switch stdin to one stream-json message only when there is something to attach', () => {
+    expect(build({ tools: 'none' }).args).not.toContain('--input-format');
+    expect(after(build({ tools: 'none', images: ['/i/a.jpg'] }).args, '--input-format')[0]).toBe('stream-json');
+    expect(after(build({ documents: ['/d/a.pdf'] }).args, '--input-format')[0]).toBe('stream-json');
+  });
+
+  it('prompt first, then each attachment behind its file name; wrong bytes, missing files and wrong kinds are left out', async () => {
+    const dir = await tmpCwd();
+    const f = (name: string, bytes: Buffer) => writeFile(path.join(dir, name), bytes).then(() => path.join(dir, name));
+    const img = await f('anh-1.jpg', JPEG);
+    const pdf = await f('tep-1.pdf', PDF);
+    const fakeImg = await f('anh-2.jpg', Buffer.from('<svg/>'));
+    const line = await buildClaudeInput({ prompt: 'xem giúp', images: [img, fakeImg, pdf, path.join(dir, 'missing.png')], documents: [pdf, img] });
+    expect(line.endsWith('\n')).toBe(true);
+    const msg = JSON.parse(line);
+    expect(msg).toMatchObject({ type: 'user', message: { role: 'user' } });
+    expect(msg.message.content).toEqual([
+      { type: 'text', text: 'xem giúp' },
+      { type: 'text', text: 'Tệp đính kèm: anh-1.jpg' },
+      { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: JPEG.toString('base64') } },
+      { type: 'text', text: 'Tệp đính kèm: tep-1.pdf' },
+      { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: PDF.toString('base64') } },
+    ]);
+  });
+
+  it('an image over the provider limit is left out', async () => {
+    const dir = await tmpCwd();
+    const big = path.join(dir, 'big.jpg');
+    await writeFile(big, Buffer.concat([JPEG, Buffer.alloc(5 * 1024 * 1024)]));
+    const msg = JSON.parse(await buildClaudeInput({ prompt: 'x', images: [big] }));
+    expect(msg.message.content).toEqual([{ type: 'text', text: 'x' }]);
+  });
+});
 
 describe('claude parser', () => {
   it('reads the recorded real run', async () => {

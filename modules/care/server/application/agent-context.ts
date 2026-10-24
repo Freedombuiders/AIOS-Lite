@@ -118,6 +118,8 @@ export interface AgentContext {
   excluded: Array<{ messageId: string; reason: ContextExclusionReason }>;
   expansions: Array<{ source: string; included: boolean; reason: string }>;
   expansionBlocks: string[];
+  /** Kept messages that carry attachments, newest first (what turn media may hand to the model). */
+  withAttachments: CareMessageRecord[];
 }
 
 const OUTBOUND_ROLES = new Set(['self', 'operator', 'agent']);
@@ -138,7 +140,7 @@ function iso(ms: number): string {
   return new Date(ms).toISOString().slice(0, 16) + 'Z';
 }
 
-function messageBody(m: CareMessageRecord, maxChars: number): string {
+function messageBody(m: CareMessageRecord, maxChars: number, attached?: ReadonlyMap<string, string>): string {
   const lines: string[] = [];
   if (m.metadata.type === 'email') {
     if (m.metadata.subject) lines.push(`Subject: ${m.metadata.subject}`);
@@ -146,9 +148,10 @@ function messageBody(m: CareMessageRecord, maxChars: number): string {
   } else {
     lines.push(m.text);
   }
-  for (const a of m.metadata.attachments ?? []) {
-    lines.push(`[attachment: ${a.fileName || 'file'} (${a.mimeType || 'unknown'}) - content not available to you]`);
-  }
+  (m.metadata.attachments ?? []).forEach((a, i) => {
+    const name = attached?.get(`${m.id}:${i}`);
+    lines.push(`[attachment: ${a.fileName || 'file'} (${a.mimeType || 'unknown'}) - ${name ? `attached as ${name}` : 'content not available to you'}]`);
+  });
   const joined = neutralizeUntrustedMarkup(lines.join('\n').replace(/\r\n?/g, '\n').trim());
   return joined.length > maxChars ? `${joined.slice(0, maxChars).trimEnd()} ...[truncated]` : joined;
 }
@@ -169,6 +172,8 @@ export interface BuildContextInput {
    * caller). Without it a Telegram conversation is never read for a model; every other source channel is unaffected.
    */
   telegramBotGroupOpen?: boolean;
+  /** Attachments handed to the model with this turn: `${messageId}:${index}` -> file name (see turn-media.ts). */
+  attached?: ReadonlyMap<string, string>;
 }
 
 export function buildAgentContext(input: BuildContextInput): AgentContext {
@@ -215,7 +220,7 @@ export function buildAgentContext(input: BuildContextInput): AgentContext {
     }
     // The trigger is always kept; if it alone is over budget its text is shortened.
     const cap = isTrigger ? Math.min(limits.maxCharsPerMessage, Math.max(200, limits.maxTokens * 3 - 400)) : limits.maxCharsPerMessage;
-    const body = messageBody(m, cap);
+    const body = messageBody(m, cap, input.attached);
     const cost = estimateTokens(body) + 20;
     if (!isTrigger && tokens + cost > limits.maxTokens) {
       truncated = true;
@@ -268,5 +273,6 @@ export function buildAgentContext(input: BuildContextInput): AgentContext {
     excluded,
     expansions,
     expansionBlocks,
+    withAttachments: kept.filter(({ m }) => (m.metadata.attachments ?? []).length > 0).map(({ m }) => m).reverse(),
   };
 }

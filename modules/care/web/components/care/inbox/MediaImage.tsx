@@ -1,24 +1,51 @@
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
-import { tokenizedSseUrl } from '@/lib/api';
+import { apiFetch } from '@/lib/api';
 import { ct } from '@modules/care/web/lib/care/i18n';
 
-/** URL of a stored inbound image (Zalo). 404 when the file was never cached or is not an image. */
-export function mediaUrl(messageId: string, index: number): string {
-  return tokenizedSseUrl(`/api/m/care/messages/${encodeURIComponent(messageId)}/media?i=${index}`);
+/** Stored copy of image `index` of a message. 404 when it is not an image or no copy can be made. */
+export function mediaPath(messageId: string, index: number): string {
+  return `/api/m/care/messages/${encodeURIComponent(messageId)}/media?i=${index}`;
 }
 
-/** The image saved in FreedomOS; when it cannot be loaded the caller's metadata chip is shown instead. */
+/**
+ * A chat image from the copy the care module keeps (never the provider's expiring link). It is fetched with the API
+ * token in a header, so the token never ends up in an <img> URL; without a copy the caller's metadata chip is shown.
+ */
 export function MediaImage({ messageId, index, name, fallback }: { messageId: string; index: number; name: string; fallback: ComponentChildren }) {
+  const [src, setSrc] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let live = true;
+    let url: string | null = null;
+    setSrc(null);
+    setFailed(false);
+    apiFetch(mediaPath(messageId, index))
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`media ${res.status}`);
+        const blob = await res.blob();
+        if (!live) return;
+        url = URL.createObjectURL(blob);
+        setSrc(url);
+      })
+      .catch(() => {
+        if (live) setFailed(true);
+      });
+    return () => {
+      live = false;
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [messageId, index]);
+
   if (failed) return <>{fallback}</>;
-  const src = mediaUrl(messageId, index);
+  const label = name || ct('msg.attachment.image');
+  if (!src) return <div class="care-media-loading" data-testid="care-media-loading" role="img" aria-label={label} aria-busy="true" />;
   return (
     <figure class="care-media" data-testid="care-media">
-      <a href={src} target="_blank" rel="noopener noreferrer" aria-label={ct('inbox2.media.open', { name: name || ct('msg.attachment.unnamed') })}>
-        <img src={src} alt={name || ct('msg.attachment.image')} loading="lazy" onError={() => setFailed(true)} />
+      <a href={src} target="_blank" rel="noopener noreferrer" aria-label={ct('inbox2.media.open', { name: label })}>
+        <img src={src} alt={label} decoding="async" onError={() => setFailed(true)} />
       </a>
-      <figcaption class="care-faint">{name || ct('msg.attachment.image')} · {ct('inbox2.media.saved')}</figcaption>
     </figure>
   );
 }

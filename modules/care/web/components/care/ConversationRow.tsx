@@ -40,7 +40,7 @@ export function ConversationRow({ conversation: c, account, agents, waitThreshol
       data-status={w?.status}
       onClick={onSelect}
     >
-      <Avatar id={c.id} title={title} channel={c.channel} />
+      <Avatar id={c.id} title={title} channel={c.channel} url={c.avatarUrl} />
       <span class="care-conv-main">
         <span class="care-row-top">
           <span class="care-row-title">{title}</span>

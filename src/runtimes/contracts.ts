@@ -24,6 +24,8 @@ export interface RuntimeCapabilities {
   reportsCost: boolean;
   /** can attach local image files to a prompt */
   images: boolean;
+  /** can attach local PDF documents to a prompt */
+  documents: boolean;
   /** can run with no tools at all (lean turns) */
   noTools: boolean;
   enforces: AccessEnforcement;
@@ -43,6 +45,8 @@ export interface RunRequest {
   tools: 'default' | 'none';
   /** absolute paths of images to attach (only if capabilities.images) */
   images?: string[];
+  /** absolute paths of PDF documents to attach (only if capabilities.documents) */
+  documents?: string[];
   signal: AbortSignal;
   timeoutMs: number;
   onEvent(event: RunEvent): void;

@@ -1,4 +1,7 @@
 // Claude Code adapter: `claude -p --output-format stream-json --verbose`, prompt on stdin.
+// With attachments the prompt goes in as one stream-json user message carrying image/document blocks.
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 import type { RunEvent, Usage } from '../core/types.js';
 import { log } from '../core/log.js';
 import { redactString } from '../core/redact.js';
@@ -25,7 +28,8 @@ export const CLAUDE_CAPABILITIES: RuntimeCapabilities = {
   resume: true,
   systemPrompt: 'native',
   reportsCost: true,
-  images: false,
+  images: true,
+  documents: true,
   noTools: true,
   enforces: {
     context: 'hard',
@@ -71,6 +75,7 @@ export function buildClaudeArgs(req: RunRequest, opts: ClaudeArgsOptions): Claud
   const resume = !opts.fresh && req.sessionId ? req.sessionId : undefined;
   const files: ClaudeFile[] = [];
   const args = ['-p', '--output-format', 'stream-json', '--verbose'];
+  if (hasAttachments(req)) args.push('--input-format', 'stream-json');
 
   if (req.agent.model) args.push('--model', req.agent.model);
   const maxTurns = lean ? 1 : runtimeOptionNumber(req, 'maxTurns');
@@ -121,6 +126,48 @@ export function buildClaudeArgs(req: RunRequest, opts: ClaudeArgsOptions): Claud
   if (req.access.permission === 'full' && patternRestricted) allow.push('Bash', 'WebFetch', 'WebSearch', 'Read', 'Edit', 'Write', 'NotebookEdit', 'Glob', 'Grep', 'Task');
   if (allow.length) args.push('--allowedTools', ...allow);
   return { args, files };
+}
+
+// ------------------------------------------------------------------ attachments
+
+/** Provider limits: 5 MB per image, 32 MB per PDF request. */
+const IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+const DOCUMENT_MAX_BYTES = 30 * 1024 * 1024;
+
+const hasAttachments = (req: Pick<RunRequest, 'images' | 'documents'>) => Boolean(req.images?.length || req.documents?.length);
+
+/** Media type from the first bytes; the file name is never trusted. */
+function sniffMedia(b: Buffer): string | null {
+  if (b.length >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'image/jpeg';
+  if (b.length >= 8 && b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'image/png';
+  if (b.length >= 6 && /^GIF8[79]a$/.test(b.subarray(0, 6).toString('latin1'))) return 'image/gif';
+  if (b.length >= 12 && b.subarray(0, 4).toString('latin1') === 'RIFF' && b.subarray(8, 12).toString('latin1') === 'WEBP') return 'image/webp';
+  if (b.length >= 5 && b.subarray(0, 5).toString('latin1') === '%PDF-') return 'application/pdf';
+  return null;
+}
+
+/**
+ * stdin for `--input-format stream-json`: one user message with the prompt, then every usable attachment behind a text
+ * label carrying its file name (callers refer to attachments by that name). Unreadable, oversized or mistyped files are left out.
+ */
+export async function buildClaudeInput(req: Pick<RunRequest, 'prompt' | 'images' | 'documents'>): Promise<string> {
+  const content: JsonObject[] = [{ type: 'text', text: req.prompt }];
+  const attach = async (file: string, kind: 'image' | 'document') => {
+    let bytes: Buffer;
+    try {
+      bytes = await readFile(file);
+    } catch {
+      return;
+    }
+    const mediaType = sniffMedia(bytes);
+    const ok = kind === 'image' ? mediaType?.startsWith('image/') && bytes.length <= IMAGE_MAX_BYTES : mediaType === 'application/pdf' && bytes.length <= DOCUMENT_MAX_BYTES;
+    if (!ok) return;
+    content.push({ type: 'text', text: `Tệp đính kèm: ${path.basename(file)}` });
+    content.push({ type: kind, source: { type: 'base64', media_type: mediaType, data: bytes.toString('base64') } });
+  };
+  for (const f of req.images ?? []) await attach(f, 'image');
+  for (const f of req.documents ?? []) await attach(f, 'document');
+  return `${JSON.stringify({ type: 'user', message: { role: 'user', content } })}\n`;
 }
 
 // ------------------------------------------------------------------ parsing
@@ -273,7 +320,7 @@ export function createClaudeRuntime(command = 'claude', extraEnv?: Record<string
         args: built.args,
         cwd: req.cwd,
         env,
-        stdin: req.prompt,
+        stdin: hasAttachments(req) ? await buildClaudeInput(req) : req.prompt,
         timeoutMs: req.timeoutMs,
         signal: req.signal,
         onStdoutLine: (l) => parser.feed(l),

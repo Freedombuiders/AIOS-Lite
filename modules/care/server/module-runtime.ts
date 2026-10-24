@@ -10,6 +10,8 @@ import type { CareChannel, CareAccountRecord, NormalizedEvent } from '../../_lib
 import { CareError } from '../../_lib/care-kit/index.js';
 import { createLeanAgentRunner } from './application/agent-runner-lean.js';
 import type { AgentTurnOutcome } from './application/agent-turn.js';
+import { CareMediaCache } from './application/media-cache.js';
+import { createTurnMediaSource, sweepTurnMedia, TURN_MEDIA_STALE_MS } from './application/turn-media.js';
 import { createConnectorRegistry, type CareConnectorExt, type MutableConnectorRegistry } from './connectors/registry.js';
 import { createCareStores, type CareStores } from './persistence/index.js';
 import { createCareSchema } from './persistence/schema.js';
@@ -46,6 +48,8 @@ export interface CareModuleState {
   registry: MutableConnectorRegistry;
   runtime: CareRuntime;
   channels: CareChannelsApi;
+  /** Local copies of chat images (Zalo CDN links expire). */
+  media: CareMediaCache;
   /** Conversations we raised "needs you" attention for, so they can be resolved when nothing is open any more. */
   raised: Set<string>;
   started: boolean;
@@ -93,6 +97,15 @@ export function careState(ctx: ModuleContext): CareModuleState {
   const stores = createCareStores(ctx.db, key);
   const registry = createConnectorRegistry();
   const raised = new Set<string>();
+  const media = new CareMediaCache({
+    dir: path.join(ctx.dataDir, 'media-cache'),
+    key,
+    db: ctx.db,
+    stores,
+    connectors: registry,
+    onError: (err, messageId, index) =>
+      ctx.log.warn({ messageId, index, reason: err instanceof Error ? err.message.slice(0, 200) : 'unknown' }, 'care media: could not copy image'),
+  });
 
   const onTurnOutcome = (out: AgentTurnOutcome, conversationId: string): void => {
     const link = `/m/care/inbox/${conversationId}`;
@@ -126,6 +139,14 @@ export function careState(ctx: ModuleContext): CareModuleState {
     }),
     agentCan: (agentId, scope) => ctx.access.can(agentId, scope),
     skillFor: (agentId) => skillText(ctx, agentId),
+    turnMedia: createTurnMediaSource({
+      media,
+      stores,
+      connectors: registry,
+      canRead: (agentId) => ctx.agents.attachments(agentId),
+      onError: (err, messageId, index) =>
+        ctx.log.warn({ messageId, index, reason: err instanceof Error ? err.message.slice(0, 200) : 'unknown' }, 'care media: could not fetch a document for the agent'),
+    }),
     conversationControl: (conversationId) => {
       const row = ctx.db.prepare('SELECT ai_mode AS aiMode, taken_over_at AS takenOverAt FROM care_conversation_state WHERE conversation_id = ?').get(conversationId) as
         | { aiMode: 'off' | 'draft' | 'auto' | null; takenOverAt: number | null }
@@ -142,6 +163,7 @@ export function careState(ctx: ModuleContext): CareModuleState {
         nowMs,
       ),
     onTurnOutcome,
+    onMessageStored: (messageId) => media.warm(messageId),
   });
 
   const channels: CareChannelsApi = {
@@ -158,6 +180,7 @@ export function careState(ctx: ModuleContext): CareModuleState {
         const account = stores.accounts.getAccount(event.accountId);
         if (!account) return { outcome: 'failed', error: `Account not found: ${event.accountId}` };
         const res = runtime.ingest.ingestNormalizedEvent({ ...event, epoch: event.epoch ?? account.ownerEpoch });
+        if (res.outcome === 'created' && res.messageId) media.warm(res.messageId);
         return { outcome: res.outcome.startsWith('duplicate') ? 'duplicate' : 'stored' };
       } catch (err) {
         return { outcome: 'failed', error: err instanceof Error ? err.message.slice(0, 300) : 'ingest failed' };
@@ -186,7 +209,7 @@ export function careState(ctx: ModuleContext): CareModuleState {
     listAccounts: (channel) => stores.accounts.listAccounts(channel),
   };
 
-  const state: CareModuleState = { key, stores, registry, runtime, channels, raised, started: false };
+  const state: CareModuleState = { key, stores, registry, runtime, channels, media, raised, started: false };
   states.set(ctx, state);
   return state;
 }
@@ -215,6 +238,10 @@ export function startCare(ctx: ModuleContext): void {
   state.started = true;
   startCareRuntime(state.runtime);
   ctx.schedule.every('care-attention', 5_000, () => syncDraftAttention(ctx, state));
+  ctx.schedule.every('care-media-prune', 60 * 60_000, () => void state.media.prune());
+  // Customer files of a turn cut short by a crash or restart must not stay in the temp dir.
+  sweepTurnMedia();
+  ctx.schedule.every('care-turn-media-sweep', TURN_MEDIA_STALE_MS, () => void sweepTurnMedia());
 }
 
 export async function stopCare(ctx: ModuleContext): Promise<void> {

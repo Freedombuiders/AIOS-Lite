@@ -13,6 +13,8 @@ export default defineModule({
       outboxService: runtime.service,
       reconcileIntent: async (intentId) => (await runtime.dispatcher.reconcile(intentId)).intent,
       backlogSources: [runtime.backlogSource],
+      media: state.media,
+      connectors: state.registry,
       onError: (err) => ctx.log.error({ err }, 'care api error'),
     });
   },

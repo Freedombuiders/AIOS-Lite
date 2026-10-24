@@ -16,6 +16,7 @@ export const CODEX_CAPABILITIES: RuntimeCapabilities = {
   systemPrompt: 'inline',
   reportsCost: false,
   images: true,
+  documents: false,
   noTools: true,
   enforces: {
     context: 'hard',

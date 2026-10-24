@@ -196,7 +196,9 @@ export function createEngine(deps: AppDeps): Engine {
       const lastRun = deps.runs.list({ taskId: task.id, limit: 1 })[0];
       const comments = lastRun ? deps.comments.since(task.id, lastRun.startedAt) : [];
       const modCtx = await moduleContext(task, agent, access.moduleScopes);
-      const images = Array.isArray(task.meta.images) ? (task.meta.images as unknown[]).filter((x): x is string => typeof x === 'string') : undefined;
+      const paths = (v: unknown) => (Array.isArray(v) ? (v as unknown[]).filter((x): x is string => typeof x === 'string') : undefined);
+      const images = paths(task.meta.images);
+      const documents = paths(task.meta.documents);
 
       // 4) runtime + prompt
       const runtime = deps.runtimes.get(agent.runtime);
@@ -228,7 +230,7 @@ export function createEngine(deps: AppDeps): Engine {
       const result = await runtime.run({
         agent, access, prompt: built.prompt, systemPrompt: built.systemPrompt, cwd: agent.workspace,
         ...(resuming && conv?.sessionId ? { sessionId: conv.sessionId } : {}),
-        tools: access.tools, ...(images?.length ? { images } : {}), signal, timeoutMs: deps.config.runTimeoutMs,
+        tools: access.tools, ...(images?.length ? { images } : {}), ...(documents?.length ? { documents } : {}), signal, timeoutMs: deps.config.runTimeoutMs,
         onEvent: (e) => deps.runs.addEvent(runId, task.id, e),
       });
 

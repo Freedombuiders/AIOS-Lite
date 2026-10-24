@@ -113,6 +113,8 @@ export interface CareConversationDto {
   lastMessagePreview: CareMessagePreviewDto | null;
   lastActivityMs: number;
   revision: number;
+  /** Chat only: the picture the channel already stored for the person or group; absent when none is known. */
+  avatarUrl?: string;
   /**
    * Single-conversation view only, email accounts only: the mailbox signature that is appended to a reply once
    * (read-only; the same source the agent turn uses). Null for chat or when none is configured.
@@ -156,7 +158,8 @@ export interface CareMessageDto {
   senderRole: 'customer' | 'self' | 'operator' | 'agent' | 'system';
   senderIdentityId: string | null;
   /**
-   * Group / topic conversations: the sender's identity display name, else null (never a native ID or username as a stand-in).
+   * Group / topic conversations: the sender's identity display name, else the display name the channel sent with the
+   * message, else null (never a native ID or username as a stand-in).
    * Always null in direct chats and email threads, where the conversation itself names the other party.
    */
   senderName: string | null;
@@ -168,6 +171,20 @@ export interface CareMessageDto {
   /** Tombstone: deleted at the source. Text and metadata are always empty then; the row keeps its place in the timeline. */
   deleted: boolean;
   deletedAtMs: number | null;
+}
+
+/** A person or group as the channel shows it; empty strings when unknown. */
+export interface CarePersonDto {
+  name: string;
+  avatarUrl: string;
+}
+
+/** `GET /conversations/:id/profiles`: names and avatars from the channel, for chat conversations whose connector has them. */
+export interface CareConversationProfilesDto {
+  /** The conversation itself: the other person of a direct chat, or the group. */
+  thread: CarePersonDto;
+  /** By `senderIdentityId` of the conversation's recent customer messages; senders the channel could not resolve are absent. */
+  senders: Record<string, CarePersonDto>;
 }
 
 export interface CareMessagePageDto {

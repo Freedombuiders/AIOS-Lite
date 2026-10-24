@@ -1835,8 +1835,7 @@
         "deleteFailed": "Chưa xóa được ghi chú"
       },
       "media": {
-        "open": "Mở ảnh {name}",
-        "saved": "đã lưu trong FreedomOS"
+        "open": "Mở ảnh {name}"
       },
       "alerts": {
         "group": "Thông báo trên trình duyệt này",

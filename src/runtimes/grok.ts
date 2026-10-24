@@ -31,6 +31,7 @@ export const GROK_CAPABILITIES: RuntimeCapabilities = {
   systemPrompt: 'native',
   reportsCost: true,
   images: false,
+  documents: false,
   noTools: true,
   enforces: {
     context: 'hard',

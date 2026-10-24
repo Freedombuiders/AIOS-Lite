@@ -23,7 +23,7 @@ function wire(token?: string) {
   const f = h.fakes;
   const runtime = {
     id: 'mock' as const, label: 'Mock',
-    capabilities: { resume: false, systemPrompt: 'inline', reportsCost: false, images: false, noTools: true, enforces: { context: 'hard', mcp: 'none', fileRead: 'none', fileWrite: 'none', shell: 'none' } },
+    capabilities: { resume: false, systemPrompt: 'inline', reportsCost: false, images: false, documents: false, noTools: true, enforces: { context: 'hard', mcp: 'none', fileRead: 'none', fileWrite: 'none', shell: 'none' } },
     doctor: async () => ({ runtime: 'mock' as const, status: 'pass' as const, checks: [], testedAt: nowIso() }),
     run: async () => ({ ok: true, output: '' }),
   };

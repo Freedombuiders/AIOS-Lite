@@ -59,7 +59,7 @@ export function makeKit(agents: AgentConfig[], opts: { config?: Partial<AppConfi
   let callNo = 0;
   const runtime: Runtime = {
     id: 'mock', label: 'mock',
-    capabilities: { resume: true, systemPrompt: 'native', reportsCost: true, images: true, noTools: true, enforces: { context: 'hard', mcp: 'none', fileRead: 'none', fileWrite: 'none', shell: 'none' }, ...opts.runtimeCaps },
+    capabilities: { resume: true, systemPrompt: 'native', reportsCost: true, images: true, documents: true, noTools: true, enforces: { context: 'hard', mcp: 'none', fileRead: 'none', fileWrite: 'none', shell: 'none' }, ...opts.runtimeCaps },
     async doctor() { return { runtime: 'mock', status: 'pass', checks: [], testedAt: nowIso() }; },
     async run(req) { requests.push(req); return script.current(req, ++callNo); },
   };

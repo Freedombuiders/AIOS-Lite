@@ -46,16 +46,20 @@ export function MessageBubble({ message: m, channel, profiles, highlighted, inte
   const view = describeMessage(m);
   const side = bubbleSide(m);
   const meta = m.metadata as EmailMeta;
-  // Zalo customer: their own name and avatar instead of the generic role label. The API strips the raw sender uid, so a
-  // 1-1 chat takes the conversation's person and a group matches the sender by the display name the API already resolved.
+  // Zalo customer: their own name and avatar instead of the generic role label. A 1-1 chat takes the conversation's
+  // person; a group takes the sender's profile (keyed by identity), after the name the API already resolved.
   const isCustomerChat = channel === 'zalo' && m.senderRole === 'customer';
   const direct = (m.metadata as { conversationKind?: unknown }).conversationKind === 'direct';
-  const personName = isCustomerChat ? (m.senderName || (direct ? profiles?.thread.name : '') || '') : '';
   const person = isCustomerChat
-    ? (direct ? profiles?.thread : personName ? Object.values(profiles?.senders ?? {}).find((p) => p.name === personName) : undefined)
+    ? (direct ? profiles?.thread : m.senderIdentityId ? profiles?.senders[m.senderIdentityId] : undefined)
     : undefined;
+  const personName = isCustomerChat ? (m.senderName || person?.name || '') : '';
   const showAvatar = channel === 'zalo' && side === 'incoming';
   const quote = !view.isEmail ? (m.metadata as { quote?: { text?: unknown } | null }).quote : null;
+  // Zalo photo: the picture first and its caption under it, without the "[Ảnh]" label the stored text starts with.
+  const photo = channel === 'zalo' && view.attachments.some((a) => a.kind === 'image' && !a.isVoice);
+  const text = photo ? view.text.replace(/^\[Ảnh\]\s*/, '') : view.text;
+  const attachments = <AttachmentList attachments={view.attachments} messageId={m.id} showImages={channel === 'zalo'} />;
 
   return (
     <article
@@ -88,17 +92,19 @@ export function MessageBubble({ message: m, channel, profiles, highlighted, inte
 
         {quote && typeof quote.text === 'string' && quote.text && <blockquote class="care-quote">{quote.text}</blockquote>}
 
+        {photo && attachments}
+
         {view.placeholder && view.placeholder !== 'empty' ? (
           <Placeholder kind={view.placeholder} label={view.unsupportedLabel} />
         ) : view.isEmail ? (
           <EmailMessageBody html={typeof meta.bodyHtml === 'string' ? meta.bodyHtml : ''} text={view.text} snippet={typeof meta.snippet === 'string' ? meta.snippet : ''} />
-        ) : view.text.trim() ? (
-          <div class="care-text">{view.text}</div>
+        ) : text.trim() ? (
+          <div class="care-text">{text}</div>
         ) : view.attachments.length === 0 && !view.unexportedMedia ? (
           <Placeholder kind="empty" label={null} />
         ) : null}
 
-        <AttachmentList attachments={view.attachments} messageId={m.id} showImages={channel === 'zalo'} />
+        {!photo && attachments}
         {view.unexportedMedia && (
           <div class="care-media-note" role="note" data-testid="care-media-placeholder" data-reason={view.unexportedMedia.reason}>
             {ct('msg.telegramMedia', { kind: ct(`msg.telegramMediaKind.${view.unexportedMedia.kind}`), why: ct(`msg.telegramMediaWhy.${view.unexportedMedia.reason}`) })}

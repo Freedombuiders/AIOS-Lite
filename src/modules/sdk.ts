@@ -58,6 +58,8 @@ export interface LeanRunInput {
   moduleContext?: string;
   /** absolute image paths (only used if the agent's runtime supports images) */
   images?: string[];
+  /** absolute PDF paths (only used if the agent's runtime supports documents) */
+  documents?: string[];
   priority?: number;
   meta?: Record<string, unknown>;
   timeoutMs?: number;
@@ -95,6 +97,8 @@ export interface ModuleContext {
     get(id: string): AgentConfig | undefined;
     /** create a lean Task (source module:<id>) and wait for it — still goes through the engine */
     runLean(input: LeanRunInput): Promise<LeanRunResult>;
+    /** which attachments the agent's runtime can actually read (false for an unknown agent) */
+    attachments(agentId: string): { images: boolean; documents: boolean };
   };
   access: {
     /** scope of THIS module, e.g. can('sales-a', 'reply.send') */

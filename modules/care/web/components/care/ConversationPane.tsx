@@ -229,6 +229,10 @@ export function ConversationPane({ conversationId, around, accounts, agents, can
   const nowMs = Date.now();
   const participants = Array.from(new Set(w.items.filter((m) => m.senderRole === 'customer' && m.senderIdentityId).map((m) => m.senderIdentityId as string)));
   const title = conversationTitle(conversation.title) || ct('list.untitled');
+  // Until (or without) the channel's profiles, a 1-1 chat still names its person: the conversation title and stored picture.
+  const people = profiles ?? (conversation.kind === 'direct'
+    ? { thread: { name: conversationTitle(conversation.title), avatarUrl: conversation.avatarUrl ?? '' }, senders: {} }
+    : null);
   const aiOn = Boolean(wf && wf.ai.supported && wf.ai.agentId && !wf.ai.takenOver && wf.ai.mode !== 'off');
   const onAccepted = () => {
     // A reply typed by hand while an AI draft was waiting retires that draft.
@@ -252,7 +256,7 @@ export function ConversationPane({ conversationId, around, accounts, agents, can
     <section class="care-detail" aria-label={ct('a11y.detailRegion')} data-testid="care-detail">
       <header class="care-detail-head">
         <button type="button" class="care-back" onClick={onBack} aria-label={ct('detail.back')}><ArrowLeft size={15} aria-hidden="true" /></button>
-        <Avatar id={conversation.id} title={title} channel={conversation.channel} url={profiles?.thread.avatarUrl} />
+        <Avatar id={conversation.id} title={title} channel={conversation.channel} url={people?.thread.avatarUrl || conversation.avatarUrl} />
         <div class="care-detail-title">
           <h2>{title}</h2>
           <div class="care-detail-sub">
@@ -306,7 +310,7 @@ export function ConversationPane({ conversationId, around, accounts, agents, can
         key={conversationId}
         window={w}
         channel={conversation.channel}
-        profiles={profiles}
+        profiles={people}
         notes={extras.notes}
         busyNote={busyNote}
         hitId={around ?? w.aroundId}

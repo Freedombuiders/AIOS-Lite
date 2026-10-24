@@ -91,6 +91,22 @@ export interface ZaloConnectorOptions {
   /** Live items per sync slice. */
   syncLimit?: number;
   titleTtlMs?: number;
+  /** Names and avatars of a thread and of the given sender uids, for Care's inbox. Without it Care shows initials. */
+  profiles?: (accountId: string, externalKey: string, senderUids: string[]) => Promise<ZaloPeople | null>;
+  /** Avatar the module already stored for a thread (no Zalo call), for Care's list rows. */
+  storedAvatarUrl?: (accountId: string, externalKey: string) => string | null;
+}
+
+/** A person or group as Zalo shows it; empty strings when unknown. */
+export interface ZaloPerson {
+  name: string;
+  avatarUrl: string;
+}
+
+export interface ZaloPeople {
+  thread: ZaloPerson;
+  /** By Zalo uid. */
+  senders: Record<string, ZaloPerson>;
 }
 
 type AttemptState = 'started' | 'accepted' | 'failed_definite' | 'uncertain' | 'released';
@@ -142,6 +158,23 @@ function storedCursor(command: SyncCommand): string | null {
 
 const sha = (s: string) => crypto.createHash('sha256').update(s).digest('hex');
 const keyOf = (accountId: string, id: string) => JSON.stringify([accountId, id]);
+
+/** An avatar link the browser may load: https on Zalo's own CDN only, else ''. */
+function zaloImageUrl(raw: unknown): string {
+  if (typeof raw !== 'string' || !raw || raw.length > 2048) return '';
+  try {
+    const url = new URL(raw);
+    const host = url.hostname.toLowerCase();
+    return url.protocol === 'https:' && MEDIA_HOST_SUFFIXES.some((s) => host.endsWith(s)) ? url.toString() : '';
+  } catch {
+    return '';
+  }
+}
+
+const zaloPerson = (p: Partial<ZaloPerson> | undefined): ZaloPerson => ({
+  name: typeof p?.name === 'string' ? p.name : '',
+  avatarUrl: zaloImageUrl(p?.avatarUrl),
+});
 
 /** Longest a shutdown waits for provider operations that are still in flight. */
 const CLOSE_WAIT_MS = 2_000;
@@ -809,5 +842,32 @@ export class ZaloCareConnector implements CareConnector {
     if (media.buffer.length > MEDIA_MAX_BYTES) throw new CareError('INVALID_COMMAND', 'Media is larger than the 25 MB limit', 413);
     const safe = command.attachmentId.replace(/[^A-Za-z0-9._-]+/g, '_').slice(0, 96) || 'attachment';
     return { buffer: media.buffer, mimeType: media.mimeType, fileName: safe };
+  }
+
+  // ── display (Care inbox) ─────────────────────────────────────────────────────────────────
+  /** Care hook: names and avatars of a thread and its senders. Best effort: null when unknown, never throws. */
+  async profiles(accountId: string, conversationKey: string, senderKeys: string[]): Promise<ZaloPeople | null> {
+    if (!this.opts.profiles) return null;
+    let res: ZaloPeople | null;
+    try {
+      res = await this.opts.profiles(accountId, conversationKey, senderKeys);
+    } catch {
+      return null;
+    }
+    if (!res) return null;
+    const senders: Record<string, ZaloPerson> = {};
+    for (const uid of senderKeys) {
+      if (Object.prototype.hasOwnProperty.call(res.senders ?? {}, uid)) senders[uid] = zaloPerson(res.senders[uid]);
+    }
+    return { thread: zaloPerson(res.thread), senders };
+  }
+
+  /** Care hook: the stored avatar of a thread (no Zalo call); null when there is none. */
+  storedAvatarUrl(accountId: string, conversationKey: string): string | null {
+    try {
+      return zaloImageUrl(this.opts.storedAvatarUrl?.(accountId, conversationKey)) || null;
+    } catch {
+      return null;
+    }
   }
 }

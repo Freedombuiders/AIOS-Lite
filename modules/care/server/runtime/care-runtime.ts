@@ -44,8 +44,10 @@ export interface CareRuntimeDeps {
   killSwitches?: () => KillSwitchState;
   /** Module scope check (reply.draft / reply.send) handed to the agent turn. */
   onTurnOutcome?: HandlerDeps['onTurnOutcome'];
+  onMessageStored?: HandlerDeps['onMessageStored'];
   agentCan?: AgentTurnDepsLike['agentCan'];
   skillFor?: AgentTurnDepsLike['skillFor'];
+  turnMedia?: AgentTurnDepsLike['turnMedia'];
   conversationControl?: AgentTurnDepsLike['conversationControl'];
   autoDelaySeconds?: AgentTurnDepsLike['autoDelaySeconds'];
   quietHours?: AgentTurnDepsLike['quietHours'];
@@ -220,6 +222,7 @@ export function createCareRuntime(deps: CareRuntimeDeps): CareRuntime {
     config: deps.agentTurn,
     ...(deps.agentCan ? { agentCan: deps.agentCan } : {}),
     ...(deps.skillFor ? { skillFor: deps.skillFor } : {}),
+    ...(deps.turnMedia ? { turnMedia: deps.turnMedia } : {}),
     ...(deps.conversationControl ? { conversationControl: deps.conversationControl } : {}),
     ...(deps.autoDelaySeconds ? { autoDelaySeconds: deps.autoDelaySeconds } : {}),
     ...(deps.quietHours ? { quietHours: deps.quietHours } : {}),
@@ -233,7 +236,7 @@ export function createCareRuntime(deps: CareRuntimeDeps): CareRuntime {
     reconcile: async (intentId) => (await dispatcher.reconcile(intentId)).intent,
   });
 
-  const handlers = createCareHandlers({ db, stores, turn, dispatcher, ingest, connectors, now, ...(deps.onTurnOutcome ? { onTurnOutcome: deps.onTurnOutcome } : {}), ...deps.handlers });
+  const handlers = createCareHandlers({ db, stores, turn, dispatcher, ingest, connectors, now, ...(deps.onTurnOutcome ? { onTurnOutcome: deps.onTurnOutcome } : {}), ...(deps.onMessageStored ? { onMessageStored: deps.onMessageStored } : {}), ...deps.handlers });
   worker = new CareWorker({ db, stores, handlers, clock, onEvent: deps.onEvent, config: { workerId: deps.workerId, ...deps.worker } });
 
   // ── retention loop ────────────────────────────────────────────────────────────────────────

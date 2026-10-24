@@ -29,8 +29,8 @@ function Chip({ a }: { a: AttachmentView }) {
 }
 
 /**
- * Attachments of one message. A Zalo image is shown from the copy FreedomOS saved (`/messages/:id/media`); every other
- * attachment, and an image whose copy is missing, is a metadata chip. Provider URLs are never fetched or linked from here.
+ * Attachments of one message. A Zalo image is shown from the copy the care module keeps (`/messages/:id/media`); every
+ * other attachment, and an image without a copy, is a metadata chip. Provider URLs are never fetched or linked from here.
  */
 export function AttachmentList({ attachments, messageId, showImages }: { attachments: AttachmentView[]; messageId?: string; showImages?: boolean }) {
   if (!attachments.length) return null;

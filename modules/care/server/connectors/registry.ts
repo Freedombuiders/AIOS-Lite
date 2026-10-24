@@ -5,11 +5,27 @@
 import type { CareConnector, SyncResult } from '../../../_lib/care-kit/contract.js';
 import type { CareAccountRecord } from '../../../_lib/care-kit/types.js';
 
+/** A person or group as the channel shows it. Empty strings when unknown. */
+export interface CareConnectorPerson {
+  name: string;
+  avatarUrl: string;
+}
+
+export interface CareConnectorProfiles {
+  thread: CareConnectorPerson;
+  /** By native sender ID (an identity's `externalIdentityId`). */
+  senders: Record<string, CareConnectorPerson>;
+}
+
 export interface CareConnectorExt extends CareConnector {
   /** true => the care worker polls `sync()` for this connector's accounts (default: the channel pushes via careChannels.ingest). */
   readonly careManagedSync?: boolean;
   /** Called after every event of a sync page was durably ingested (ack the live feed, advance connector-local state). */
   commitSync?(accountId: string, result: SyncResult, outcome: { failedEventIds: string[] }): void | Promise<void>;
+  /** Names and avatars of one conversation and its senders, for display only. May ask the provider; null = unknown. */
+  profiles?(accountId: string, conversationKey: string, senderKeys: string[]): Promise<CareConnectorProfiles | null>;
+  /** Picture of a conversation from what the channel already stored (inbox list rows): never a provider call. */
+  storedAvatarUrl?(accountId: string, conversationKey: string): string | null;
 }
 
 export interface ConnectorRegistry {

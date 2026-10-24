@@ -15,6 +15,7 @@ export const HERMES_CAPABILITIES: RuntimeCapabilities = {
   systemPrompt: 'inline',
   reportsCost: false,
   images: false,
+  documents: false,
   noTools: true,
   enforces: {
     context: 'hard',

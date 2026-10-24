@@ -114,6 +114,23 @@ describe('handlers', () => {
     expect(r.f.storesA.events.hasEvent(r.f.account.id, 'ev-sync-1')).toBe(true);
   });
 
+  it('sync_poll: onMessageStored hears each newly stored message once, and a throwing hook never fails the sync', async () => {
+    const r = rig();
+    r.f.storesA.accounts.updateAccountFlags(r.f.account.id, { syncEnabled: true });
+    const msg = chatMessage(r.f.account, { externalConversationKey: 'peer:photo', text: '[Ảnh]' });
+    const event = { type: 'message.created', eventId: 'ev-photo-1', accountId: r.f.account.id, timestampMs: msg.sentAtMs, message: msg } as NormalizedEvent;
+    const stored = vi.fn(() => {
+      throw new Error('copy failed');
+    });
+    r.connector.queuedEvents = [event, { ...event, eventId: 'ev-photo-2' }];
+    const rt = r.build('a', 'w1', { onMessageStored: stored });
+    await rt.tick();
+    const conv = r.f.storesA.conversations.getConversationByExternalKey(r.f.account.id, 'peer:photo');
+    expect(stored).toHaveBeenCalledTimes(1);
+    expect(r.f.storesA.messages.getMessage(stored.mock.calls[0]![0] as string)?.conversationId).toBe(conv?.id);
+    expect(r.f.storesA.checkpoints.get(r.f.account.id, 'zalo_chat')).toMatchObject({ cursor: 'cursor_1' });
+  });
+
   it('cleanup: finished housekeeping jobs are pruned, open work is untouched', async () => {
     const r = rig();
     const rt = r.build('a', 'w1', { handlers: {} });

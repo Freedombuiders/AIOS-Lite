@@ -104,6 +104,9 @@
 .care-media { margin: 0; display: flex; flex-direction: column; gap: 4px; }
 .care-media img { display: block; max-width: min(260px, 100%); max-height: 320px; border-radius: 8px; border: 1px solid var(--color-border); background: var(--color-elevated); }
 .care-attachment-media { list-style: none; }
+.care-media-loading { width: 200px; max-width: 100%; height: 150px; border-radius: 8px; border: 1px solid var(--color-border); background: var(--color-elevated); animation: care-media-pulse 1.2s ease-in-out infinite; }
+@keyframes care-media-pulse { 50% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) { .care-media-loading { animation: none; } }
 
 /* ── AI draft card ─────────────────────────────────────────────────────────────────────────── */
 .care-draftcard { margin: 0 14px 10px; padding: 10px 12px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--color-accent) 50%, transparent); background: var(--color-accent-soft); display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
