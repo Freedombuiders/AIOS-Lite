@@ -20,7 +20,7 @@ export default function EmailAccounts() {
   const button = 'control-button';
   const primary = 'control-button control-accent';
   return <div><PageHeader title="Tài khoản Gmail" breadcrumb="Chăm sóc khách hàng" />
-    <div class="p-4 space-y-4 max-w-4xl"><EmailServiceBanner />
+    <div class="p-4 space-y-4"><EmailServiceBanner />
       <div class="flex flex-wrap gap-3">
         <button class={primary} disabled={busy} onClick={() => act(async () => { const r = await apiPost<{ redirectUrl: string }>(`${base}/accounts/connect`, {}); const url = new URL(r.redirectUrl); if (url.protocol !== 'https:') throw new Error(); window.location.assign(url.href); })}>Kết nối Gmail</button>
         <button class={button} disabled={busy} onClick={() => act(() => apiPost(`${base}/accounts/refresh`, {}))}>Làm mới tài khoản</button>

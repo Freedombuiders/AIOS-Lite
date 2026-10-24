@@ -107,6 +107,10 @@ Bảng dưới liệt kê các thư viện được khai báo trong `package.jso
 | [zca-js](https://github.com/RFS-ADRENO/zca-js) | 2.1.2 | MIT | Kết nối Zalo (module `zalo`) |
 | [@composio/core](https://github.com/ComposioHQ/composio) | 0.22.0 | ISC | Gọi Facebook, Meta Ads, Gmail qua Composio |
 | [image-size](https://github.com/image-size/image-size) | 2.0.2 | MIT | Đọc kích thước ảnh |
+| [@google/genai](https://github.com/googleapis/js-genai) | 1.52.0 | Apache-2.0 | Gọi Gemini (module `kol`) |
+| [@openai/codex-sdk](https://github.com/openai/codex) | 0.159.2 | Apache-2.0 | Chạy Codex trong module `kol` |
+| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) | 1.32.2 | MIT | Máy chủ MCP của module `finance` và `video` |
+| [adm-zip](https://github.com/cthackers/adm-zip) | 0.6.1 | MIT | Đọc và đóng gói file .zip (gói team, thư viện mẫu của `video`) |
 
 ### Giao diện web
 
@@ -119,6 +123,7 @@ Bảng dưới liệt kê các thư viện được khai báo trong `package.jso
 | [marked](https://github.com/markedjs/marked) | 18.1.1 | MIT | Hiển thị Markdown |
 | [dompurify](https://github.com/cure53/DOMPurify) | 3.4.17 | MPL-2.0 hoặc Apache-2.0 (chọn một) | Làm sạch HTML trước khi hiển thị |
 | [tailwindcss](https://github.com/tailwindlabs/tailwindcss) | 4.3.3 | MIT | CSS (chỉ dùng lúc build) |
+| [@hyperframes/player](https://www.npmjs.com/package/@hyperframes/player) | 0.8.156 | Apache-2.0 | Trình xem trước video trong module `video` |
 
 Ghi chú:
 

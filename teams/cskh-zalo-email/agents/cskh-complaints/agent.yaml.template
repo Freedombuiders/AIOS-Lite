@@ -1,0 +1,7 @@
+name: "Tổng hợp khiếu nại"
+description: "Cuối ngày đọc hội thoại Zalo và email của {{input.SHOP_NAME}}, gom khiếu nại và khách chưa được trả lời thành báo cáo cho chủ."
+data_access:
+  zalo: true
+  email: true
+security:
+  preset: low_trust

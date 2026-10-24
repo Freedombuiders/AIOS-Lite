@@ -71,7 +71,7 @@ export const apiGet = <T = unknown>(path: string) => request<T>('GET', path);
 export const apiPost = <T = unknown>(path: string, body?: unknown) => request<T>('POST', path, body ?? {});
 export const apiPut = <T = unknown>(path: string, body: unknown) => request<T>('PUT', path, body);
 export const apiPatch = <T = unknown>(path: string, body: unknown) => request<T>('PATCH', path, body);
-export const apiDelete = <T = unknown>(path: string) => request<T>('DELETE', path);
+export const apiDelete = <T = unknown>(path: string, body?: unknown) => request<T>('DELETE', path, body);
 
 export function qs(params: Record<string, string | number | boolean | null | undefined>): string {
   const u = new URLSearchParams();

@@ -21,7 +21,7 @@ export const ModuleManifestSchema = z.object({
   description: z.string(),
   version: z.string().min(1),
   icon: z.string().optional(),
-  category: z.enum(['sales', 'marketing', 'ops', 'other']),
+  category: z.enum(['studio', 'sales', 'marketing', 'finance', 'ops', 'other']),
   requires: z
     .object({ modules: z.array(z.string()).optional(), connections: z.array(z.string()).optional() })
     .optional(),

@@ -53,7 +53,7 @@ export default function MissionTaskDetail() {
       ? <div class="flex-1 overflow-y-auto"><PageState loading={detail.loading} error={notFound ? 'Không tìm thấy task này, hoặc task đã bị xóa.' : null} /></div>
       : <div class="min-h-0 flex-1 overflow-y-auto lg:flex lg:overflow-hidden">
           <main class="min-w-0 px-4 pt-5 sm:px-6 lg:flex-1 lg:overflow-y-auto">
-            <div class="mx-auto max-w-3xl">
+            <div class="w-full">
               <nav aria-label="Đường dẫn" class="mb-3 flex flex-wrap items-center gap-1.5 text-[12.5px] text-[var(--color-text-muted)]">
                 <Link href="/tasks" class="hover:text-[var(--color-text)]">Công việc</Link>
                 {d.parent && <>

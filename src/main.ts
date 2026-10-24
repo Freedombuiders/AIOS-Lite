@@ -13,11 +13,13 @@ import { createEventBus } from './core/events.js';
 import { createLogger } from './core/log.js';
 import { createModuleManager } from './modules/manager.js';
 import { createRuntimeRegistry } from './runtimes/index.js';
+import { adminServices } from './shared/admin-services.js';
 import { createBoardService } from './shared/board.js';
 import { createBrainService } from './shared/brain.js';
 import { createContextBuilder } from './shared/context.js';
 import { integrationServiceFor } from './integrations/mount.js';
 import { INTEGRATIONS } from './integrations/registry.js';
+import { startCostWatcher } from './work/costs.js';
 import { createMemoryService } from './shared/memory.js';
 import { createSkillLibrary } from './shared/skills.js';
 import { createAttentionService } from './work/attention.js';
@@ -87,6 +89,7 @@ export function bootstrap(opts: BootstrapOptions = {}): AppDeps {
     tasks, runs, comments, attention, team, scheduler, chat, stats,
   } as unknown as AppDeps;
   lazy.deps = deps;
+  adminServices(deps).skillRoots.apply(); // extra skill roots from config/skills.yaml
   deps.engine = createEngine(deps);
   deps.dispatcher = createDispatcher({ db, config, agents, tasks, engine: deps.engine, log, bus });
   lazy.dispatcher = deps.dispatcher;
@@ -128,6 +131,8 @@ export async function startApp(opts: BootstrapOptions = {}): Promise<RunningApp>
       (err) => deps.log.warn({ err }, 'Lập chỉ mục Second Brain lỗi'),
     );
   void reindexBrain();
+  // budget warnings (Ngân sách AI): raise "Cần bạn" items when spend crosses the warn threshold
+  const stopCostWatcher = startCostWatcher({ db: deps.db, bus: deps.bus, agents: deps.agents, attention: deps.attention });
   const brainTimer = setInterval(() => void reindexBrain(), 15 * 60 * 1000);
   brainTimer.unref();
 
@@ -135,6 +140,7 @@ export async function startApp(opts: BootstrapOptions = {}): Promise<RunningApp>
   const stop = (): Promise<void> =>
     (stopping ??= (async () => {
       clearInterval(brainTimer);
+      stopCostWatcher();
       deps.scheduler.stop();
       await server.close();
       await deps.dispatcher.stop();
@@ -150,7 +156,15 @@ export async function startApp(opts: BootstrapOptions = {}): Promise<RunningApp>
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  startApp().catch((err) => {
+  // A bug in one module's timer or worker must not take the whole app down: log it and keep serving.
+  let log: { error(obj: unknown, msg: string): void } | undefined;
+  const guard = (kind: string) => (err: unknown) => {
+    if (log) log.error({ err }, `${kind}: lỗi không bắt được, app vẫn chạy`);
+    else console.error(kind, err);
+  };
+  process.on('uncaughtException', guard('uncaughtException'));
+  process.on('unhandledRejection', guard('unhandledRejection'));
+  startApp().then(({ deps }) => { log = deps.log; }).catch((err) => {
     console.error(err);
     process.exit(1);
   });

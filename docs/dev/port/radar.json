@@ -1,0 +1,37 @@
+{
+ "module": "radar",
+ "entries": [
+  {
+   "from": "src/radar",
+   "to": "modules/radar/server",
+   "kind": "B",
+   "note": "owner-only; rewired to ctx/compat"
+  },
+  {
+   "from": "web/src/pages/radar",
+   "to": "modules/radar/web/pages/radar",
+   "kind": "B",
+   "note": "owner-only"
+  },
+  {
+   "from": "web/src/lib/radar.ts",
+   "to": "modules/radar/web/lib/radar.ts",
+   "kind": "B",
+   "note": "owner-only"
+  }
+ ],
+ "drop": [
+  {
+   "from": "src/radar/schema.ts",
+   "reason": "SQL moved to migrations/001_init.sql"
+  },
+  {
+   "from": "src/radar/index.ts",
+   "reason": "replaced by server/index.ts (defineModule)"
+  },
+  {
+   "from": "src/radar/agent-turn.ts",
+   "reason": "replaced by runLean in server/agent-turn.ts"
+  }
+ ]
+}

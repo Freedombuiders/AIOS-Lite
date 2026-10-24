@@ -1,0 +1,36 @@
+{
+  "id": "kol",
+  "name": "KOL Studio",
+  "description": "KOL ảo giữ nguyên khuôn mặt: hồ sơ nhận diện, tạo ảnh/video, thư viện, bài đăng đa nền tảng, kênh và tăng trưởng.",
+  "version": "0.1.0",
+  "icon": "sparkles",
+  "category": "studio",
+  "requires": { "connections": ["composio"] },
+  "enhances": ["marketing", "radar"],
+  "scopes": {
+    "kol.read": "Đọc hồ sơ KOL, thư viện, ảnh/video, bài đăng và số liệu tăng trưởng",
+    "content.write": "Soạn bài đăng nháp cho KOL (chờ chủ duyệt, không được đăng)",
+    "media.generate": "Yêu cầu tạo ảnh/video cho KOL (tốn tiền, trong hạn mức của Studio)"
+  },
+  "tables": [
+    "kol_settings", "kol_personas", "kol_refs", "kol_library", "kol_templates", "kol_generations", "kol_assets",
+    "kol_spend", "kol_accounts", "kol_posts", "kol_post_targets", "kol_metrics", "kol_account_daily", "kol_insights",
+    "kol_library_previews", "kol_persona_previews", "kol_persona_preview_misses"
+  ],
+  "agentTemplates": ["kol-writer"],
+  "skills": ["kol-studio"],
+  "settings": {
+    "KOL_GENERATE_ENABLED": {
+      "label": "Cho phép tạo ảnh/video",
+      "type": "boolean",
+      "default": true,
+      "help": "Tắt để chặn mọi lần tạo ảnh/video (kể cả lô đang xếp hàng sẽ không bắt đầu)."
+    },
+    "KOL_PUBLISH_ENABLED": {
+      "label": "Cho phép đăng bài của KOL",
+      "type": "boolean",
+      "default": true,
+      "help": "Tắt để dừng bộ đăng bài ngay mà vẫn giữ lịch."
+    }
+  }
+}

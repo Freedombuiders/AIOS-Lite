@@ -1,0 +1,17 @@
+name: Phân tích tài chính
+description: "Đọc tóm tắt P&L tháng và sổ thu chi, giải thích số liệu và ghi khoản thu chi khi chủ yêu cầu"
+runtime: claude
+runtime_options: {}
+permission: safe
+context: lean
+reports_to: main
+can_delegate: false
+max_concurrent: 1
+enabled: true
+access:
+  brain: {}
+  memory: { team: true, private: false }
+  skills: [finance-ledger]
+  connections: {}
+  modules:
+    finance: [finance.read, finance.write]

@@ -30,6 +30,11 @@ import ConnectionsPage from '@/pages/Connections';
 import AuditPage from '@/pages/Audit';
 import ModulesPage from '@/pages/Modules';
 import SettingsPage from '@/pages/Settings';
+import UsagePage from '@/pages/Usage';
+import BudgetsPage from '@/pages/Budgets';
+import TeamsPage from '@/pages/Teams';
+import AgentMarketPage from '@/pages/AgentMarket';
+import RecosPage from '@/pages/Recos';
 
 function NotFound() {
   return (
@@ -110,6 +115,11 @@ export function App() {
             <Route path="/connections" component={ConnectionsPage} />
             <Route path="/audit" component={AuditPage} />
             <Route path="/settings" component={SettingsPage} />
+            <Route path="/usage" component={UsagePage} />
+            <Route path="/budgets" component={BudgetsPage} />
+            <Route path="/teams" component={TeamsPage} />
+            <Route path="/agent-market" component={AgentMarketPage} />
+            <Route path="/recos" component={RecosPage} />
             {routes.value.map((r) => (
               <Route key={r.path} path={r.path}>{(params) => <ModuleRoute component={r.component} params={params as Record<string, string>} />}</Route>
             ))}

@@ -4,6 +4,7 @@ import { Cron } from 'croner';
 import type { AppDeps } from '../core/deps.js';
 import { redactString } from '../core/redact.js';
 import type { Run } from '../core/types.js';
+import { integrationServiceFor } from '../integrations/mount.js';
 import { sanitizeOutbound } from './outbound.js';
 import type { LeanRunInput, LeanRunResult, ModuleContext, ModuleManifest } from './sdk.js';
 import type { SettingsStore } from './settings.js';
@@ -189,6 +190,7 @@ export function createModuleContext(
       isEnabled: (moduleId) => helpers.isEnabled(moduleId),
     },
     outbound: { sanitize: sanitizeOutbound },
+    integrations: { values: (integrationId) => integrationServiceFor(deps).credentials.loadValues(integrationId) },
     crypto: { encrypt: (p) => deps.cipher.encrypt(p), decrypt: (v) => deps.cipher.decrypt(v) },
   };
   return ctx;

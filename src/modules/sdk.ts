@@ -12,6 +12,7 @@ import type { DB } from '../core/db.js';
 import type { Logger } from '../core/log.js';
 import type { AgentConfig, BrainHit, Memory, Run, Task, Usage } from '../core/types.js';
 import type { CreateTaskInput } from '../work/contracts.js';
+import type { IntegrationDefinition } from '../integrations/types.js';
 
 export interface ModuleSettingSpec {
   label: string;
@@ -28,7 +29,7 @@ export interface ModuleManifest {
   version: string;
   icon?: string;
   /** sidebar group for the module's pages */
-  category: 'sales' | 'marketing' | 'ops' | 'other';
+  category: 'studio' | 'sales' | 'marketing' | 'finance' | 'ops' | 'other';
   requires?: {
     /** modules that must be added first */
     modules?: string[];
@@ -143,6 +144,13 @@ export interface ModuleContext {
     /** strip secrets/paths/markup from text before it leaves the system (Zalo, email, Facebook) */
     sanitize(text: string): string;
   };
+  integrations: {
+    /**
+     * Values the owner saved in Kết nối › Integrations (e.g. values('fal').api_key), or null when not connected.
+     * Secrets come back in the clear: use them server-side only, never put them in prompts, logs or responses.
+     */
+    values(id: string): Record<string, string> | null;
+  };
   crypto: {
     encrypt(plain: string): string;
     decrypt(value: string): string;
@@ -185,6 +193,11 @@ export interface ModuleDefinition {
    * (chat, normal tasks, lean tasks), e.g. page list + latest insights for marketing. Filter by `scopes`.
    */
   agentContext?(input: { agent: AgentConfig; task: Task; scopes: string[] }, ctx: ModuleContext): string | undefined | Promise<string | undefined>;
+  /**
+   * Integrations this module brings (see src/integrations/types.ts), e.g. kol → fal/higgsfield, radar → apify.
+   * Listed on Kết nối › Integrations and grantable per agent while the module is enabled.
+   */
+  integrations?: IntegrationDefinition[];
 }
 
 export function defineModule(def: ModuleDefinition): ModuleDefinition {

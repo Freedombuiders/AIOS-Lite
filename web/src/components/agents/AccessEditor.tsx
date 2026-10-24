@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'preact/hooks';
+import { Link } from 'wouter-preact';
 import type { AgentAccessConfig, FolderGrant } from '@core/types';
 import { Pill } from '@/components/Pill';
 import { Toggle } from '@/components/Toggle';
@@ -46,6 +47,18 @@ export function EnforcementPanel({ enforcement, runtimeLabel }: { enforcement: A
   );
 }
 
+type BrainPreset = 'none' | 'read' | 'rw' | 'custom';
+const PRESETS: [BrainPreset, string][] = [['none', 'Không'], ['read', 'Chỉ đọc toàn bộ'], ['rw', 'Đọc & ghi toàn bộ'], ['custom', 'Tuỳ chỉnh globs']];
+const isAllGlob = (g: string[]) => g.length === 1 && g[0] === '**';
+
+/** Preset that matches a grant exactly; anything else is custom. */
+export function presetOf(g: FolderGrant | undefined): BrainPreset {
+  if (!g) return 'none';
+  if (isAllGlob(g.read) && g.write.length === 0) return 'read';
+  if (isAllGlob(g.read) && isAllGlob(g.write)) return 'rw';
+  return 'custom';
+}
+
 const globs = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean);
 
 function normalize(a: AgentAccessConfig): AgentAccessConfig {
@@ -55,6 +68,7 @@ function normalize(a: AgentAccessConfig): AgentAccessConfig {
 export function AccessEditor({ agentId, access, runtimeLabel, onSaved }: { agentId: string; access: AgentAccessConfig; runtimeLabel: string; onSaved: () => void }) {
   const [draft, setDraft] = useState<AgentAccessConfig>(() => normalize(access));
   const [busy, setBusy] = useState(false);
+  const [customIds, setCustomIds] = useState<string[]>([]);
   const folders = useFetch<{ items: BrainFolderView[] }>('/brain/folders');
   const skills = useFetch<{ items: SkillView[] }>('/skills');
   const conns = useFetch<{ items: ConnectionView[] }>('/connections');
@@ -93,20 +107,44 @@ export function AccessEditor({ agentId, access, runtimeLabel, onSaved }: { agent
     <div class="flex flex-col gap-3">
       {enf.data && <EnforcementPanel enforcement={enf.data.enforcement} runtimeLabel={runtimeLabel} />}
 
-      <Card title="Second Brain (thư mục và quyền)">
-        {folders.data?.items.length === 0 && <div class="hint">Chưa khai báo thư mục brain nào (config/brain.yaml).</div>}
+      <Card title="Second Brain (mỗi brain một mức quyền)" actions={<Link href="/brain/all" class="hint">Quản lý brain</Link>}>
+        {folders.data?.items.length === 0 && <div class="hint">Chưa có brain nào. Thêm ở trang Quản lý Second Brain.</div>}
         <div class="flex flex-col gap-2">
           {(folders.data?.items ?? []).map((f) => {
             const g = draft.brain[f.id];
+            const preset: BrainPreset = customIds.includes(f.id) ? 'custom' : presetOf(g);
+            const choose = (p: BrainPreset) => {
+              if (p === 'custom') {
+                setCustomIds((ids) => [...ids, f.id]);
+                if (!g) setFolder(f.id, { read: ['**'], write: [] });
+                return;
+              }
+              setCustomIds((ids) => ids.filter((x) => x !== f.id));
+              setFolder(f.id, p === 'none' ? null : { read: ['**'], write: p === 'rw' ? ['**'] : [] });
+            };
             return (
-              <div key={f.id} class="rounded-[var(--radius-md)] border border-[var(--color-border)] p-2.5">
-                <label class="flex items-center gap-2">
-                  <Toggle size="sm" on={!!g} onChange={() => setFolder(f.id, g ? null : { read: ['**'], write: [] })} ariaLabel={`Cấp thư mục ${f.name}`} />
+              <div key={f.id} class="rounded-[var(--radius-md)] border border-[var(--color-border)] p-2.5" data-testid={`brain-grant-${f.id}`}>
+                <div class="flex flex-wrap items-center gap-2">
                   <span class="text-[12.5px] font-medium">{f.name}</span>
                   <span class="hint mono">{f.id}</span>
+                  {f.isVault && <Pill tone="accent">Obsidian</Pill>}
                   {!f.exists && <Pill tone="warn">chưa tồn tại</Pill>}
-                </label>
-                {g && (
+                  <div class="ml-auto flex flex-wrap gap-1" role="radiogroup" aria-label={`Quyền với ${f.name}`}>
+                    {PRESETS.map(([id, label]) => (
+                      <button
+                        key={id}
+                        type="button"
+                        role="radio"
+                        aria-checked={preset === id}
+                        class={`control-button control-sm ${preset === id ? 'control-accent' : ''}`}
+                        onClick={() => choose(id)}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {g && preset === 'custom' && (
                   <div class="mt-2 grid gap-2 sm:grid-cols-2">
                     <label class="block">
                       <span class="label">Được đọc (glob, phân cách bằng dấu phẩy)</span>
@@ -121,6 +159,12 @@ export function AccessEditor({ agentId, access, runtimeLabel, onSaved }: { agent
               </div>
             );
           })}
+          {Object.keys(draft.brain).filter((id) => !(folders.data?.items ?? []).some((f) => f.id === id)).map((id) => (
+            <div key={id} class="flex items-center gap-2 rounded-[var(--radius-md)] border border-dashed border-[var(--color-border)] p-2.5 text-[12px]">
+              <Pill tone="warn">brain không còn</Pill><span class="mono">{id}</span>
+              <button type="button" class="control-button control-sm ml-auto" onClick={() => setFolder(id, null)}>Bỏ quyền này</button>
+            </div>
+          ))}
         </div>
       </Card>
 

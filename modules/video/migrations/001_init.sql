@@ -1,0 +1,2 @@
+-- Video Studio keeps its projects, library and jobs as files under data/modules/video (no SQL tables).
+-- Kept so the migration list is explicit and a future table has a place to go.

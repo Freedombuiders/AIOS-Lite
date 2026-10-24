@@ -12,6 +12,7 @@ import fs from 'node:fs';
 import { startAnalyticsWorker, stopAnalyticsWorker } from './analytics/worker.js';
 import { startCommentsWorker, stopCommentsWorker } from './comments/worker.js';
 import { startPublisher, stopPublisher } from './core/publisher.js';
+import { createKolBridge } from './kol-bridge.js';
 import { buildAgentContext } from './agent-context.js';
 import { marketingActions } from './actions.js';
 import { registerFbStudioRoutes } from './routes.js';
@@ -68,6 +69,8 @@ export default defineModule({
 
   // Read by the ads module (ctx.modules.get('marketing')): organic posts and Page info.
   provides: () => ({
+    // Used by KOL Studio to hand a post to the Fanpage queue (contract: modules/_lib/kol-bridge.ts).
+    kolBridge: createKolBridge(),
     // Returns the shared FbAdsOrganicRow shape (modules/_lib/fb-types.ts) the ads module reads.
     topPosts(pageId?: string, days = 28): FbAdsOrganicRow[] {
       const since = Math.floor(Date.now() / 1000) - days * DAY;

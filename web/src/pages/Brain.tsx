@@ -91,7 +91,7 @@ export default function BrainPage() {
           </>
         }
       />
-      <PageState loading={folders.loading && !folders.data} error={folders.error} empty={!!folders.data && list.length === 0} emptyTitle="Chưa khai báo thư mục nào" emptyDescription="Thêm thư mục ghi chú (ví dụ vault Obsidian) vào config/brain.yaml rồi tải lại." />
+      <PageState loading={folders.loading && !folders.data} error={folders.error} empty={!!folders.data && list.length === 0} emptyTitle="Chưa khai báo thư mục nào" emptyDescription="Vào Quản lý Second Brain (/brain/all) để thêm thư mục ghi chú, ví dụ vault Obsidian." />
 
       {dq ? (
         <div class="card">

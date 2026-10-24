@@ -1,8 +1,9 @@
-import fs from 'node:fs';
 import type { Hono } from 'hono';
 import { z } from 'zod';
 import type { AppDeps } from '../../core/deps.js';
 import { badRequest, notFound } from '../errors.js';
+import { adminServices } from '../../shared/admin-services.js';
+import { listDirs } from '../../shared/fs-browse.js';
 import { body, csv, limitParam, optInt } from '../util.js';
 
 export function brainRoutes(app: Hono, deps: AppDeps): void {
@@ -12,11 +13,39 @@ export function brainRoutes(app: Hono, deps: AppDeps): void {
     return id;
   };
 
-  app.get('/api/brain/folders', (c) => {
-    const count = deps.db.prepare('SELECT COUNT(*) AS n FROM brain_docs WHERE folder_id = ?');
-    return c.json({
-      items: deps.brain.folders().map((f) => ({ ...f, docs: (count.get(f.id) as { n: number }).n, exists: fs.existsSync(f.path) })),
-    });
+  const { brainAdmin } = adminServices(deps);
+  const folderInput = z.object({ id: z.string().optional(), name: z.string().min(1).max(120), path: z.string().min(1), description: z.string().max(500).optional() });
+
+  app.get('/api/brain/folders', (c) => c.json({ items: brainAdmin.list() }));
+
+  app.post('/api/brain/folders', async (c) => {
+    const input = await body(c, folderInput);
+    const created = await brainAdmin.create(input);
+    deps.audit.log({ actor: 'user', action: 'brain.folder.add', target: created.id });
+    return c.json(created, 201);
+  });
+
+  app.put('/api/brain/folders/:id', async (c) => {
+    const id = c.req.param('id');
+    const patch = await body(c, folderInput.omit({ id: true }).partial());
+    const updated = await brainAdmin.update(id, patch);
+    deps.audit.log({ actor: 'user', action: 'brain.folder.update', target: id });
+    return c.json(updated);
+  });
+
+  app.delete('/api/brain/folders/:id', (c) => {
+    const id = c.req.param('id');
+    const result = brainAdmin.remove(id);
+    deps.audit.log({ actor: 'user', action: 'brain.folder.remove', target: id, detail: { agentsUpdated: result.agentsUpdated } });
+    return c.json({ ok: true, ...result });
+  });
+
+  app.get('/api/fs/dirs', (c) => {
+    try {
+      return c.json(listDirs(c.req.query('path')));
+    } catch (err) {
+      throw badRequest(err instanceof Error ? err.message : String(err));
+    }
   });
 
   app.get('/api/brain/tree', (c) => c.json({ items: deps.brain.tree(folder(c.req.query('folder')), { depth: optInt(c, 'depth') }) }));

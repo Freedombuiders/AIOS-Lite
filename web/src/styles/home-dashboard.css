@@ -1,7 +1,7 @@
 /* Home dashboard (/dashboard). Theme tokens only, so light and dark both work. Prefix: hd- */
 
 .hd {
-  max-width: 1240px;
+  max-width: none;
   margin: 0 auto;
   padding: 34px 40px 72px;
   display: flex;

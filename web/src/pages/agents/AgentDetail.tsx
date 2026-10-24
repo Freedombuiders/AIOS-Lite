@@ -95,7 +95,7 @@ function ChatTab({ agentId }: { agentId: string }) {
 
 export default function AgentDetail({ id }: { id: string }) {
   const [, nav] = useLocation();
-  const [tab, setTab] = useState<TabId>('overview');
+  const [tab, setTab] = useState<TabId>(() => (new URLSearchParams(location.search).get('tab') === 'access' ? 'access' : 'overview'));
   const f = useFetch<AgentDetailDto>(`/agents/${id}`);
   const { agents, refresh: refreshList } = useAgents();
   const [form, setForm] = useState<AgentFormValue | null>(null);

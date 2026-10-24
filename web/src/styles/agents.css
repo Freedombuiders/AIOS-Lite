@@ -38,7 +38,7 @@
 
 /* ── Agents workspace (/agents): Hermes · Grok Bot · Dots · Muse · All ─────────────────────────────
  * Prefix ah-. Theme tokens only; runtime identity reuses the os-tint palette from agentic-os.css. */
-.agents-hub { max-width:1660px; width:100%; margin-inline:auto; padding-bottom:14px; }
+.agents-hub { width:100%; padding-bottom:14px; }
 .agents-hub :is(button, a, select, input, summary):focus-visible { outline:2px solid var(--color-accent); outline-offset:2px; }
 .agents-hub .ah-chip-select:focus-within { outline:2px solid var(--color-accent); outline-offset:2px; }
 .agents-hub button { font-family:inherit; }

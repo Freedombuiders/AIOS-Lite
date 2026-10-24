@@ -215,6 +215,11 @@ export function updateFbContentFields(id: number, patch: Record<string, unknown>
   return db.prepare(`UPDATE fb_content SET ${sql}, updated_at = ? WHERE id = ?${guard}`).run(...values, nowSec(), id, ...(onlyStatuses ?? [])).changes > 0;
 }
 
+/** Marks who created a row ('kol' for KOL Studio hand-offs); origin is not part of the editable fields. */
+export function setFbContentOrigin(id: number, origin: string): void {
+  db.prepare(`UPDATE fb_content SET origin = ? WHERE id = ?`).run(origin, id);
+}
+
 export function deleteFbContentRow(id: number): boolean {
   return db.prepare(`DELETE FROM fb_content WHERE id = ? AND status <> 'publishing'`).run(id).changes > 0;
 }

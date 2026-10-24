@@ -6,6 +6,7 @@ import type { AppDeps } from '../core/deps.js';
 import { applyMigrations, nowIso, tablesCreatedBy, type Migration } from '../core/db.js';
 import type { ModuleState, Run, Task } from '../core/types.js';
 import { bindCompat, bindModuleCompat, unbindModuleCompat } from './compat/state.js';
+import { registerIntegration, unregisterIntegration } from '../integrations/registry.js';
 import { createModuleContext, type ModuleResources } from './context.js';
 import type { AddOptions, AddResult, ModuleInfo, ModuleManager, ModuleRequirement } from './contracts.js';
 import { ModuleError } from './errors.js';
@@ -166,6 +167,9 @@ export function createModuleManager(deps: AppDeps, opts: ModuleManagerOptions = 
       const contextFor = self.def.contextFor;
       deps.hooks.moduleContext.set(id, (task) => contextFor(task, self.ctx));
     }
+    for (const def of self.def.integrations ?? []) {
+      if (!registerIntegration(def)) log.warn({ module: id, integration: def.id }, 'integration id already registered; skipped');
+    }
     if (self.def.agentContext) {
       const agentContext = self.def.agentContext;
       (deps.hooks.agentContext ??= new Map()).set(id, (agent: AgentConfig, task: Task, scopes: string[]) => agentContext({ agent, task, scopes }, self.ctx));
@@ -216,6 +220,7 @@ export function createModuleManager(deps: AppDeps, opts: ModuleManagerOptions = 
     deps.hooks.moduleContext.delete(id);
     for (const key of [...(deps.hooks.moduleActions?.keys() ?? [])]) if (key.startsWith(`${id}:`)) deps.hooks.moduleActions!.delete(key);
     deps.hooks.agentContext?.delete(id);
+    for (const def of a.def.integrations ?? []) unregisterIntegration(def.id);
     unbindModuleCompat(id);
     if (a.skillsRoot) deps.skills.removeRoot(a.skillsRoot);
     a.skillsRoot = undefined;
@@ -339,8 +344,9 @@ export function createModuleManager(deps: AppDeps, opts: ModuleManagerOptions = 
         const prefix = `/api/m/${id}`;
         url.pathname = url.pathname.slice(prefix.length) || '/';
         const method = c.req.method;
-        const body = method === 'GET' || method === 'HEAD' ? undefined : await c.req.raw.arrayBuffer();
-        return a.routes.fetch(new Request(url, { method, headers: c.req.raw.headers, body }));
+        // Stream the body through (video uploads can be GBs); never buffer it here.
+        const body = method === 'GET' || method === 'HEAD' ? undefined : c.req.raw.body;
+        return a.routes.fetch(new Request(url, { method, headers: c.req.raw.headers, body, duplex: 'half' } as RequestInit));
       };
       app.all('/api/m/:id', handle);
       app.all('/api/m/:id/*', handle);

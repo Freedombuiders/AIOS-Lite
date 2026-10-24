@@ -10,7 +10,7 @@
   --mem-shadow: rgba(0, 0, 0, .85); --mem-tip-bg: rgba(30, 28, 38, .96);
   --mem-live: #8bcbb0; --mem-rec: #ef6b6b;
   --mem-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  max-width: 1320px; margin: 0 auto; padding: 6px 32px 64px; color: var(--color-text);
+  max-width: none; margin: 0; padding: 6px 32px 64px; color: var(--color-text);
 }
 [data-appearance="light"] .mem-page {
   --mem-claude-code: #c4623d; --mem-codex: #3f74c9; --mem-hermes: #a77b14; --mem-saved: #2f8f68; --mem-freedomos: #c2457b;

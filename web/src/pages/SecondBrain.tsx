@@ -120,7 +120,7 @@ export default function SecondBrain() {
     return <button key={n.id} class={`sb-tree-row ${selected === n.id ? 'is-selected' : ''}`} style={{ paddingLeft: 22 + depth * 16 }} onClick={() => setSelected(n.id)} title={n.id} aria-pressed={selected === n.id}><FileText size={15} /><span>{n.title}</span></button>;
   }
   return <div class="sb-page">
-    <PageHeader title={data?.vaultName || 'Second Brain'} breadcrumb="Second Brains" actions={<><Link class="sb-button" href="/brain/search">Tìm kiếm và lập chỉ mục</Link></>} />
+    <PageHeader title={data?.vaultName || 'Second Brain'} breadcrumb="Second Brains" actions={<><Link class="sb-button" href="/brain/all">Quản lý brain</Link><Link class="sb-button" href="/brain/search">Tìm kiếm và lập chỉ mục</Link></>} />
     <div class="sb-toolbar">
       <div class="sb-vault-picker">
         <Brain size={20} class="text-[var(--color-accent)] shrink-0" />

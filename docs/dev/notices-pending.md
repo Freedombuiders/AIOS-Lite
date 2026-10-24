@@ -6,3 +6,4 @@ Paperclip (MIT) — nguồn đã dùng. Mỗi dòng: file nguồn → file đíc
 GỐC (owner-authored, không phải upstream):
 - modules/_lib/composio.ts ← GỐC src/fbstudio/composio.ts (class B; import thay bằng configureComposio)
 - modules/_lib/care-kit/{types,errors,checkpoint,validation,contract}.ts ← GỐC src/customer-care/{domain/*,connectors/contract}.ts (owner-authored, class A)
+- src/teams/secrets.ts ← paperclip server/src/services/company-portability.ts (isSensitiveEnvKey, trích input từ env) qua GỐC src/teams/secrets.ts

@@ -1,0 +1,20 @@
+schedules:
+  - id: weekly-schedule-review
+    agent: fb-content-lead
+    cron: "0 8 * * 1"
+    tz: Asia/Ho_Chi_Minh
+    policy:
+      concurrency: skip
+      catchUp: skip_missed
+    prompt: |
+      Weekly posting-schedule review for {{input.BRAND_NAME}}. Load the fb-content skill first.
+
+      Scope: if "{{input.FOCUS_PAGE}}" names a Page (anything other than a "[CHƯA CẤU HÌNH" marker), review only that Page; otherwise review every enabled Page listed in your turn context.
+
+      For each Page in scope:
+      1. Read its brand voice, pillars with target share, timezone, posting window, maxPostsPerDay, minGapMinutes and approvalRequired from your turn context (if a value is missing, write "chủ sẽ cung cấp").
+      2. Read the Page's scheduled, approved and review posts and its insights from your turn context. Build the picture for the next 7 days in the Page timezone: which days have a post, which are empty, which pillars are under their target share, which topics were just used.
+      3. Do not touch existing posts. Where a day inside the window is empty or a pillar is far below target, create at most 3 new posts with `<aios-action module="marketing" name="content.add">` (3 different hooks each, a real pillar name, a proposed time inside the window, respecting max per day and the minimum gap). Do not invent media: create the post without media and say that media is still needed. Where facts are missing use `[cần xác nhận: ...]` in the caption.
+      4. Confirm each post from the action result; list any you could not confirm.
+
+      Finish with one Vietnamese report (per Page: lịch 7 ngày tới còn trống ở đâu, đã soạn bài nào kèm id/trụ cột/giờ đề xuất/trạng thái, bài nào đang chờ duyệt, cần chủ làm gì). Give it as your final answer. End with an explicit state: done, waiting for approval (add <aios-status>review</aios-status>), or blocked.

@@ -125,7 +125,7 @@ export const memories: Memory[] = [
 ];
 
 export const brainFolders: BrainFolderView[] = [
-  { id: 'tri-thuc', name: 'Tri thức chung', path: '/brain/tri-thuc', description: 'Thương hiệu, ý tưởng, nghiên cứu', docs: 5, exists: true },
+  { id: 'tri-thuc', name: 'Tri thức chung', path: '/brain/tri-thuc', description: 'Thương hiệu, ý tưởng, nghiên cứu', docs: 5, exists: true, isVault: true, mdCount: 5 },
   { id: 'ban-hang', name: 'Bán hàng', path: '/brain/ban-hang', description: 'Bảng giá, câu hỏi thường gặp', docs: 2, exists: true },
   { id: 'luu-tru', name: 'Lưu trữ', path: '/brain/luu-tru', description: 'Thư mục chưa tạo', docs: 0, exists: false },
 ];

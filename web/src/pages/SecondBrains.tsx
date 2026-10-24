@@ -1,82 +1,179 @@
+import { useState } from 'preact/hooks';
 import { Link } from 'wouter-preact';
-import { ArrowRight, BookOpen, FolderOpen, Plus, RefreshCw, Settings2 } from 'lucide-preact';
+import { BookOpen, ExternalLink, FolderOpen, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-preact';
+import { ConfirmModal } from '@/components/ConfirmModal';
+import { FolderBrowser } from '@/components/FolderBrowser';
+import { Modal } from '@/components/Modal';
 import { PageHeader } from '@/components/PageHeader';
 import { PageState } from '@/components/PageState';
-import { useFetch } from '@/lib/useFetch';
+import { Pill } from '@/components/Pill';
+import { Field } from '@/components/ui';
+import { apiDelete, apiPost, apiPut, errorText } from '@/lib/api';
 import type { BrainFolderView } from '@/lib/api-types';
+import { resolveAgentName } from '@/lib/format';
+import { pushToast } from '@/lib/toasts';
+import { invalidateFetchCache, useFetch } from '@/lib/useFetch';
 
-interface Vault {
-  id: string;
-  name: string;
-  path: string;
+type Editing = { id: string | null; name: string; description: string; path: string };
+const EMPTY: Editing = { id: null, name: '', description: '', path: '' };
+
+function AgentList({ label, ids }: { label: string; ids: string[] }) {
+  return (
+    <div class="flex flex-wrap items-center gap-1 text-[12px]">
+      <span class="hint">{label}:</span>
+      {ids.length === 0 && <span class="hint">chưa agent nào</span>}
+      {ids.map((a) => <Link key={a} href={`/agents/${a}`} class="pill pill-accent no-underline">{resolveAgentName(a)}</Link>)}
+    </div>
+  );
 }
 
-interface VaultList { enabled: boolean; vaults: Vault[]; }
-
 export default function SecondBrains() {
-  const { data, loading, error, refresh } = useFetch<{ items: BrainFolderView[] }>('/brain/folders', 30_000);
-  const list: VaultList | null = data ? { enabled: data.items.some((f) => f.exists), vaults: data.items.filter((f) => f.exists).map((f) => ({ id: f.id, name: f.name, path: f.path })) } : null;
-  const vaults = list?.vaults ?? [];
+  const f = useFetch<{ items: BrainFolderView[] }>('/brain/folders', 30_000);
+  const [editing, setEditing] = useState<Editing | null>(null);
+  const [removing, setRemoving] = useState<BrainFolderView | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const items = f.data?.items ?? [];
+
+  const reload = () => {
+    invalidateFetchCache('/brain');
+    invalidateFetchCache('/agents');
+    f.refresh();
+  };
+
+  async function save() {
+    if (!editing) return;
+    setBusy('save');
+    try {
+      const body = { name: editing.name.trim(), description: editing.description.trim(), path: editing.path.trim() };
+      if (editing.id) await apiPut(`/brain/folders/${editing.id}`, body);
+      else await apiPost('/brain/folders', body);
+      pushToast({ tone: 'success', title: editing.id ? 'Đã lưu Second Brain' : 'Đã thêm Second Brain', description: 'Đã lập chỉ mục thư mục này.' });
+      setEditing(null);
+      reload();
+    } catch (e) {
+      pushToast({ tone: 'error', title: 'Không lưu được', description: errorText(e) });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function reindex(id?: string) {
+    setBusy(id ?? 'all');
+    try {
+      const r = await apiPost<{ indexed: number; removed: number; durationMs: number }>('/brain/reindex', { full: true, ...(id ? { folderId: id } : {}) });
+      pushToast({ tone: 'success', title: 'Đã lập lại chỉ mục', description: `${r.indexed} tài liệu mới, ${r.removed} bị gỡ, ${r.durationMs}ms.` });
+      reload();
+    } catch (e) {
+      pushToast({ tone: 'error', title: 'Không lập được chỉ mục', description: errorText(e) });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function remove() {
+    if (!removing) return;
+    setBusy('remove');
+    try {
+      const r = await apiDelete<{ agentsUpdated: string[] }>(`/brain/folders/${removing.id}`);
+      pushToast({ tone: 'success', title: `Đã gỡ “${removing.name}”`, description: r.agentsUpdated.length ? `Đã bỏ quyền của ${r.agentsUpdated.length} agent. File trên máy vẫn còn nguyên.` : 'File trên máy vẫn còn nguyên.' });
+      setRemoving(null);
+      reload();
+    } catch (e) {
+      pushToast({ tone: 'error', title: 'Không gỡ được', description: errorText(e) });
+    } finally {
+      setBusy(null);
+    }
+  }
 
   return (
-    <div class="flex h-full min-h-0 flex-col">
+    <div class="page page-wide">
       <PageHeader
-        title="Second Brains"
-        actions={<Link href="/brain/search" class="control-button inline-flex min-h-10 items-center gap-2 rounded-lg border border-[var(--color-border)] px-3 text-[13px]"><Settings2 size={16} aria-hidden="true" />Quản lý kho tri thức</Link>}
+        title="Quản lý Second Brain"
+        breadcrumb="Second Brain"
+        actions={
+          <>
+            <Link href="/brain" class="control-button inline-flex items-center gap-1.5 no-underline"><BookOpen size={12} />Mở trình khám phá</Link>
+            <button type="button" class="control-button" disabled={busy !== null} onClick={() => void reindex()}><RefreshCw size={12} class={busy === 'all' ? 'animate-spin' : ''} /> Lập chỉ mục lại tất cả</button>
+            <button type="button" class="control-button control-accent" onClick={() => setEditing({ ...EMPTY })}><Plus size={12} /> Thêm brain</button>
+          </>
+        }
       />
-      <div class="flex-1 overflow-y-auto px-4 py-6 sm:px-7 sm:py-8">
-        <div class="mx-auto max-w-5xl">
-          <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h2 class="text-xl font-semibold text-[var(--color-text)]">Kho tri thức của bạn</h2>
-              <p class="mt-1 text-sm text-[var(--color-text-muted)]">Mở một Second Brain để xem thư mục, đọc và chỉnh sửa ghi chú.</p>
+      <p class="hint -mt-2 mb-3">Mỗi brain là một thư mục ghi chú (vault Obsidian hoặc thư mục thường), ví dụ một công ty hoặc một người. Chọn agent nào được đọc hay ghi ở tab Quyền của agent.</p>
+
+      <PageState
+        loading={f.loading && !f.data}
+        error={f.error}
+        empty={!!f.data && items.length === 0}
+        emptyTitle="Chưa có Second Brain nào"
+        emptyDescription="Bấm “Thêm brain” để chọn một thư mục ghi chú trên máy."
+      />
+
+      <div class="flex flex-col gap-2.5" aria-label="Danh sách Second Brain">
+        {items.map((b) => (
+          <section key={b.id} class="card card-pad" data-testid={`brain-${b.id}`}>
+            <div class="flex flex-wrap items-start justify-between gap-2">
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <FolderOpen size={15} class="text-[var(--color-accent)]" aria-hidden="true" />
+                  <h2 class="m-0 text-[14px] font-semibold">{b.name}</h2>
+                  <span class="hint mono">{b.id}</span>
+                  {b.isVault && <Pill tone="accent">Obsidian vault</Pill>}
+                  {b.exists ? <Pill tone="success">Có trên máy</Pill> : <Pill tone="warn">Thiếu thư mục</Pill>}
+                </div>
+                {b.description && <div class="hint mt-0.5">{b.description}</div>}
+                <div class="hint mono mt-1 break-all">{b.path}</div>
+              </div>
+              <div class="flex flex-wrap items-center gap-1.5">
+                {b.exists && <Link href={`/brain?vault=${encodeURIComponent(b.id)}`} class="control-button control-sm inline-flex items-center gap-1 no-underline"><ExternalLink size={11} />Mở</Link>}
+                <button type="button" class="control-button control-sm" onClick={() => setEditing({ id: b.id, name: b.name, description: b.description ?? '', path: b.path })}><Pencil size={11} /> Sửa</button>
+                <button type="button" class="control-button control-sm" disabled={busy !== null || !b.exists} onClick={() => void reindex(b.id)}><RefreshCw size={11} class={busy === b.id ? 'animate-spin' : ''} /> Lập chỉ mục lại</button>
+                <button type="button" class="control-button control-sm control-danger" onClick={() => setRemoving(b)}><Trash2 size={11} /> Gỡ</button>
+              </div>
             </div>
-            <button type="button" onClick={refresh} disabled={loading} aria-label="Làm mới danh sách Second Brains" class="control-button inline-flex min-h-10 items-center gap-2 rounded-lg border border-[var(--color-border)] px-3 text-[13px] disabled:opacity-50"><RefreshCw size={15} aria-hidden="true" class={loading ? 'animate-spin' : ''} />Làm mới</button>
-          </div>
-
-          {error && <PageState error={error} />}
-          {loading && !data && <PageState loading />}
-
-          {list && !list.enabled && (
-            <section class="mb-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 sm:p-6">
-              <BookOpen size={25} class="text-[var(--color-accent)]" aria-hidden="true" />
-              <h3 class="mt-3 text-lg font-semibold text-[var(--color-text)]">Bật Second Brains để dùng kho tri thức</h3>
-              <p class="mt-1 text-sm text-[var(--color-text-muted)]">Chọn thư mục ghi chú trên máy để bắt đầu.</p>
-              <Link href="/brain/search" class="control-button control-accent mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg border px-4 text-[13px]">Thiết lập Second Brains <ArrowRight size={15} aria-hidden="true" /></Link>
-            </section>
-          )}
-
-          {list && vaults.length === 0 && list.enabled && (
-            <section class="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 text-center">
-              <FolderOpen size={30} class="mx-auto text-[var(--color-accent)]" aria-hidden="true" />
-              <h3 class="mt-3 text-lg font-semibold text-[var(--color-text)]">Chưa có Second Brain nào</h3>
-              <p class="mt-1 text-sm text-[var(--color-text-muted)]">Thêm một thư mục ghi chú để quản lý tại đây.</p>
-              <Link href="/brain/search" class="control-button control-accent mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg border px-4 text-[13px]"><Plus size={15} aria-hidden="true" />Thêm Second Brain</Link>
-            </section>
-          )}
-
-          {list?.enabled && vaults.length > 0 && (
-            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="Danh sách Second Brains">
-              {vaults.map(vault => (
-                <Link
-                  key={vault.id}
-                  href={`/brain?vault=${encodeURIComponent(vault.id)}`}
-                  class="group flex min-h-44 flex-col rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-control-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]"
-                  aria-label={`Mở Second Brain ${vault.name}`}
-                >
-                  <div class="flex items-start justify-between gap-3">
-                    <span class="flex size-11 items-center justify-center rounded-xl bg-[var(--color-accent-soft)] text-[var(--color-accent)]"><BookOpen size={22} aria-hidden="true" /></span>
-                    <ArrowRight size={17} class="text-[var(--color-text-muted)] transition-transform group-hover:translate-x-1" aria-hidden="true" />
-                  </div>
-                  <h3 class="mt-5 break-words text-base font-semibold text-[var(--color-text)]">{vault.name}</h3>
-                  <span class="mt-1 text-sm text-[var(--color-text-muted)]">Xem thư mục và ghi chú</span>
-                </Link>
-              ))}
-              <Link href="/brain/search" class="flex min-h-44 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-[var(--color-border)] p-5 text-center text-sm text-[var(--color-text-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]"><Plus size={22} aria-hidden="true" /><span>Thêm Second Brain</span></Link>
+            <div class="mt-2 flex flex-wrap gap-x-6 gap-y-1.5 text-[12px]">
+              <span><b>{b.docs}</b> <span class="hint">ghi chú đã lập chỉ mục{b.mdCount !== undefined ? ` · ${b.mdCount} file .md` : ''}</span></span>
+              <AgentList label="Được đọc bởi" ids={b.readers ?? []} />
+              <AgentList label="Được ghi bởi" ids={b.writers ?? []} />
             </div>
-          )}
-        </div>
+          </section>
+        ))}
       </div>
+
+      <Modal
+        open={!!editing}
+        onClose={() => busy !== 'save' && setEditing(null)}
+        title={editing?.id ? 'Sửa Second Brain' : 'Thêm Second Brain'}
+        width={620}
+        footer={
+          <>
+            <button type="button" class="control-button" disabled={busy === 'save'} onClick={() => setEditing(null)}>Huỷ</button>
+            <button type="button" class="control-button control-accent" disabled={busy === 'save' || !editing?.name.trim() || !editing?.path.trim()} onClick={() => void save()}>{busy === 'save' ? 'Đang lưu…' : 'Lưu'}</button>
+          </>
+        }
+      >
+        {editing && (
+          <div class="flex flex-col gap-3">
+            <Field label="Tên"><input class="field" value={editing.name} placeholder="Ví dụ: Công ty Đại Phát" onInput={(e) => setEditing({ ...editing, name: (e.target as HTMLInputElement).value })} /></Field>
+            <Field label="Mô tả (không bắt buộc)"><input class="field" value={editing.description} onInput={(e) => setEditing({ ...editing, description: (e.target as HTMLInputElement).value })} /></Field>
+            <Field label="Thư mục trên máy" hint="Gõ đường dẫn (hỗ trợ ~) hoặc bấm vào thư mục bên dưới. Chỉ duyệt được trong thư mục người dùng.">
+              <input class="field mono" value={editing.path} placeholder="~/Documents/Obsidian/CongTy" onInput={(e) => setEditing({ ...editing, path: (e.target as HTMLInputElement).value })} />
+            </Field>
+            <FolderBrowser path={editing.path} onPathChange={(path) => setEditing({ ...editing, path })} />
+          </div>
+        )}
+      </Modal>
+
+      <ConfirmModal
+        open={!!removing}
+        onClose={() => busy !== 'remove' && setRemoving(null)}
+        onConfirm={() => void remove()}
+        title={`Gỡ “${removing?.name ?? ''}”?`}
+        body="Chỉ gỡ khỏi AIOS, không xoá file."
+        detail="Chỉ mục tìm kiếm và quyền đọc/ghi của mọi agent với brain này sẽ bị bỏ. Thư mục và ghi chú trên máy vẫn còn nguyên."
+        confirmLabel="Gỡ khỏi AIOS"
+        destructive
+        loading={busy === 'remove'}
+      />
     </div>
   );
 }

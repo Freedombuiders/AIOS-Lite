@@ -1,0 +1,97 @@
+/* Library manager (Video Studio › Quản lý kho). Prefix .vl-; colours come from the theme tokens.
+   The Modal renders outside .vs-root, so the vs- helpers it reuses (.vs-btn, .vs-input, .vl-kind…) are standalone classes. */
+
+.vl-body { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+.vl-wrap {
+  display: flex; flex-direction: column; gap: 12px; flex: 1; min-height: 0; padding: 14px 20px 0;
+  font-size: 13px; color: var(--color-text);
+}
+.vl-wrap *, .vl-wrap *::before, .vl-wrap *::after { box-sizing: border-box; }
+.vl-wrap :is(button, a, input, select, textarea, summary):focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.vl-wrap :is(p, ul, ol) { margin: 0; padding: 0; list-style: none; }
+.vl-foot { font-size: 12px; }
+.vl-note { font-size: 12px; }
+.vl-inline { display: inline-flex; margin: 0 0 0 6px; padding: 0; min-height: 0; vertical-align: middle; }
+
+/* Seed */
+.vl-seed { padding: 12px 14px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-elevated); display: flex; flex-direction: column; gap: 8px; }
+.vl-seed-note { font-size: 12px; flex: 1; min-width: 200px; }
+.vl-seed-groups { display: flex; flex-wrap: wrap; gap: 6px; }
+.vl-skipped { font-size: 12px; color: var(--color-text-muted); }
+.vl-skipped summary { cursor: pointer; }
+.vl-skipped ul { margin-top: 6px; max-height: 140px; overflow-y: auto; display: grid; gap: 3px; }
+.vl-bar { display: block; height: 6px; border-radius: 99px; background: var(--color-bg); border: 1px solid var(--color-border); overflow: hidden; }
+.vl-bar > span { display: block; height: 100%; background: var(--color-accent); transition: width 0.25s; }
+.vl-bar-sm { width: 140px; height: 5px; flex-shrink: 0; }
+
+/* Toolbar + tabs */
+.vl-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.vl-search { flex: 1; min-width: 200px; }
+.vl-searchbox { display: flex; align-items: center; gap: 8px; padding: 0 10px; min-height: 36px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-bg); color: var(--color-text-muted); }
+.vl-searchbox input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--color-text); font-size: 13px; outline: none; }
+.vl-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+.vl-tabs .vl-kind { flex-shrink: 0; }
+.vl-kind {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 12px; border-radius: 8px; font-size: 12.5px;
+  border: 1px solid var(--color-border); background: transparent; color: var(--color-text-muted); cursor: pointer; white-space: nowrap;
+}
+.vl-kind:hover { color: var(--color-text); background: var(--color-control-hover); }
+.vl-kind.is-active { color: var(--color-control-text); background: var(--color-control-bg); border-color: var(--color-control-border); }
+.vl-kind > span { font-size: 11px; opacity: 0.7; }
+
+/* Uploads */
+.vl-uploads { display: grid; gap: 4px; font-size: 12px; }
+.vl-uploads li { display: flex; align-items: center; gap: 10px; }
+.vl-up-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vl-up-err { color: var(--color-status-failed); }
+
+/* List */
+.vl-list-wrap { position: relative; flex: 1; min-height: 160px; overflow-y: auto; margin: 0 -20px; padding: 0 20px 16px; }
+.vl-list-wrap.is-drag { outline: 2px dashed var(--color-accent); outline-offset: -6px; border-radius: 10px; }
+.vl-drop { position: sticky; top: 0; z-index: 2; padding: 14px; text-align: center; border-radius: 10px; background: var(--color-accent-soft); color: var(--color-text); font-weight: 600; }
+.vl-empty { padding: 28px 8px; text-align: center; }
+.vl-list { display: grid; gap: 8px; }
+.vl-list-fonts { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); }
+.vl-item { border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-card); min-width: 0; }
+.vl-item.is-off { opacity: 0.6; }
+.vl-item.is-editing { border-color: var(--color-control-border); }
+.vl-row { display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; }
+.vl-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.vl-title { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.vl-name { font-weight: 600; overflow-wrap: anywhere; }
+.vl-desc { font-size: 12px; line-height: 1.45; }
+.vl-sample { font-size: 22px; line-height: 1.25; overflow-wrap: anywhere; color: var(--color-text); }
+.vl-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+.vl-attr { font-size: 11.5px; color: var(--color-text-muted); }
+.vl-src { font-size: 11px; color: var(--color-accent); text-decoration: none; }
+.vl-src:hover { text-decoration: underline; }
+.vl-actions { display: flex; gap: 2px; flex-shrink: 0; }
+.vl-del:hover:not(:disabled) { color: var(--color-status-failed); }
+
+.vl-lic { padding: 1px 7px; border-radius: 6px; font-size: 10.5px; border: 1px solid var(--color-border); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vl-lic-ok { color: var(--color-status-done, var(--color-text)); border-color: currentColor; }
+.vl-lic-attr { color: var(--color-accent); border-color: currentColor; }
+.vl-lic-warn { color: var(--color-status-running); border-color: currentColor; }
+
+/* Preview cell */
+.vl-prev { width: 48px; height: 48px; flex-shrink: 0; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--color-border); background: var(--color-elevated); color: var(--color-text-muted); overflow: hidden; }
+.vl-prev-play { cursor: pointer; color: var(--color-text); }
+.vl-prev-play:hover, .vl-prev-play[aria-pressed="true"] { background: var(--color-accent-soft); border-color: var(--color-control-border); }
+.vl-prev-img img, .vl-prev-img video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vl-prev-font { font-size: 22px; color: var(--color-text); }
+.vl-prev-demo .vs-asset-visual { width: 100%; height: 100%; border-radius: 0; }
+
+/* Edit form */
+.vl-edit { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-top: 1px solid var(--color-border); }
+.vl-edit .vs-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.vl-check { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--color-text); cursor: pointer; }
+.vl-check input { width: 16px; height: 16px; }
+
+@media (max-width: 720px) {
+  .vl-wrap { padding: 12px 12px 0; }
+  .vl-list-wrap { margin: 0 -12px; padding: 0 12px 12px; }
+  .vl-list-fonts { grid-template-columns: 1fr; }
+  .vl-edit .vs-grid2 { grid-template-columns: 1fr; }
+  .vl-row { flex-wrap: wrap; }
+  .vl-actions { margin-left: auto; }
+}

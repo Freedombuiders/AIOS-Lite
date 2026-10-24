@@ -304,6 +304,7 @@ Dịch vụ cho **module khác** gọi qua `ctx.modules.get('bao-cao-tuan')`. Mo
 | `ctx.agents.list/get` | Xem agent |
 | `ctx.access.can/canIn` | Kiểm scope của module mình hoặc module khác |
 | `ctx.connections.secret/composio/has` | Đọc khoá từ `.env`, dùng Composio |
+| `ctx.integrations.values(id)` | Đọc khoá chủ đã lưu ở **Kết nối › Integrations** (fal, Apify, ElevenLabs…), trả `null` nếu chưa kết nối. Chỉ dùng phía server, không đưa vào prompt hay log |
 | `ctx.memory.add/recall`, `ctx.brain.search` | Bộ nhớ và Second Brain (module tự lo kiểm quyền agent) |
 | `ctx.settings.get/set/all` | Cài đặt của module |
 | `ctx.events.emit/on` | Sự kiện: tên tự gắn tiền tố `<id>:` |

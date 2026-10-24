@@ -6,10 +6,10 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
 import { z } from 'zod';
 
+import { sourcePath } from '../../../_lib/source-path.js';
 import { PROJECT_ROOT } from '../compat.js';
 import { deleteFbReplyRule, getFbReplyRuleJson, putFbReplyRule } from '../store.js';
 import { DEFAULT_REPLY_RULES, type ReplyRuleConfig } from '../types.js';
@@ -143,7 +143,7 @@ export function readFaqFile(faqPath: string, baseDir?: string): string {
   }
 }
 
-const MODULE_SKILLS_DIR = fileURLToPath(new URL('../../skills', import.meta.url));
+const MODULE_SKILLS_DIR = sourcePath(new URL('../../skills', import.meta.url));
 
 function skillDirs(): string[] {
   return [path.join(PROJECT_ROOT, 'skills'), MODULE_SKILLS_DIR];

@@ -105,5 +105,5 @@ button:disabled { cursor: not-allowed; }
 [data-appearance="dark"] { --color-status-done: #6edca0; --color-status-failed: #fb8c95; }
 /* Each workspace owns its scroll region; off-canvas drawers must not scroll the document. */
 html, body, #app { overflow: hidden; }
-.settings-content { max-width: 1120px; margin-inline: auto; padding-bottom: 64px; }
+.settings-content { max-width: none; padding-bottom: 64px; }
 [data-appearance="dark"] { --color-text-faint: #969ba7; }

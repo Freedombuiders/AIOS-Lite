@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 // Core flows on the real app with the `mock` runtime (agent `demo`). No CLI or API key needed.
 
-const CORE_PAGES = ['/', '/agents', '/tasks', '/schedules', '/chat', '/brain', '/memory', '/skills', '/modules', '/connections', '/audit', '/settings'];
+const CORE_PAGES = ['/', '/agents', '/tasks', '/schedules', '/chat', '/brain', '/memory', '/skills', '/modules', '/connections', '/audit', '/settings', '/usage', '/budgets', '/teams', '/agent-market', '/recos'];
 
 function trackErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -68,4 +68,28 @@ test('agent detail shows the access tab with enforcement badges', async ({ page 
   await page.goto('/agents/main');
   await page.getByRole('button', { name: /Quyền/ }).or(page.getByRole('tab', { name: /Quyền/ })).first().click();
   await expect(page.getByText(/Chặn cứng|Chỉ dặn trong prompt/).first()).toBeVisible();
+});
+
+test('P5 modules: add finance, radar, video and kol, their pages render without script errors', async ({ page, request }) => {
+  const errors = trackErrors(page);
+  const pages: Record<string, string[]> = {
+    finance: ['/m/finance/pnl', '/m/finance/business-model', '/m/finance/ledger', '/m/finance/erp'],
+    radar: ['/m/radar'],
+    video: ['/m/video'],
+    kol: ['/m/kol'],
+  };
+  for (const [id, paths] of Object.entries(pages)) {
+    const added = await request.post(`/api/modules/${id}/add`, { data: { installAgents: false } });
+    // kol needs a Composio connection; a machine without one can't add it
+    if (!added.ok() && id === 'kol') continue;
+    expect(added.ok(), `add ${id}`).toBeTruthy();
+    for (const path of paths) {
+      await page.goto(path);
+      await expect(page.locator('#app')).not.toBeEmpty();
+      await expect(page.getByText('Không tìm thấy trang')).toHaveCount(0);
+      await page.waitForTimeout(400);
+    }
+    await request.post(`/api/modules/${id}/remove`);
+  }
+  expect(errors).toEqual([]);
 });

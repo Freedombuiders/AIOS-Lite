@@ -1,0 +1,78 @@
+{
+ "module": "finance",
+ "entries": [
+  {
+   "from": "src/pnl",
+   "to": "modules/finance/server/pnl",
+   "kind": "B",
+   "note": "whop-sync, store, routes rewired; db.ts settings"
+  },
+  {
+   "from": "src/profit",
+   "to": "modules/finance/server/profit",
+   "kind": "B",
+   "note": "routes rewired to module settings/db"
+  },
+  {
+   "from": "src/erp",
+   "to": "modules/finance/server/erp",
+   "kind": "B",
+   "note": "hub store replaced by module MCP settings"
+  },
+  {
+   "from": "web/src/pages/Pnl.tsx",
+   "to": "modules/finance/web/pages/Pnl.tsx",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "web/src/pages/ProfitDashboard.tsx",
+   "to": "modules/finance/web/pages/ProfitDashboard.tsx",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "web/src/pages/BusinessModel.tsx",
+   "to": "modules/finance/web/pages/BusinessModel.tsx",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "web/src/pages/Erp.tsx",
+   "to": "modules/finance/web/pages/Erp.tsx",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "web/src/components/pnl/PnlParts.tsx",
+   "to": "modules/finance/web/components/pnl/PnlParts.tsx",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "web/src/components/InfiniteCanvas.tsx",
+   "to": "modules/finance/web/components/InfiniteCanvas.tsx",
+   "kind": "B",
+   "note": "used by BusinessModel only"
+  },
+  {
+   "from": "web/src/lib/pnl.ts",
+   "to": "modules/finance/web/lib/pnl.ts",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/business-model.ts",
+   "to": "modules/finance/web/lib/business-model.ts",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "web/src/styles/pnl.css",
+   "to": "modules/finance/web/styles/pnl.css",
+   "kind": "B",
+   "note": ""
+  }
+ ],
+ "drop": []
+}

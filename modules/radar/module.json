@@ -1,0 +1,33 @@
+{
+  "id": "radar",
+  "name": "Radar thị trường",
+  "description": "Nghiên cứu thị trường hằng ngày: quét nhóm, fanpage, X, TikTok, Reddit, rồi tổng hợp nỗi đau, tín hiệu mua và ý tưởng nội dung.",
+  "version": "1.0.0",
+  "icon": "radar",
+  "category": "marketing",
+  "scopes": {
+    "radar.read": "Đọc báo cáo Radar thị trường"
+  },
+  "tables": [
+    "radar_runs",
+    "radar_items",
+    "radar_seen",
+    "radar_pains",
+    "radar_reports",
+    "radar_kv"
+  ],
+  "agentTemplates": [
+    "radar-analyst"
+  ],
+  "skills": [
+    "radar-review"
+  ],
+  "settings": {
+    "enabled": {
+      "label": "Bật quét theo lịch",
+      "type": "boolean",
+      "default": false,
+      "help": "Tắt: chỉ quét khi bấm chạy tay. Bật: mỗi lớp quét một lần mỗi ngày vào giờ đã đặt."
+    }
+  }
+}

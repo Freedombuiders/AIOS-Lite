@@ -3,7 +3,10 @@
 import type { Memory, Message, Schedule, Task, TaskStatus } from '@core/types';
 import type { AppEvent } from '../events';
 import { ApiError } from '../errors';
+import type { SkillRootView } from '../api-types';
 import * as d from './data';
+import { costRoutes } from './costs';
+import { teamsMockRoutes, TeamsMockError } from './teams';
 import * as ig from './integrations';
 
 export function mockEnabled(): boolean {
@@ -276,7 +279,58 @@ on('POST', '/conversations/:id/messages', ([id], _q, b) => {
   return { message: m, task };
 });
 
-on('GET', '/brain/folders', () => ({ items: d.brainFolders }));
+const brainView = () =>
+  d.brainFolders.map((f) => ({
+    ...f,
+    isVault: f.isVault ?? false,
+    mdCount: f.mdCount ?? f.docs,
+    readers: d.agents.filter((a) => (a.access.brain[f.id]?.read.length ?? 0) > 0).map((a) => a.id),
+    writers: d.agents.filter((a) => (a.access.brain[f.id]?.write.length ?? 0) > 0).map((a) => a.id),
+  }));
+on('GET', '/brain/folders', () => ({ items: brainView() }));
+on('POST', '/brain/folders', (_p, _q, b) => {
+  if (!b.name?.trim() || !b.path?.trim()) throw new MockError(400, 'bad_request', 'Cần nhập tên và đường dẫn.');
+  if (d.brainFolders.some((f) => f.path === b.path)) throw new MockError(409, 'conflict', 'Thư mục này đã được thêm.');
+  const base = foldAscii(b.name).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'brain';
+  let id = base;
+  for (let i = 2; d.brainFolders.some((f) => f.id === id); i++) id = `${base}-${i}`;
+  const f = { id, name: b.name.trim(), path: b.path.trim(), ...(b.description ? { description: b.description } : {}), docs: 3, exists: true, isVault: /obsidian/i.test(b.path), mdCount: 3 };
+  d.brainFolders.push(f);
+  return f;
+});
+on('PUT', '/brain/folders/:id', ([id], _q, b) => {
+  const f = d.brainFolders.find((x) => x.id === id);
+  if (!f) throw new MockError(404, 'not_found', 'Không tìm thấy Second Brain');
+  Object.assign(f, b);
+  return f;
+});
+on('DELETE', '/brain/folders/:id', ([id]) => {
+  const i = d.brainFolders.findIndex((x) => x.id === id);
+  if (i < 0) throw new MockError(404, 'not_found', 'Không tìm thấy Second Brain');
+  d.brainFolders.splice(i, 1);
+  const agentsUpdated: string[] = [];
+  for (const a of d.agents) {
+    if (id! in a.access.brain) {
+      delete a.access.brain[id!];
+      agentsUpdated.push(a.id);
+    }
+  }
+  return { ok: true, agentsUpdated };
+});
+const FS: Record<string, { name: string; isVault?: boolean; hasSkills?: boolean }[]> = {
+  '/Users/demo': [{ name: '.claude', hasSkills: true }, { name: 'Documents' }, { name: 'Obsidian', isVault: false }, { name: 'Projects' }],
+  '/Users/demo/Documents': [{ name: 'CongTyA', isVault: true }, { name: 'CongTyB', isVault: true }, { name: 'Ghi-chu' }],
+  '/Users/demo/Obsidian': [{ name: 'Ca-nhan', isVault: true }],
+  '/Users/demo/Projects': [{ name: 'skills-cua-toi', hasSkills: true }],
+  '/Users/demo/.claude': [{ name: 'skills', hasSkills: true }],
+};
+on('GET', '/fs/dirs', (_p, q) => {
+  const raw = (q.get('path') ?? '').replace(/^~/, '/Users/demo') || '/Users/demo';
+  const cur = raw.replace(/\/+$/, '') || '/Users/demo';
+  if (!cur.startsWith('/Users/demo')) throw new MockError(400, 'bad_request', 'Chỉ được duyệt thư mục bên trong thư mục người dùng.');
+  const dirs = (FS[cur] ?? []).map((e) => ({ name: e.name, path: `${cur}/${e.name}`, isVault: !!e.isVault, hasSkills: !!e.hasSkills }));
+  return { path: cur, parent: cur === '/Users/demo' ? null : cur.slice(0, cur.lastIndexOf('/')), dirs };
+});
 on('GET', '/brain/tree', (_p, q) => ({ items: d.brainTree[q.get('folder') ?? ''] ?? [] }));
 on('GET', '/brain/file', (_p, q) => {
   const content = d.brainFiles[`${q.get('folder')}:${q.get('path')}`];
@@ -319,7 +373,43 @@ on('DELETE', '/memory/:id', ([id]) => {
   return { ok: true };
 });
 
-on('GET', '/skills', () => ({ items: d.skills }));
+const skillViews = () =>
+  d.skills.map((sk) => ({ ...sk, usedBy: d.agents.filter((a) => a.access.skills === 'all' || a.access.skills.includes(sk.id)).map((a) => a.id) }));
+on('GET', '/skills', () => ({ items: skillViews() }));
+const skillRoots: SkillRootView[] = [
+  { path: '/Users/demo/aios/skills', label: 'Thư viện của AIOS', kind: 'env', readOnly: true, exists: true, skills: 2, clashes: [] as string[] },
+  { path: '/Users/demo/aios/modules/care/skills', label: 'module:care', kind: 'module', readOnly: true, exists: true, skills: 1, clashes: [] as string[] },
+];
+on('GET', '/skills/roots', () => ({
+  items: skillRoots,
+  suggestions: [
+    { path: '/Users/demo/.claude/skills', label: 'Claude Code (~/.claude/skills)', skills: 12 },
+    { path: '/Users/demo/Documents/CongTyA/.claude/skills', label: 'Công ty A (.claude/skills)', skills: 4 },
+  ].filter((sg) => !skillRoots.some((r) => r.path === sg.path)),
+}));
+on('POST', '/skills/roots', (_p, _q, b) => {
+  if (skillRoots.some((r) => r.path === b.path)) throw new MockError(409, 'conflict', 'Nguồn skill này đã có trong danh sách.');
+  const r: SkillRootView = { path: b.path as string, label: (b.label as string) || b.path.split('/').pop(), kind: 'user', readOnly: false, exists: true, skills: 3, clashes: [] as string[] };
+  skillRoots.push(r);
+  return r;
+});
+on('DELETE', '/skills/roots', (_p, _q, b) => {
+  const i = skillRoots.findIndex((r) => r.path === b.path && !r.readOnly);
+  if (i < 0) throw new MockError(404, 'not_found', 'Không có nguồn skill này trong cấu hình.');
+  skillRoots.splice(i, 1);
+  return { ok: true };
+});
+on('PUT', '/skills/:id/agents', ([id], _q, b) => {
+  if (!d.skills.some((sk) => sk.id === id)) throw new MockError(404, 'not_found', 'Không tìm thấy skill');
+  for (const a of d.agents) {
+    if (a.access.skills === 'all') continue;
+    const has = a.access.skills.includes(id!);
+    const want = (b.agentIds as string[]).includes(a.id);
+    if (want && !has) a.access.skills = [...a.access.skills, id!];
+    if (!want && has) a.access.skills = a.access.skills.filter((x: string) => x !== id);
+  }
+  return { usedBy: skillViews().find((sk) => sk.id === id)!.usedBy };
+});
 on('GET', '/skills/:id', ([id]) => {
   const skill = d.skills.find((s) => s.id === id);
   if (!skill) throw new MockError(404, 'not_found', 'Không tìm thấy skill');
@@ -399,6 +489,9 @@ on('DELETE', '/integrations/:id', ([id]) => {
 });
 on('GET', '/agents/:id/integrations', ([id]) => ({ grants: ig.agentGrants[id!] ?? {} }));
 on('PUT', '/agents/:id/integrations', ([id], _q, b) => ({ grants: (ig.agentGrants[id!] = b.grants) }));
+
+for (const [m, p, fn] of costRoutes) on(m, p, fn);
+for (const [m, p, fn] of teamsMockRoutes) on(m, p, (a, q, b) => { try { return fn(a, q, b); } catch (e) { throw e instanceof TeamsMockError ? new MockError(e.status, e.code, e.message) : e; } });
 
 export async function mockRequest<T>(method: string, rawPath: string, body?: unknown): Promise<T> {
   await delay(120);

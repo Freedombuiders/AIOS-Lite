@@ -1,0 +1,20 @@
+{
+  "id": "video",
+  "name": "AI Video Studio",
+  "description": "Dựng video quay sẵn, viết kịch bản và sản xuất video cùng KOL, tạo cảnh bằng Google Flow; ffmpeg dựng và xuất file ngay trên máy.",
+  "version": "1.0.0",
+  "icon": "clapperboard",
+  "category": "studio",
+  "enhances": ["kol"],
+  "scopes": {
+    "studio.read": "Xem việc dựng và tiến độ video",
+    "studio.write": "Tạo video và điều khiển đạo diễn AI (chi phí vẫn chờ chủ duyệt)"
+  },
+  "tables": [],
+  "agentTemplates": ["video-editor"],
+  "skills": ["video-create", "video-edit", "video-learn", "video-produce"],
+  "settings": {
+    "director_agent": { "label": "Agent đạo diễn mặc định", "type": "string", "default": "", "help": "Để trống: dùng video-editor nếu đã có, không thì main." },
+    "auto_advance_create": { "label": "Tự theo dõi và ghép video tạo bằng Flow", "type": "boolean", "default": true, "help": "Sau khi chủ kênh cho phép tạo, module tự gửi cảnh, nhập file và xuất video." }
+  }
+}

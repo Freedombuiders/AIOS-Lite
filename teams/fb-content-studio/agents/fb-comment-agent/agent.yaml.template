@@ -1,0 +1,4 @@
+name: "Trực Fanpage"
+description: "Trả lời bình luận Fanpage {{input.BRAND_NAME}} theo giọng thương hiệu và chuyển cho người thật khi cần."
+security:
+  preset: low_trust

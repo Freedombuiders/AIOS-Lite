@@ -42,3 +42,11 @@ test('refuses upstream file and writes nothing', () => {
   assert.deepEqual(r.refused, ['src/logger.ts']);
   assert.ok(!fs.existsSync(path.join(tgt, 'a')));
 });
+
+test('a manifest that lands in core logs to docs/dev/port, not modules/<id>', () => {
+  const tgt = fs.mkdtempSync(path.join(os.tmpdir(), 'cp-tgt-'));
+  const m = { module: 'core-x', entries: [{ from: 'src/x', to: 'src/x', kind: 'B', note: '' }] };
+  appendLog(m, { rows: [] }, { targetRoot: tgt });
+  assert.ok(fs.existsSync(path.join(tgt, 'docs/dev/port/core-x.PORTING.md')));
+  assert.ok(!fs.existsSync(path.join(tgt, 'modules/core-x')));
+});

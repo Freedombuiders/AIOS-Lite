@@ -20,6 +20,7 @@ import MissionTaskDetail from './MissionTaskDetail';
 import ModulesPage from './Modules';
 import SchedulesPage from './Schedules';
 import SecondBrain from './SecondBrain';
+import SecondBrains from './SecondBrains';
 import SettingsPage from './Settings';
 import SkillsPage from './Skills';
 import TasksPage from './tasks/TasksPage';
@@ -44,6 +45,7 @@ describe('pages with the mock api', () => {
     ['/schedules', 'schedules', () => <SchedulesPage />, /Báo cáo sáng/],
     ['/chat', 'chat', () => <ChatPage />, /Kế hoạch tuần/],
     ['/brain', 'second brain', () => <SecondBrain />, /Second Brain|Tri thức/],
+    ['/brain/all', 'brain management', () => <SecondBrains />, /Quản lý Second Brain/],
     ['/brain/search', 'brain search', () => <BrainSearch />, /Lập lại chỉ mục/],
     ['/memory', 'memory', () => <MemoryPage />, /Bộ nhớ/],
     ['/skills', 'skills', () => <SkillsPage />, /Trả lời khách/],

@@ -3,7 +3,7 @@
 // The host loads every module's web entry with import.meta.glob and shows only the enabled ones (/api/modules).
 import type { ComponentType } from 'preact';
 
-export type NavGroup = 'sales' | 'marketing' | 'ops' | 'other';
+export type NavGroup = 'studio' | 'sales' | 'marketing' | 'finance' | 'ops' | 'other';
 
 export interface WebNavItem {
   group: NavGroup;

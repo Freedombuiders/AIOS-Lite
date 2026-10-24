@@ -175,7 +175,7 @@ select.field { padding-right: 4px; }
 /* Layout */
 .app-shell { display: flex; height: 100%; }
 .app-main { flex: 1; min-width: 0; overflow-y: auto; }
-.page { padding: 18px 22px 40px; max-width: 1280px; margin: 0 auto; }
+.page { padding: 18px 22px 40px; width: 100%; max-width: none; margin: 0; }
 .page-wide { max-width: none; }
 .kanban { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(230px, 1fr); gap: 10px; overflow-x: auto; padding-bottom: 8px; }
 .kanban-col { background: var(--color-sidebar); border: 1px solid var(--color-border); border-radius: var(--radius-lg); min-height: 200px; display: flex; flex-direction: column; }
@@ -594,7 +594,7 @@ button.chat-activity-head:hover { color: var(--color-text-muted); background: va
 .app-breadcrumb-current { color: var(--color-text); font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
 .app-breadcrumb-sep { color: var(--color-text-faint); }
 .app-scrim { position: fixed; inset: 0; z-index: 45; background: rgba(0, 0, 0, 0.5); }
-.module-page { max-width: 1440px; min-height: 100%; display: flex; flex-direction: column; }
+.module-page { width: 100%; max-width: none; min-height: 100%; display: flex; flex-direction: column; }
 .module-page .px-4, .module-page .md\:px-6 { padding-inline: 0; }
 .module-page > * { flex: 1 1 auto; min-width: 0; }
 .module-page > .h-full { height: auto; }

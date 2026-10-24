@@ -1,0 +1,107 @@
+{
+  "module": "teams",
+  "entries": [
+    {
+      "from": "teams/cskh-zalo-email/TEAM.md",
+      "to": "teams/cskh-zalo-email/TEAM.md",
+      "kind": "A",
+      "note": "team package data"
+    },
+    {
+      "from": "teams/cskh-zalo-email/agents/cskh-agent/CLAUDE.md",
+      "to": "teams/cskh-zalo-email/agents/cskh-agent/persona.md",
+      "kind": "A",
+      "note": "team package data (CLAUDE.md renamed persona.md)"
+    },
+    {
+      "from": "teams/cskh-zalo-email/agents/cskh-agent/agent.yaml.template",
+      "to": "teams/cskh-zalo-email/agents/cskh-agent/agent.yaml.template",
+      "kind": "A",
+      "note": "team package data"
+    },
+    {
+      "from": "teams/cskh-zalo-email/agents/cskh-agent/knowledge/customer-care.md",
+      "to": "teams/cskh-zalo-email/agents/cskh-agent/knowledge/customer-care.md",
+      "kind": "A",
+      "note": "team package data"
+    },
+    {
+      "from": "teams/cskh-zalo-email/agents/cskh-agent/skills/cskh-escalation/SKILL.md",
+      "to": "teams/cskh-zalo-email/agents/cskh-agent/skills/cskh-escalation/SKILL.md",
+      "kind": "A",
+      "note": "team package data"
+    },
+    {
+      "from": "teams/cskh-zalo-email/agents/cskh-complaints/CLAUDE.md",
+      "to": "teams/cskh-zalo-email/agents/cskh-complaints/persona.md",
+      "kind": "A",
+      "note": "team package data (CLAUDE.md renamed persona.md)"
+    },
+    {
+      "from": "teams/cskh-zalo-email/agents/cskh-complaints/agent.yaml.template",
+      "to": "teams/cskh-zalo-email/agents/cskh-complaints/agent.yaml.template",
+      "kind": "A",
+      "note": "team package data"
+    },
+    {
+      "from": "teams/cskh-zalo-email/schedules.yaml",
+      "to": "teams/cskh-zalo-email/schedules.yaml",
+      "kind": "A",
+      "note": "team package data"
+    },
+    {
+      "from": "teams/fb-content-studio/TEAM.md",
+      "to": "teams/fb-content-studio/TEAM.md",
+      "kind": "A",
+      "note": "team package data"
+    },
+    {
+      "from": "teams/fb-content-studio/agents/fb-comment-agent/CLAUDE.md",
+      "to": "teams/fb-content-studio/agents/fb-comment-agent/persona.md",
+      "kind": "A",
+      "note": "team package data (CLAUDE.md renamed persona.md)"
+    },
+    {
+      "from": "teams/fb-content-studio/agents/fb-comment-agent/agent.yaml.template",
+      "to": "teams/fb-content-studio/agents/fb-comment-agent/agent.yaml.template",
+      "kind": "A",
+      "note": "team package data"
+    },
+    {
+      "from": "teams/fb-content-studio/agents/fb-content-lead/CLAUDE.md",
+      "to": "teams/fb-content-studio/agents/fb-content-lead/persona.md",
+      "kind": "A",
+      "note": "team package data (CLAUDE.md renamed persona.md)"
+    },
+    {
+      "from": "teams/fb-content-studio/agents/fb-content-lead/agent.yaml.template",
+      "to": "teams/fb-content-studio/agents/fb-content-lead/agent.yaml.template",
+      "kind": "A",
+      "note": "team package data"
+    },
+    {
+      "from": "teams/fb-content-studio/schedules.yaml",
+      "to": "teams/fb-content-studio/schedules.yaml",
+      "kind": "A",
+      "note": "team package data"
+    },
+    {
+      "from": "src/teams/secrets.ts",
+      "to": "src/teams/secrets.ts",
+      "kind": "B",
+      "note": "scrubber; config import replaced"
+    },
+    {
+      "from": "src/agent-market/catalog.ts",
+      "to": "src/agent-market/catalog.ts",
+      "kind": "A",
+      "note": "agent template catalog"
+    },
+    {
+      "from": "src/agent-market/files.ts",
+      "to": "src/agent-market/files.ts",
+      "kind": "A",
+      "note": "template file renderer"
+    }
+  ]
+}

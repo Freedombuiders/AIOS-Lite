@@ -1,0 +1,163 @@
+{
+ "module": "video",
+ "entries": [
+  {
+   "from": "src/video-edit",
+   "to": "modules/video/server/edit",
+   "kind": "B",
+   "note": "owner: video edit pipeline; imports rewired to SDK/compat"
+  },
+  {
+   "from": "src/video-create",
+   "to": "modules/video/server/create",
+   "kind": "B",
+   "note": "owner: video create (Flow) service"
+  },
+  {
+   "from": "src/video-studio",
+   "to": "modules/video/server/studio",
+   "kind": "B",
+   "note": "owner: video studio bridge/runtime"
+  },
+  {
+   "from": "web/src/pages/VideoStudio.tsx",
+   "to": "modules/video/web/pages/VideoStudio.tsx",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "web/src/components/video-studio",
+   "to": "modules/video/web/components/video-studio",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/video-edit",
+   "to": "modules/video/web/lib/video-edit",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/video-production.ts",
+   "to": "modules/video/web/lib/video-production.ts",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/video-production.test.ts",
+   "to": "modules/video/web/lib/video-production.test.ts",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/video-production-api.ts",
+   "to": "modules/video/web/lib/video-production-api.ts",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "web/src/styles/video-studio.css",
+   "to": "modules/video/web/styles/video-studio.css",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/styles/video-production.css",
+   "to": "modules/video/web/styles/video-production.css",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/styles/video-library.css",
+   "to": "modules/video/web/styles/video-library.css",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/assets/video-studio",
+   "to": "modules/video/web/assets/video-studio",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "skills/video-create",
+   "to": "modules/video/skills/video-create",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "skills/video-edit",
+   "to": "modules/video/skills/video-edit",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "skills/video-learn",
+   "to": "modules/video/skills/video-learn",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "skills/video-produce",
+   "to": "modules/video/skills/video-produce",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "agents/video-editor/agent.yaml.example",
+   "to": "modules/video/agents/video-editor/agent.yaml",
+   "kind": "B",
+   "note": "template source"
+  },
+  {
+   "from": "docs/video-studio.md",
+   "to": "modules/video/docs/video-studio.md",
+   "kind": "A",
+   "note": "owner notes"
+  },
+  {
+   "from": "docs/video-studio-production.md",
+   "to": "modules/video/docs/video-studio-production.md",
+   "kind": "A",
+   "note": "owner notes"
+  }
+ ],
+ "drop": [
+  {
+   "from": "src/video-cli.ts",
+   "reason": "CLI front-end depends on upstream cli-descriptors; agent works through module actions/context instead"
+  },
+  {
+   "from": "src/video-edit/director-auth.ts",
+   "reason": "ChatGPT/Codex login for a per-project director model; AIOS-Lite runs the director through the agent's own runtime (ctx.agents.runLean)"
+  },
+  {
+   "from": "src/video-edit/director-auth.test.ts",
+   "reason": "covers director-auth"
+  },
+  {
+   "from": "src/video-edit/agent/cli-commands.ts",
+   "reason": "video-cli command set; its data is inlined into the director prompt and the plan is read from a JSON block"
+  },
+  {
+   "from": "src/video-edit/agent/cli-commands.test.ts",
+   "reason": "covers cli-commands"
+  },
+  {
+   "from": "src/video-studio/runtime.ts",
+   "reason": "per-turn MCP gateway for agent RocketFlow tools; no tool loop with runLean"
+  },
+  {
+   "from": "src/video-studio/runtime.test.ts",
+   "reason": "covers the MCP gateway"
+  },
+  {
+   "from": "src/video-studio/agent-tools.ts",
+   "reason": "RocketFlow agent tools behind the MCP gateway"
+  },
+  {
+   "from": "web/src/components/video-studio/studio/DirectorModelPicker.tsx",
+   "reason": "ChatGPT login / model picker UI of the dropped director-auth"
+  }
+ ]
+}

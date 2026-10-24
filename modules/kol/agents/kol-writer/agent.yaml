@@ -1,0 +1,17 @@
+name: Biên tập KOL
+description: "Đọc hồ sơ KOL, lên kế hoạch nội dung từ số liệu, soạn bài đăng và yêu cầu tạo ảnh/video; bài vào trạng thái chờ chủ duyệt, không tự đăng"
+runtime: claude
+runtime_options: {}
+permission: safe
+context: lean
+reports_to: main
+can_delegate: false
+max_concurrent: 1
+enabled: true
+access:
+  brain: {}
+  memory: { team: true, private: false }
+  skills: [kol-studio]
+  connections: {}
+  modules:
+    kol: [kol.read, content.write]

@@ -11,13 +11,16 @@ import { agentsRoutes } from './routes/agents.js';
 import { brainRoutes } from './routes/brain.js';
 import { chatRoutes } from './routes/chat.js';
 import { connectionsRoutes } from './routes/connections.js';
+import { costsRoutes } from './routes/costs.js';
 import { mountIntegrationRoutes, RUN_TOKEN_PATHS } from './routes/integrations.js';
 import { memoryRoutes } from './routes/memory.js';
 import { miscRoutes } from './routes/misc.js';
 import { modulesRoutes } from './routes/modules.js';
 import { runsRoutes } from './routes/runs.js';
+import { skillsAdminRoutes } from './routes/skills-admin.js';
 import { schedulesRoutes } from './routes/schedules.js';
 import { systemRoutes } from './routes/system.js';
+import { teamsRoutes } from './routes/teams.js';
 import { tasksRoutes } from './routes/tasks.js';
 import { sseHandler } from './sse.js';
 
@@ -68,6 +71,7 @@ export function createApiServer(deps: AppDeps, opts: ApiServerOptions = {}): Api
   systemRoutes(app, deps);
   agentsRoutes(app, deps);
   connectionsRoutes(app, deps);
+  costsRoutes(app, deps);
   mountIntegrationRoutes(app, deps);
   tasksRoutes(app, deps);
   runsRoutes(app, deps);
@@ -75,8 +79,10 @@ export function createApiServer(deps: AppDeps, opts: ApiServerOptions = {}): Api
   chatRoutes(app, deps);
   brainRoutes(app, deps);
   memoryRoutes(app, deps);
+  skillsAdminRoutes(app, deps);
   miscRoutes(app, deps);
   modulesRoutes(app, deps);
+  teamsRoutes(app, deps);
   deps.modules.mount(app);
 
   // built web app with SPA fallback (only when it exists)

@@ -1,0 +1,17 @@
+name: Chuyên viên Radar thị trường
+description: "Đọc bài đăng công khai và tổng hợp nỗi đau, tín hiệu mua, ý tưởng nội dung cho Radar"
+runtime: grok
+runtime_options: {}
+permission: safe
+context: lean
+reports_to: main
+can_delegate: false
+max_concurrent: 1
+enabled: true
+access:
+  brain: {}
+  memory: { team: false, private: false }
+  skills: [radar-review]
+  connections: {}
+  modules:
+    radar: [radar.read]

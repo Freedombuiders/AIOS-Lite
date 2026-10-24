@@ -27,3 +27,15 @@ export function getIntegration(id: string): IntegrationDefinition | undefined {
 export function listIntegrationIds(): string[] {
   return INTEGRATIONS.map((i) => i.id);
 }
+
+/** Modules add their own integrations (e.g. kol → fal, radar → apify) while they are enabled. Mutates INTEGRATIONS in place. */
+export function registerIntegration(def: IntegrationDefinition): boolean {
+  if (INTEGRATIONS.some((i) => i.id === def.id)) return false;
+  INTEGRATIONS.push(def);
+  return true;
+}
+
+export function unregisterIntegration(id: string): void {
+  const at = INTEGRATIONS.findIndex((i) => i.id === id);
+  if (at >= 0) INTEGRATIONS.splice(at, 1);
+}

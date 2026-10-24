@@ -1,0 +1,17 @@
+name: Đạo diễn video
+description: "Đạo diễn AI của Video Studio: lập kế hoạch dựng video quay sẵn, viết kịch bản và phân cảnh, xin chủ duyệt trước khi tốn chi phí"
+runtime: claude
+runtime_options: {}
+permission: safe
+context: lean
+reports_to: main
+can_delegate: false
+max_concurrent: 1
+enabled: true
+access:
+  brain: {}
+  memory: { team: false, private: false }
+  skills: [video-edit, video-create, video-produce, video-learn]
+  connections: {}
+  modules:
+    video: [studio.read, studio.write]

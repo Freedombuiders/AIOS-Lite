@@ -11,7 +11,7 @@ import type { HostNavItem } from '@/module-host/host';
 import { sseConnected } from '@/lib/sse';
 
 // Module groups reuse the owner's section colours (sidebar-section-* in main.css).
-const GROUP_CLASS: Record<string, string> = { sales: 'care', marketing: 'marketing', ops: 'collaborate', other: 'intelligence' };
+const GROUP_CLASS: Record<string, string> = { studio: 'intelligence', sales: 'care', marketing: 'marketing', finance: 'configure', ops: 'collaborate', other: 'intelligence' };
 const OPEN_KEY = 'aios.nav.open';
 
 type Item = CoreNavItem & { module?: HostNavItem };

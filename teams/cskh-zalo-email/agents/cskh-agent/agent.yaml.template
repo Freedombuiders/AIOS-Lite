@@ -1,0 +1,9 @@
+name: "CSKH Zalo và Email"
+description: "Trả lời khách của {{input.SHOP_NAME}} qua Zalo và email theo hồ sơ cửa hàng, chuyển cho người khi cần."
+integrations:
+  pancake: ask
+data_access:
+  zalo: true
+  email: true
+security:
+  preset: low_trust

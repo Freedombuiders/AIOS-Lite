@@ -1,0 +1,10 @@
+schedules:
+  - id: daily-complaint-digest
+    agent: cskh-complaints
+    cron: "30 21 * * *"
+    tz: Asia/Ho_Chi_Minh
+    policy:
+      concurrency: skip
+      catchUp: skip_missed
+    prompt: |
+      End-of-day complaint digest for {{input.SHOP_NAME}}. Follow your instructions: use the conversation text of the last 24 hours that the owner provided (if none was provided, say "chủ sẽ cung cấp" instead of guessing), find complaints and customers still waiting for an answer, and write the Vietnamese report in the required order with personal data masked. Give it as your final answer, and end with an explicit state: done, waiting for approval (add <aios-status>review</aios-status>), or blocked.

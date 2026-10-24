@@ -1,6 +1,6 @@
 import {
   Bot, Brain, Briefcase, Calendar, Cable, ClipboardList, Handshake, LayoutDashboard, Library, Megaphone, MessageSquare, Puzzle,
-  ScrollText, Settings, Sparkles, Workflow,
+  ScrollText, Settings, Sparkles, Workflow, Wand2, Landmark, Gauge, Wallet, Store, Package, Lightbulb, CircleDollarSign,
 } from 'lucide-preact';
 import type { LucideIcon } from 'lucide-preact';
 
@@ -20,6 +20,11 @@ export const CORE_NAV: CoreNavItem[] = [
   { label: 'Second Brain', path: '/brain', icon: Brain },
   { label: 'Bộ nhớ', path: '/memory', icon: Library },
   { label: 'Skills', path: '/skills', icon: Sparkles },
+  { label: 'Chợ Agent', path: '/agent-market', icon: Store },
+  { label: 'Gói Team', path: '/teams', icon: Package },
+  { label: 'Đề xuất cải tiến', path: '/recos', icon: Lightbulb },
+  { label: 'Chi phí AI', path: '/usage', icon: Gauge },
+  { label: 'Ngân sách AI', path: '/budgets', icon: Wallet },
 ];
 
 /** Overview sits alone at the top of the sidebar, without a caption. */
@@ -34,12 +39,14 @@ export const BOTTOM_NAV: CoreNavItem[] = [
 ];
 
 export const GROUP_LABEL: Record<string, string> = {
+  studio: 'AI Studio',
   sales: 'Sales',
   marketing: 'Marketing',
+  finance: 'Finance',
   ops: 'Vận hành',
   other: 'Khác',
 };
-export const GROUP_ORDER = ['sales', 'marketing', 'ops', 'other'] as const;
+export const GROUP_ORDER = ['studio', 'sales', 'marketing', 'finance', 'ops', 'other'] as const;
 
 export function isActive(current: string, item: { path: string; match?: string[] }): boolean {
   const hit = (p: string) => (p === '/' ? current === '/' : current === p || current.startsWith(`${p}/`));
@@ -65,9 +72,10 @@ export const WORK_GROUP: NavGroupDef = {
   items: [byPath('/tasks'), byPath('/schedules'), byPath('/chat')],
 };
 export const AGENT_GROUPS: NavGroupDef[] = [
-  { id: 'agents', label: 'Đội agent', icon: Bot, defaultOpen: true, items: [byPath('/agents'), byPath('/skills')] },
+  { id: 'agents', label: 'Đội agent', icon: Bot, defaultOpen: true, items: [byPath('/agents'), byPath('/skills'), byPath('/agent-market'), byPath('/teams'), byPath('/recos')] },
+  { id: 'costs', label: 'Chi phí AI', icon: CircleDollarSign, items: [byPath('/usage'), byPath('/budgets')] },
   { id: 'knowledge', label: 'Tri thức', icon: Brain, items: [byPath('/brain'), byPath('/memory')] },
 ];
 export const SYSTEM_GROUP: NavGroupDef = { id: 'system', label: 'Hệ thống', icon: Settings, items: BOTTOM_NAV };
 
-export const GROUP_ICON: Record<string, LucideIcon> = { sales: Handshake, marketing: Megaphone, ops: Workflow, other: Puzzle };
+export const GROUP_ICON: Record<string, LucideIcon> = { studio: Wand2, sales: Handshake, marketing: Megaphone, finance: Landmark, ops: Workflow, other: Puzzle };

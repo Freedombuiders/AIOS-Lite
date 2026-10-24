@@ -57,7 +57,7 @@ function Thread({ conversation, agents }: { conversation: Conversation; agents: 
         {session.turns.length === 0 && !session.live && !session.loading && (
           <ChatEmptyState name={name} onPrompt={(p) => void submit(p)} disabled={session.sending} />
         )}
-        <div class="mx-auto max-w-3xl">
+        <div class="w-full">
           {session.turns.map((t, i) => (
             <div key={t.id ?? i}>
               <Bubble turn={t} agentName={name} />
@@ -69,7 +69,7 @@ function Thread({ conversation, agents }: { conversation: Conversation; agents: 
         </div>
       </div>
       <div class="chat-composer-area">
-        <div class="chat-composer-inner mx-auto max-w-3xl">
+        <div class="chat-composer-inner w-full">
           <div class="chat-composer">
             <textarea
               ref={input}

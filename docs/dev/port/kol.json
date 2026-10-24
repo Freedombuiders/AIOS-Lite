@@ -1,0 +1,115 @@
+{
+ "module": "kol",
+ "entries": [
+  {
+   "from": "src/kol",
+   "to": "modules/kol/server",
+   "kind": "B",
+   "note": "KOL Studio backend"
+  },
+  {
+   "from": "src/integrations/media-http.ts",
+   "to": "modules/kol/server/media-http.ts",
+   "kind": "B",
+   "note": "HTTP helpers for providers"
+  },
+  {
+   "from": "src/fbstudio/core/time.ts",
+   "to": "modules/kol/server/time.ts",
+   "kind": "B",
+   "note": "timezone helpers"
+  },
+  {
+   "from": "src/video-edit/library/sniff.ts",
+   "to": "modules/kol/server/sniff.ts",
+   "kind": "B",
+   "note": "media sniffing"
+  },
+  {
+   "from": "src/video-edit/pipeline/tools.ts",
+   "to": "modules/kol/server/ffmpeg-tools.ts",
+   "kind": "B",
+   "note": "ffmpeg runner"
+  },
+  {
+   "from": "src/radar/util.ts",
+   "to": "modules/kol/server/radar-util.ts",
+   "kind": "B",
+   "note": "escapeUntrusted/extractJsonObjects"
+  },
+  {
+   "from": "src/video-edit/serve.ts",
+   "to": "modules/kol/server/serve-file.ts",
+   "kind": "B",
+   "note": "Range file server"
+  },
+  {
+   "from": "web/src/pages/kol",
+   "to": "modules/kol/web/pages",
+   "kind": "B",
+   "note": "KOL home + 9 tabs"
+  },
+  {
+   "from": "web/src/components/kol",
+   "to": "modules/kol/web/components",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/kol.ts",
+   "to": "modules/kol/web/lib/kol.ts",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/kol-view.ts",
+   "to": "modules/kol/web/lib/kol-view.ts",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/kol-view.test.ts",
+   "to": "modules/kol/web/lib/kol-view.test.ts",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/kol-camera.ts",
+   "to": "modules/kol/web/lib/kol-camera.ts",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/kol-camera.test.ts",
+   "to": "modules/kol/web/lib/kol-camera.test.ts",
+   "kind": "B",
+   "note": ""
+  },
+  {
+   "from": "web/src/components/fb/ops-shared.tsx",
+   "to": "modules/kol/web/components/shared/ops-shared.tsx",
+   "kind": "B",
+   "note": "form atoms"
+  },
+  {
+   "from": "web/src/components/fb/common.tsx",
+   "to": "modules/kol/web/components/shared/common.tsx",
+   "kind": "B",
+   "note": "Card/KpiTile"
+  },
+  {
+   "from": "skills/kol-studio",
+   "to": "modules/kol/skills/kol-studio",
+   "kind": "B",
+   "note": "owner skill"
+  }
+ ],
+ "drop": [
+  {
+   "from": "src/kol/index.ts"
+  },
+  {
+   "from": "src/kol/cli-descriptor.ts"
+  }
+ ]
+}

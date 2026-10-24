@@ -189,9 +189,15 @@ Lưu ý: `npm test` đọc thư mục `agents/` thật để kiểm tra các age
 | `gmail` | Sales | `care` + khoá Composio | Đưa thư Gmail vào hộp thư của `care` |
 | `marketing` | Marketing | khoá Composio | Soạn, lên lịch, đăng bài Facebook Page; bình luận AI |
 | `ads` | Marketing | khoá Composio | Theo dõi quảng cáo Meta, chấm điểm bằng quy tắc (chỉ đọc) |
+| `radar` | Marketing | Grok CLI; Apify/RSSHub tuỳ chọn | Nghiên cứu thị trường hằng ngày (3 phiên), báo cáo nỗi đau và xu hướng |
+| `kol` | AI Studio | khoá Composio; fal/Higgsfield/Gemini tuỳ chọn | KOL ảo giữ khuôn mặt: hồ sơ, tạo ảnh/video, thư viện, bài đăng (qua `marketing`) |
+| `video` | AI Studio | ffmpeg; HeyGen/Veo/fal tuỳ chọn | Dựng video quay sẵn, viết kịch bản và sản xuất video cùng KOL |
+| `finance` | Finance | ERP/Whop MCP tuỳ chọn | P&L và dòng tiền, mô hình kinh doanh, sổ thu chi, đọc ERP (chỉ đọc) |
 | `_template` | — | — | Khuôn để tạo module mới |
 
 Khoá Composio nhập ở trang **Kết nối**; xem [docs/MODULES.md](docs/MODULES.md) để biết chi tiết từng module.
+
+Ngoài module, lõi còn có **Chi phí AI** (`/usage`, `/budgets`: chi phí theo agent và hạn mức tháng), **Chợ Agent** (`/agent-market`), **Gói Team** (`/teams`: cài cả nhóm agent dựng sẵn, lịch để tắt) và **Đề xuất cải tiến** (`/recos`).
 
 ## Integrations (Pancake, Botcake, Composio…)
 

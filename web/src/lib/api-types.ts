@@ -109,7 +109,41 @@ export interface SettingsDto {
 }
 
 export type ConnectionView = Connection & { ready: boolean; grantedTo: string[] };
-export type BrainFolderView = BrainFolder & { docs: number; exists: boolean };
+export type BrainFolderView = BrainFolder & {
+  docs: number;
+  exists: boolean;
+  isVault?: boolean;
+  /** number of .md files on disk */
+  mdCount?: number;
+  /** agent ids that can read / write this folder */
+  readers?: string[];
+  writers?: string[];
+};
+export interface DirEntryView {
+  name: string;
+  path: string;
+  isVault: boolean;
+  hasSkills: boolean;
+}
+export interface DirListing {
+  path: string;
+  parent: string | null;
+  dirs: DirEntryView[];
+}
+export interface SkillRootView {
+  path: string;
+  label: string;
+  kind: 'env' | 'user' | 'module';
+  readOnly: boolean;
+  exists: boolean;
+  skills: number;
+  clashes: string[];
+}
+export interface SkillRootSuggestion {
+  path: string;
+  label: string;
+  skills: number;
+}
 export interface BrainTreeNode {
   name: string;
   path: string;
@@ -131,7 +165,7 @@ export interface ModuleManifest {
   description: string;
   version: string;
   icon?: string;
-  category: 'sales' | 'marketing' | 'ops' | 'other';
+  category: 'studio' | 'sales' | 'marketing' | 'finance' | 'ops' | 'other';
   requires?: { modules?: string[]; connections?: string[] };
   enhances?: string[];
   scopes?: Record<string, string>;

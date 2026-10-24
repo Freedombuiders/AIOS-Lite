@@ -1,0 +1,57 @@
+{
+  "id": "finance",
+  "name": "Tài chính",
+  "description": "P&L và dòng tiền, mô hình kinh doanh, sổ thu chi và đọc dữ liệu ERP (chỉ đọc).",
+  "version": "1.0.0",
+  "icon": "banknote",
+  "category": "finance",
+  "enhances": [
+    "ads"
+  ],
+  "scopes": {
+    "finance.read": "Đọc tóm tắt P&L và sổ thu chi",
+    "finance.write": "Ghi khoản thu chi vào sổ"
+  },
+  "tables": [
+    "erp_snapshots",
+    "erp_daily",
+    "erp_period_totals",
+    "pnl_whop_daily",
+    "finance_kv"
+  ],
+  "settings": {
+    "erp_mcp_url": {
+      "label": "Địa chỉ MCP của ERP (https://…)",
+      "type": "string",
+      "default": "",
+      "help": "Frappe/ERP qua MCP, chỉ gọi các công cụ đọc. Để trống nếu dùng lệnh cục bộ."
+    },
+    "erp_mcp_token": {
+      "label": "Token truy cập ERP",
+      "type": "secret",
+      "default": ""
+    },
+    "erp_mcp_command": {
+      "label": "Lệnh MCP cục bộ của ERP",
+      "type": "string",
+      "default": "",
+      "help": "Ví dụ: npx -y my-erp-mcp. Chỉ dùng khi không có địa chỉ MCP."
+    },
+    "whop_mcp_url": {
+      "label": "Địa chỉ MCP của Whop (tuỳ chọn)",
+      "type": "string",
+      "default": ""
+    },
+    "whop_mcp_token": {
+      "label": "Token Whop",
+      "type": "secret",
+      "default": ""
+    }
+  },
+  "agentTemplates": [
+    "finance-analyst"
+  ],
+  "skills": [
+    "finance-ledger"
+  ]
+}
