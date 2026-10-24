@@ -42,6 +42,8 @@ const MAX_PAGES = 10;
 
 export const INSIGHT_FIELDS = 'date_start,spend,impressions,clicks,inline_link_clicks,actions,action_values';
 export const ACCOUNT_FIELDS = 'id,account_id,name,currency,timezone_name,account_status,disable_reason,amount_spent,balance,spend_cap,business{id,name}';
+/** Same without `business`: a connection without business_management permission gets (#100) for that field. */
+export const ACCOUNT_FIELDS_NO_BUSINESS = ACCOUNT_FIELDS.replace(',business{id,name}', '');
 /** Insights reads in flight at once. */
 const INSIGHTS_CONCURRENCY = 4;
 
@@ -293,9 +295,21 @@ export async function loadAdsOverview(window: number, opts: { fresh?: boolean; n
   for (const conn of active) {
     let after: string | undefined;
     const target = { area: 'ads' as const, connectionId: conn.id, entityId: conn.entityId };
+    let fields = ACCOUNT_FIELDS;
     try {
       for (let page = 0; page < MAX_PAGES; page++) {
-        const raw = await metaRead(LIST_AD_ACCOUNTS_TOOL, { fields: ACCOUNT_FIELDS, limit: PAGE_SIZE, ...(after ? { after } : {}) }, target);
+        let raw: unknown;
+        try {
+          raw = await metaRead(LIST_AD_ACCOUNTS_TOOL, { fields, limit: PAGE_SIZE, ...(after ? { after } : {}) }, target);
+        } catch (err) {
+          // Without business_management the `business` field is refused: list again without it (no portfolio grouping).
+          if (fields === ACCOUNT_FIELDS && /business_management/i.test(String((err as Error)?.message ?? err))) {
+            fields = ACCOUNT_FIELDS_NO_BUSINESS;
+            raw = await metaRead(LIST_AD_ACCOUNTS_TOOL, { fields, limit: PAGE_SIZE, ...(after ? { after } : {}) }, target);
+          } else {
+            throw err;
+          }
+        }
         const { rows: got, after: next } = extractRows(raw, PAGE_SIZE);
         for (const row of got) {
           if (recordListedAccount(row, conn, pass) && row && typeof row === 'object') pending.push({ row: row as Record<string, unknown>, target });

@@ -1,3 +1,4 @@
+import type { FbAdsOrganicRow } from '../../_lib/fb-types.js';
 /**
  * Facebook Content Studio (module marketing): publisher, comment poller/sender and analytics
  * workers, started from start(). Each worker checks the module settings (master `enabled`,
@@ -67,24 +68,13 @@ export default defineModule({
 
   // Read by the ads module (ctx.modules.get('marketing')): organic posts and Page info.
   provides: () => ({
-    topPosts(pageId?: string, days = 28) {
+    // Returns the shared FbAdsOrganicRow shape (modules/_lib/fb-types.ts) the ads module reads.
+    topPosts(pageId?: string, days = 28): FbAdsOrganicRow[] {
       const since = Math.floor(Date.now() / 1000) - days * DAY;
       const pageName = pageId ? getFbPage(pageId)?.name : undefined;
       return listFbAdsOrganicRows(since)
         .filter((r) => !pageName || r.page_name === pageName)
-        .map((r) => ({
-          postId: r.post_id,
-          pageName: r.page_name,
-          title: r.title,
-          caption: r.caption,
-          format: r.format,
-          publishedAt: r.published_at,
-          reach: r.reach ?? 0,
-          reactions: r.reactions ?? 0,
-          comments: r.comments ?? 0,
-          shares: r.shares ?? 0,
-        }))
-        .sort((a, b) => b.reach - a.reach);
+        .sort((a, b) => (b.reach ?? 0) - (a.reach ?? 0));
     },
     pageInfo(pageId: string) {
       const page = getFbPage(pageId);
