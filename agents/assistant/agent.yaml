@@ -1,0 +1,19 @@
+name: Trợ lý hằng ngày
+description: "Việc vặt hằng ngày: soạn thư, ghi chú, nhắc việc, tóm tắt"
+runtime: hermes
+runtime_options:
+  profile: default
+permission: safe
+context: standard
+reports_to: main
+can_delegate: false
+max_concurrent: 1
+# Tắt sẵn: Hermes cần đăng nhập nhà cung cấp mô hình trước (chạy `hermes model`), rồi đổi thành true.
+enabled: false
+access:
+  brain:
+    ca-nhan: { read: ["**"], write: [] }
+  memory: { team: true, private: true }
+  skills: [viet-bao-cao, tom-tat-tai-lieu]
+  connections: {}
+  modules: {}

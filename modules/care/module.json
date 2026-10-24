@@ -1,0 +1,98 @@
+{
+  "id": "care",
+  "name": "Chăm sóc khách hàng",
+  "description": "Hộp thư chung cho mọi kênh (Zalo, Gmail…): agent soạn nháp hoặc tự trả lời, bạn duyệt khi cần, kèm hồ sơ khách 360 và việc chăm sóc.",
+  "version": "0.1.0",
+  "icon": "messages-square",
+  "category": "sales",
+  "enhances": [
+    "zalo",
+    "gmail"
+  ],
+  "scopes": {
+    "inbox.read": "Đọc hộp thư và lịch sử hội thoại",
+    "customers.read": "Xem hồ sơ khách hàng",
+    "customers.write": "Sửa hồ sơ, nhãn và ghi chú khách hàng",
+    "reply.draft": "Soạn nháp trả lời khách (chờ người duyệt)",
+    "reply.send": "Tự gửi trả lời cho khách (chế độ Tự động)"
+  },
+  "tables": [
+    "care_account_holders",
+    "care_accounts",
+    "care_agent_runs",
+    "care_assignments",
+    "care_backlog_holds",
+    "care_bridge_artifacts",
+    "care_bridge_audit",
+    "care_bridge_state",
+    "care_canned_replies",
+    "care_capture_accounts",
+    "care_conversation_notes",
+    "care_conversation_state",
+    "care_conversations",
+    "care_credentials",
+    "care_customers",
+    "care_cutover_log",
+    "care_delivery_attempts",
+    "care_delivery_intents",
+    "care_events",
+    "care_identities",
+    "care_identity_membership_history",
+    "care_jobs",
+    "care_journal_pins",
+    "care_legacy_inflight",
+    "care_legacy_links",
+    "care_link_events",
+    "care_link_field_changes",
+    "care_link_moves",
+    "care_messages",
+    "care_migration_runs",
+    "care_pending_receipts",
+    "care_profiles",
+    "care_runtime_switch_log",
+    "care_runtime_switches",
+    "care_schema_meta",
+    "care_source_journal",
+    "care_sync_state",
+    "care_task_meta",
+    "care_tasks",
+    "care_tombstones"
+  ],
+  "agentTemplates": [
+    "cskh"
+  ],
+  "skills": [
+    "tra-loi-khach"
+  ],
+  "settings": {
+    "aiEnabled": {
+      "label": "Cho agent trả lời khách",
+      "type": "boolean",
+      "default": true,
+      "help": "Tắt là công tắc dừng khẩn cấp: agent không soạn hay gửi gì cho khách."
+    },
+    "autoSendEnabled": {
+      "label": "Cho phép chế độ Tự động gửi",
+      "type": "boolean",
+      "default": true,
+      "help": "Tắt thì mọi câu trả lời của agent chỉ dừng ở bước nháp chờ duyệt."
+    },
+    "quietHoursStart": {
+      "label": "Giờ nghỉ bắt đầu (HH:MM)",
+      "type": "string",
+      "default": "22:00",
+      "help": "Trong giờ nghỉ, chế độ Tự động quay về nháp."
+    },
+    "quietHoursEnd": {
+      "label": "Giờ nghỉ kết thúc (HH:MM)",
+      "type": "string",
+      "default": "07:00"
+    },
+    "autoDelaySeconds": {
+      "label": "Độ trễ khi tự gửi (giây)",
+      "type": "number",
+      "default": 10,
+      "help": "Khoảng thời gian bạn còn bấm Huỷ được trước khi tin tự gửi đi."
+    }
+  }
+}

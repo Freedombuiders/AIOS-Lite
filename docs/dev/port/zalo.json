@@ -1,0 +1,647 @@
+{
+  "module": "zalo",
+  "entries": [
+    {
+      "from": "src/zalo/birthday-schedule.ts",
+      "to": "modules/zalo/server/birthday-schedule.ts",
+      "kind": "D",
+      "note": "ZaloCRM-derived (BUILD-PLAN 15)"
+    },
+    {
+      "from": "src/zalo/birthday.test.ts",
+      "to": "modules/zalo/server/birthday.test.ts",
+      "kind": "B",
+      "note": "upstream: db"
+    },
+    {
+      "from": "src/zalo/birthday.ts",
+      "to": "modules/zalo/server/birthday.ts",
+      "kind": "D",
+      "note": "ZaloCRM-derived (BUILD-PLAN 15); upstream: db, logger"
+    },
+    {
+      "from": "src/zalo/broadcast-cost.test.ts",
+      "to": "modules/zalo/server/broadcast-cost.test.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "src/zalo/broadcast-cost.ts",
+      "to": "modules/zalo/server/broadcast-cost.ts",
+      "kind": "B",
+      "note": "upstream: db"
+    },
+    {
+      "from": "src/customer-care/connectors/zalo/daemon-test-kit.ts",
+      "to": "modules/zalo/server/connectors/zalo/daemon-test-kit.ts",
+      "kind": "A",
+      "note": "moved from care"
+    },
+    {
+      "from": "src/customer-care/connectors/zalo/daemon-transport.test.ts",
+      "to": "modules/zalo/server/connectors/zalo/daemon-transport.test.ts",
+      "kind": "A",
+      "note": "moved from care"
+    },
+    {
+      "from": "src/customer-care/connectors/zalo/daemon-transport.ts",
+      "to": "modules/zalo/server/connectors/zalo/daemon-transport.ts",
+      "kind": "B",
+      "note": "moved from care; upstream: db"
+    },
+    {
+      "from": "src/customer-care/connectors/zalo/fake-transport.ts",
+      "to": "modules/zalo/server/connectors/zalo/fake-transport.ts",
+      "kind": "A",
+      "note": "moved from care"
+    },
+    {
+      "from": "src/customer-care/connectors/zalo/index.ts",
+      "to": "modules/zalo/server/connectors/zalo/index.ts",
+      "kind": "A",
+      "note": "moved from care"
+    },
+    {
+      "from": "src/customer-care/connectors/zalo/normalize.ts",
+      "to": "modules/zalo/server/connectors/zalo/normalize.ts",
+      "kind": "B",
+      "note": "moved from care; cross-module: care(types.ts)"
+    },
+    {
+      "from": "src/customer-care/connectors/zalo/transport.ts",
+      "to": "modules/zalo/server/connectors/zalo/transport.ts",
+      "kind": "A",
+      "note": "moved from care"
+    },
+    {
+      "from": "src/customer-care/connectors/zalo/wire.ts",
+      "to": "modules/zalo/server/connectors/zalo/wire.ts",
+      "kind": "A",
+      "note": "moved from care"
+    },
+    {
+      "from": "src/customer-care/connectors/zalo/zalo-connector.test.ts",
+      "to": "modules/zalo/server/connectors/zalo/zalo-connector.test.ts",
+      "kind": "B",
+      "note": "moved from care; cross-module: care(contract.ts)"
+    },
+    {
+      "from": "src/customer-care/connectors/zalo/zalo-connector.ts",
+      "to": "modules/zalo/server/connectors/zalo/zalo-connector.ts",
+      "kind": "B",
+      "note": "moved from care; cross-module: care(errors.ts+types.ts+checkpoint.ts+contract.ts)"
+    },
+    {
+      "from": "src/customer-care/connectors/zalo/zalo-normalize.test.ts",
+      "to": "modules/zalo/server/connectors/zalo/zalo-normalize.test.ts",
+      "kind": "B",
+      "note": "moved from care; cross-module: care(projector.ts)"
+    },
+    {
+      "from": "src/customer-care/connectors/zalo/zalo-quote-seen.test.ts",
+      "to": "modules/zalo/server/connectors/zalo/zalo-quote-seen.test.ts",
+      "kind": "A",
+      "note": "moved from care"
+    },
+    {
+      "from": "src/customer-care/connectors/zalo/zalo-sync.test.ts",
+      "to": "modules/zalo/server/connectors/zalo/zalo-sync.test.ts",
+      "kind": "B",
+      "note": "moved from care; cross-module: care(types.ts)"
+    },
+    {
+      "from": "src/customer-care/connectors/zalo/zalo-test-kit.ts",
+      "to": "modules/zalo/server/connectors/zalo/zalo-test-kit.ts",
+      "kind": "B",
+      "note": "moved from care; cross-module: care(ingest.ts+contract.ts+checkpoint.ts+types.ts+index.ts+test-fixtures.ts)"
+    },
+    {
+      "from": "src/customer-care/connectors/zalo/zca-transport.test.ts",
+      "to": "modules/zalo/server/connectors/zalo/zca-transport.test.ts",
+      "kind": "A",
+      "note": "moved from care"
+    },
+    {
+      "from": "src/customer-care/connectors/zalo/zca-transport.ts",
+      "to": "modules/zalo/server/connectors/zalo/zca-transport.ts",
+      "kind": "B",
+      "note": "moved from care; upstream: db"
+    },
+    {
+      "from": "src/zalo/content.test.ts",
+      "to": "modules/zalo/server/content.test.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "src/zalo/content.ts",
+      "to": "modules/zalo/server/content.ts",
+      "kind": "D",
+      "note": "ZaloCRM-derived (BUILD-PLAN 15)"
+    },
+    {
+      "from": "src/zalo/control.ts",
+      "to": "modules/zalo/server/control.ts",
+      "kind": "B",
+      "note": "upstream: config"
+    },
+    {
+      "from": "src/zalo/daemon.ts",
+      "to": "modules/zalo/server/daemon.ts",
+      "kind": "B",
+      "note": "upstream: crash-guard, config, db, env, logger, platform"
+    },
+    {
+      "from": "src/zalo/dashboard-routes.test.ts",
+      "to": "modules/zalo/server/dashboard-routes.test.ts",
+      "kind": "B",
+      "note": "upstream: config, db"
+    },
+    {
+      "from": "src/zalo/dashboard-routes.ts",
+      "to": "modules/zalo/server/dashboard-routes.ts",
+      "kind": "B",
+      "note": "upstream: agent-config, config, db, kill-switches, logger, env-write"
+    },
+    {
+      "from": "src/zalo/db-zalo.test.ts",
+      "to": "modules/zalo/server/db-zalo.test.ts",
+      "kind": "B",
+      "note": "upstream: db"
+    },
+    {
+      "from": "src/zalo/group-broadcast.test.ts",
+      "to": "modules/zalo/server/group-broadcast.test.ts",
+      "kind": "B",
+      "note": "upstream: db"
+    },
+    {
+      "from": "src/zalo/group-broadcast.ts",
+      "to": "modules/zalo/server/group-broadcast.ts",
+      "kind": "D",
+      "note": "ZaloCRM-derived (BUILD-PLAN 15); upstream: db, logger"
+    },
+    {
+      "from": "src/zalo/history.ts",
+      "to": "modules/zalo/server/history.ts",
+      "kind": "D",
+      "note": "ZaloCRM-derived (BUILD-PLAN 15); upstream: db, logger"
+    },
+    {
+      "from": "src/zalo/ingest.ts",
+      "to": "modules/zalo/server/ingest.ts",
+      "kind": "D",
+      "note": "ZaloCRM-derived (BUILD-PLAN 15); upstream: db, logger"
+    },
+    {
+      "from": "src/zalo/limits.test.ts",
+      "to": "modules/zalo/server/limits.test.ts",
+      "kind": "B",
+      "note": "upstream: db"
+    },
+    {
+      "from": "src/zalo/limits.ts",
+      "to": "modules/zalo/server/limits.ts",
+      "kind": "D",
+      "note": "ZaloCRM-derived (BUILD-PLAN 15); upstream: db"
+    },
+    {
+      "from": "src/zalo/list-broadcast.test.ts",
+      "to": "modules/zalo/server/list-broadcast.test.ts",
+      "kind": "B",
+      "note": "upstream: db"
+    },
+    {
+      "from": "src/zalo/list-broadcast.ts",
+      "to": "modules/zalo/server/list-broadcast.ts",
+      "kind": "B",
+      "note": "upstream: db, logger"
+    },
+    {
+      "from": "src/zalo/marketing-deps.ts",
+      "to": "modules/zalo/server/marketing-deps.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "src/zalo/media-cache.test.ts",
+      "to": "modules/zalo/server/media-cache.test.ts",
+      "kind": "B",
+      "note": "upstream: config, db"
+    },
+    {
+      "from": "src/zalo/media-cache.ts",
+      "to": "modules/zalo/server/media-cache.ts",
+      "kind": "B",
+      "note": "upstream: config, db, logger"
+    },
+    {
+      "from": "src/zalo/media.ts",
+      "to": "modules/zalo/server/media.ts",
+      "kind": "B",
+      "note": "upstream: config, db, logger"
+    },
+    {
+      "from": "src/zalo/profiles.test.ts",
+      "to": "modules/zalo/server/profiles.test.ts",
+      "kind": "B",
+      "note": "upstream: db"
+    },
+    {
+      "from": "src/zalo/profiles.ts",
+      "to": "modules/zalo/server/profiles.ts",
+      "kind": "B",
+      "note": "upstream: db"
+    },
+    {
+      "from": "src/zalo/rich-text.test.ts",
+      "to": "modules/zalo/server/rich-text.test.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "src/zalo/rich-text.ts",
+      "to": "modules/zalo/server/rich-text.ts",
+      "kind": "D",
+      "note": "ZaloCRM-derived (BUILD-PLAN 15)"
+    },
+    {
+      "from": "src/zalo/routes-birthday.test.ts",
+      "to": "modules/zalo/server/routes-birthday.test.ts",
+      "kind": "B",
+      "note": "upstream: db"
+    },
+    {
+      "from": "src/zalo/routes-birthday.ts",
+      "to": "modules/zalo/server/routes-birthday.ts",
+      "kind": "B",
+      "note": "upstream: db"
+    },
+    {
+      "from": "src/zalo/routes-group-broadcast.test.ts",
+      "to": "modules/zalo/server/routes-group-broadcast.test.ts",
+      "kind": "B",
+      "note": "upstream: db"
+    },
+    {
+      "from": "src/zalo/routes-group-broadcast.ts",
+      "to": "modules/zalo/server/routes-group-broadcast.ts",
+      "kind": "B",
+      "note": "upstream: db"
+    },
+    {
+      "from": "src/zalo/routes-list-broadcast.test.ts",
+      "to": "modules/zalo/server/routes-list-broadcast.test.ts",
+      "kind": "B",
+      "note": "upstream: db"
+    },
+    {
+      "from": "src/zalo/routes-list-broadcast.ts",
+      "to": "modules/zalo/server/routes-list-broadcast.ts",
+      "kind": "B",
+      "note": "upstream: db"
+    },
+    {
+      "from": "src/zalo/routes-templates.test.ts",
+      "to": "modules/zalo/server/routes-templates.test.ts",
+      "kind": "B",
+      "note": "upstream: config, db"
+    },
+    {
+      "from": "src/zalo/routes-templates.ts",
+      "to": "modules/zalo/server/routes-templates.ts",
+      "kind": "B",
+      "note": "upstream: agent-config, db, kill-switches, logger"
+    },
+    {
+      "from": "src/zalo/schedule.test.ts",
+      "to": "modules/zalo/server/schedule.test.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "src/zalo/schedule.ts",
+      "to": "modules/zalo/server/schedule.ts",
+      "kind": "D",
+      "note": "ZaloCRM-derived (BUILD-PLAN 15)"
+    },
+    {
+      "from": "src/zalo/send-window.test.ts",
+      "to": "modules/zalo/server/send-window.test.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "src/zalo/send-window.ts",
+      "to": "modules/zalo/server/send-window.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "src/zalo/sender.test.ts",
+      "to": "modules/zalo/server/sender.test.ts",
+      "kind": "B",
+      "note": "upstream: db"
+    },
+    {
+      "from": "src/zalo/sender.ts",
+      "to": "modules/zalo/server/sender.ts",
+      "kind": "D",
+      "note": "ZaloCRM-derived (BUILD-PLAN 15); upstream: db, logger"
+    },
+    {
+      "from": "src/zalo/session.ts",
+      "to": "modules/zalo/server/session.ts",
+      "kind": "D",
+      "note": "ZaloCRM-derived (BUILD-PLAN 15); upstream: db, logger"
+    },
+    {
+      "from": "src/zalo/stickers.test.ts",
+      "to": "modules/zalo/server/stickers.test.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "src/zalo/stickers.ts",
+      "to": "modules/zalo/server/stickers.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "src/zalo/supervisor.ts",
+      "to": "modules/zalo/server/supervisor.ts",
+      "kind": "B",
+      "note": "upstream: config, env, logger, platform"
+    },
+    {
+      "from": "src/zalo/template.test.ts",
+      "to": "modules/zalo/server/template.test.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "src/zalo/template.ts",
+      "to": "modules/zalo/server/template.ts",
+      "kind": "D",
+      "note": "ZaloCRM-derived (BUILD-PLAN 15)"
+    },
+    {
+      "from": "src/zalo/turn-images.test.ts",
+      "to": "modules/zalo/server/turn-images.test.ts",
+      "kind": "B",
+      "note": "upstream: db"
+    },
+    {
+      "from": "src/zalo/turn-images.ts",
+      "to": "modules/zalo/server/turn-images.ts",
+      "kind": "B",
+      "note": "upstream: db"
+    },
+    {
+      "from": "src/zalo/variants.test.ts",
+      "to": "modules/zalo/server/variants.test.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "src/zalo/variants.ts",
+      "to": "modules/zalo/server/variants.ts",
+      "kind": "B",
+      "note": "upstream: agent-config, agent-engine/index, active-provider, db, env, kill-switches, provider, provider-registry, security"
+    },
+    {
+      "from": "web/src/components/care-channels/zalo/ZaloNickModals.tsx",
+      "to": "modules/zalo/web/components/care-channels/zalo/ZaloNickModals.tsx",
+      "kind": "B",
+      "note": "moved from care; upstream: components/Modal, components/PageState, components/Pill, components/Toggle, lib/api, lib/useFetch, lib/toasts; cross-module: care(shared.tsx)"
+    },
+    {
+      "from": "web/src/components/marketing/BirthdayBirthDateDialog.tsx",
+      "to": "modules/zalo/web/components/marketing/BirthdayBirthDateDialog.tsx",
+      "kind": "B",
+      "note": "upstream: components/Modal, lib/api, lib/toasts"
+    },
+    {
+      "from": "web/src/components/marketing/BirthdayHistory.tsx",
+      "to": "modules/zalo/web/components/marketing/BirthdayHistory.tsx",
+      "kind": "B",
+      "note": "upstream: components/PageHeader, components/PageState, components/Pill, lib/useFetch"
+    },
+    {
+      "from": "web/src/components/marketing/BirthdaySettings.tsx",
+      "to": "modules/zalo/web/components/marketing/BirthdaySettings.tsx",
+      "kind": "B",
+      "note": "upstream: components/Toggle, lib/api, lib/toasts"
+    },
+    {
+      "from": "web/src/components/marketing/BirthdayShared.tsx",
+      "to": "modules/zalo/web/components/marketing/BirthdayShared.tsx",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/components/marketing/BirthdayUpcoming.tsx",
+      "to": "modules/zalo/web/components/marketing/BirthdayUpcoming.tsx",
+      "kind": "B",
+      "note": "upstream: components/Pill, lib/api, lib/toasts"
+    },
+    {
+      "from": "web/src/components/marketing/GroupBroadcastDetail.tsx",
+      "to": "modules/zalo/web/components/marketing/GroupBroadcastDetail.tsx",
+      "kind": "B",
+      "note": "upstream: components/ConfirmModal, components/PageState, components/Pill, lib/api, lib/toasts, lib/useFetch"
+    },
+    {
+      "from": "web/src/components/marketing/GroupBroadcastEditor.tsx",
+      "to": "modules/zalo/web/components/marketing/GroupBroadcastEditor.tsx",
+      "kind": "B",
+      "note": "upstream: components/Modal, lib/api, lib/toasts, lib/useFetch"
+    },
+    {
+      "from": "web/src/components/marketing/GroupBroadcastModel.ts",
+      "to": "modules/zalo/web/components/marketing/GroupBroadcastModel.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/components/marketing/ListBroadcastDetail.tsx",
+      "to": "modules/zalo/web/components/marketing/ListBroadcastDetail.tsx",
+      "kind": "B",
+      "note": "upstream: components/ConfirmModal, components/PageState, components/Pill, components/PageHeader, lib/api, lib/useFetch, lib/toasts"
+    },
+    {
+      "from": "web/src/components/marketing/ListBroadcastEditor.tsx",
+      "to": "modules/zalo/web/components/marketing/ListBroadcastEditor.tsx",
+      "kind": "B",
+      "note": "upstream: components/PageState, components/Toggle, lib/api, lib/useFetch, lib/toasts"
+    },
+    {
+      "from": "web/src/components/marketing/ListBroadcastTypes.ts",
+      "to": "modules/zalo/web/components/marketing/ListBroadcastTypes.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/components/marketing/ScheduleEditor.tsx",
+      "to": "modules/zalo/web/components/marketing/ScheduleEditor.tsx",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/components/marketing/SendWindowEditor.tsx",
+      "to": "modules/zalo/web/components/marketing/SendWindowEditor.tsx",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/components/TemplatePicker.tsx",
+      "to": "modules/zalo/web/components/TemplatePicker.tsx",
+      "kind": "B",
+      "note": "upstream: components/Pill, lib/useFetch; shared file, owner by import reach"
+    },
+    {
+      "from": "web/src/components/ZaloServiceBanner.tsx",
+      "to": "modules/zalo/web/components/ZaloServiceBanner.tsx",
+      "kind": "B",
+      "note": "upstream: lib/api, lib/toasts"
+    },
+    {
+      "from": "web/src/lib/zalo.ts",
+      "to": "modules/zalo/web/lib/zalo.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/pages/MarketingBirthday.tsx",
+      "to": "modules/zalo/web/pages/MarketingBirthday.tsx",
+      "kind": "B",
+      "note": "upstream: components/PageHeader, components/PageState, lib/useFetch; cross-module: care(CareTabs.tsx+CampaignTabs.tsx)"
+    },
+    {
+      "from": "web/src/pages/MarketingGroupBroadcasts.tsx",
+      "to": "modules/zalo/web/pages/MarketingGroupBroadcasts.tsx",
+      "kind": "B",
+      "note": "upstream: components/PageHeader, components/PageState, components/Pill, lib/useFetch; cross-module: care(CareTabs.tsx+CampaignTabs.tsx)"
+    },
+    {
+      "from": "web/src/pages/MarketingListBroadcasts.tsx",
+      "to": "modules/zalo/web/pages/MarketingListBroadcasts.tsx",
+      "kind": "B",
+      "note": "upstream: components/PageHeader, components/PageState, components/Pill, lib/useFetch; cross-module: care(CareTabs.tsx+CampaignTabs.tsx)"
+    },
+    {
+      "from": "web/src/pages/MarketingTemplates.tsx",
+      "to": "modules/zalo/web/pages/MarketingTemplates.tsx",
+      "kind": "B",
+      "note": "upstream: components/PageHeader, components/PageState, components/Pill, components/Modal, components/ConfirmModal, lib/api, lib/useFetch, lib/useDebounce, lib/toasts; cross-module: care(CareTabs.tsx+CampaignTabs.tsx)"
+    },
+    {
+      "from": "web/src/pages/ZaloAccounts.tsx",
+      "to": "modules/zalo/web/pages/ZaloAccounts.tsx",
+      "kind": "D",
+      "note": "mentions ZaloCRM; upstream: components/PageHeader, components/PageState, components/Pill, components/ConfirmModal, components/Toggle, lib/api, lib/useFetch, lib/format, lib/toasts; cross-module: care(shared.tsx)"
+    }
+  ],
+  "drop": [
+    {
+      "from": "src/zalo/agent-turn-run.test.ts",
+      "reason": "BUILD-PLAN §5: agent-turn (old AI path; AI now goes through care)"
+    },
+    {
+      "from": "src/zalo/agent-turn.test.ts",
+      "reason": "BUILD-PLAN §5: agent-turn (old AI path; AI now goes through care)"
+    },
+    {
+      "from": "src/zalo/agent-turn.ts",
+      "reason": "BUILD-PLAN §5: agent-turn (old AI path; AI now goes through care)"
+    },
+    {
+      "from": "src/zalo/care-delivery-capture.test.ts",
+      "reason": "BUILD-PLAN §5: care-delivery (old AI path; AI now goes through care)"
+    },
+    {
+      "from": "src/zalo/care-delivery-sender.test.ts",
+      "reason": "BUILD-PLAN §5: care-delivery (old AI path; AI now goes through care)"
+    },
+    {
+      "from": "src/zalo/care-delivery.test.ts",
+      "reason": "BUILD-PLAN §5: care-delivery (old AI path; AI now goes through care)"
+    },
+    {
+      "from": "src/zalo/care-delivery.ts",
+      "reason": "BUILD-PLAN §5: care-delivery (old AI path; AI now goes through care)"
+    },
+    {
+      "from": "src/zalo/care-fence-marketing.test.ts",
+      "reason": "BUILD-PLAN §5: care-fence (old AI path; AI now goes through care)"
+    },
+    {
+      "from": "src/zalo/care-fence.test.ts",
+      "reason": "BUILD-PLAN §5: care-fence (old AI path; AI now goes through care)"
+    },
+    {
+      "from": "src/zalo/care-fence.ts",
+      "reason": "BUILD-PLAN §5: care-fence (old AI path; AI now goes through care)"
+    },
+    {
+      "from": "src/zalo/daemon-care.test.ts",
+      "reason": "BUILD-PLAN §5: daemon-care (old AI path; AI now goes through care)"
+    },
+    {
+      "from": "src/zalo/daemon-care.ts",
+      "reason": "BUILD-PLAN §5: daemon-care (old AI path; AI now goes through care)"
+    },
+    {
+      "from": "src/zalo/gate.test.ts",
+      "reason": "BUILD-PLAN §5: gate (old AI path; AI now goes through care)"
+    },
+    {
+      "from": "src/zalo/gate.ts",
+      "reason": "BUILD-PLAN §5: gate (old AI path; AI now goes through care)"
+    },
+    {
+      "from": "src/zalo/responder-owner-alerts.test.ts",
+      "reason": "BUILD-PLAN §5: responder (old AI path; AI now goes through care)"
+    },
+    {
+      "from": "src/zalo/responder.test.ts",
+      "reason": "BUILD-PLAN §5: responder (old AI path; AI now goes through care)"
+    },
+    {
+      "from": "src/zalo/responder.ts",
+      "reason": "BUILD-PLAN §5: responder (old AI path; AI now goes through care)"
+    },
+    {
+      "from": "src/zalo/routes-customer-care.ts",
+      "reason": "BUILD-PLAN §5: routes-customer-care (Customer 360 already in care)"
+    },
+    {
+      "from": "web/src/components/zalo/Customer360.tsx",
+      "reason": "unreachable from kept zalo web roots (only used by dropped pages ZaloAgents/ZaloChat)"
+    },
+    {
+      "from": "web/src/pages/ZaloAgents.tsx",
+      "reason": "BUILD-PLAN §5: pages ZaloAgents, ZaloChat"
+    },
+    {
+      "from": "web/src/pages/ZaloChat.tsx",
+      "reason": "BUILD-PLAN §5: pages ZaloAgents, ZaloChat"
+    },
+    {
+      "from": "src/customer-care/connectors/zalo/zalo-outbox.test.ts",
+      "reason": "dropped during port: care owns assignments/outbox now (see modules/zalo/PORTING.md)"
+    },
+    {
+      "from": "src/zalo/customer-care-types.ts",
+      "reason": "dropped during port: care owns assignments/outbox now (see modules/zalo/PORTING.md)"
+    },
+    {
+      "from": "src/zalo/customer-care.test.ts",
+      "reason": "dropped during port: care owns assignments/outbox now (see modules/zalo/PORTING.md)"
+    },
+    {
+      "from": "web/src/components/care-channels/zalo/ZaloAssignmentEditor.tsx",
+      "reason": "dropped during port: care owns assignments/outbox now (see modules/zalo/PORTING.md)"
+    }
+  ]
+}

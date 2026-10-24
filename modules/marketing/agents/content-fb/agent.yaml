@@ -1,0 +1,17 @@
+name: Soạn nội dung Facebook
+description: "Soạn caption, hook, kế hoạch tuần cho Fanpage; bài vào Kho nội dung ở trạng thái Chờ duyệt, không tự đăng"
+runtime: claude
+runtime_options: {}
+permission: safe
+context: lean
+reports_to: main
+can_delegate: false
+max_concurrent: 1
+enabled: true
+access:
+  brain: {}
+  memory: { team: true, private: false }
+  skills: [fb-content, fb-comment-reply]
+  connections: {}
+  modules:
+    marketing: [content.write, analytics.read, comments.reply]

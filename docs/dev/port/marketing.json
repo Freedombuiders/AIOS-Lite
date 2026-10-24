@@ -1,0 +1,653 @@
+{
+ "module": "marketing",
+ "entries": [
+  {
+   "from": "src/fbstudio/agent-view.test.ts",
+   "to": "modules/marketing/server/agent-view.test.ts",
+   "kind": "B",
+   "note": "upstream: db; owner-core: fbstudio/composio, screen-context"
+  },
+  {
+   "from": "src/fbstudio/agent-view.ts",
+   "to": "modules/marketing/server/agent-view.ts",
+   "kind": "B",
+   "note": "upstream: db; cross-module: ads(accounts.ts+dashboard.ts)"
+  },
+  {
+   "from": "src/fbstudio/analytics/agent-turn.test.ts",
+   "to": "modules/marketing/server/analytics/agent-turn.test.ts",
+   "kind": "B",
+   "note": "upstream: agent-engine/index, db, kill-switches"
+  },
+  {
+   "from": "src/fbstudio/analytics/agent-turn.ts",
+   "to": "modules/marketing/server/analytics/agent-turn.ts",
+   "kind": "B",
+   "note": "upstream: agent-config, active-provider, agent-engine/index, db, env, kill-switches, provider, provider-registry, security"
+  },
+  {
+   "from": "src/fbstudio/analytics/analyst.test.ts",
+   "to": "modules/marketing/server/analytics/analyst.test.ts",
+   "kind": "B",
+   "note": "upstream: db, kill-switches"
+  },
+  {
+   "from": "src/fbstudio/analytics/analyst.ts",
+   "to": "modules/marketing/server/analytics/analyst.ts",
+   "kind": "B",
+   "note": "upstream: db, kill-switches, logger"
+  },
+  {
+   "from": "src/fbstudio/analytics/db-analytics.test.ts",
+   "to": "modules/marketing/server/analytics/db-analytics.test.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/fbstudio/analytics/metrics.test.ts",
+   "to": "modules/marketing/server/analytics/metrics.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/analytics/metrics.ts",
+   "to": "modules/marketing/server/analytics/metrics.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/fbstudio/analytics/parse.test.ts",
+   "to": "modules/marketing/server/analytics/parse.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/analytics/parse.ts",
+   "to": "modules/marketing/server/analytics/parse.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/analytics/routes.test.ts",
+   "to": "modules/marketing/server/analytics/routes.test.ts",
+   "kind": "B",
+   "note": "upstream: db; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/analytics/routes.ts",
+   "to": "modules/marketing/server/analytics/routes.ts",
+   "kind": "B",
+   "note": "upstream: db, logger"
+  },
+  {
+   "from": "src/fbstudio/analytics/schedule.test.ts",
+   "to": "modules/marketing/server/analytics/schedule.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/analytics/schedule.ts",
+   "to": "modules/marketing/server/analytics/schedule.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/analytics/service.ts",
+   "to": "modules/marketing/server/analytics/service.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/fbstudio/analytics/sync.test.ts",
+   "to": "modules/marketing/server/analytics/sync.test.ts",
+   "kind": "B",
+   "note": "upstream: db; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/analytics/sync.ts",
+   "to": "modules/marketing/server/analytics/sync.ts",
+   "kind": "B",
+   "note": "upstream: db, logger; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/analytics/test-helpers.ts",
+   "to": "modules/marketing/server/analytics/test-helpers.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/fbstudio/analytics/time.test.ts",
+   "to": "modules/marketing/server/analytics/time.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/analytics/time.ts",
+   "to": "modules/marketing/server/analytics/time.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/analytics/worker.test.ts",
+   "to": "modules/marketing/server/analytics/worker.test.ts",
+   "kind": "B",
+   "note": "upstream: db; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/analytics/worker.ts",
+   "to": "modules/marketing/server/analytics/worker.ts",
+   "kind": "B",
+   "note": "upstream: db, logger; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/comments/actions.ts",
+   "to": "modules/marketing/server/comments/actions.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/fbstudio/comments/agent-turn-run.test.ts",
+   "to": "modules/marketing/server/comments/agent-turn-run.test.ts",
+   "kind": "B",
+   "note": "upstream: kill-switches, agent-config, agent-engine/index; owner-core: agent-context"
+  },
+  {
+   "from": "src/fbstudio/comments/agent-turn.test.ts",
+   "to": "modules/marketing/server/comments/agent-turn.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/comments/agent-turn.ts",
+   "to": "modules/marketing/server/comments/agent-turn.ts",
+   "kind": "B",
+   "note": "upstream: active-provider, agent-engine/index, agent-config, db, env, kill-switches, outbound-policy, outbound-sanitizer, provider, provider-registry, security; owner-core: agent-context"
+  },
+  {
+   "from": "src/fbstudio/comments/common.ts",
+   "to": "modules/marketing/server/comments/common.ts",
+   "kind": "B",
+   "note": "upstream: db; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/comments/config.test.ts",
+   "to": "modules/marketing/server/comments/config.test.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/fbstudio/comments/config.ts",
+   "to": "modules/marketing/server/comments/config.ts",
+   "kind": "B",
+   "note": "upstream: config, db"
+  },
+  {
+   "from": "src/fbstudio/comments/extract.test.ts",
+   "to": "modules/marketing/server/comments/extract.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/comments/extract.ts",
+   "to": "modules/marketing/server/comments/extract.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/comments/limits.test.ts",
+   "to": "modules/marketing/server/comments/limits.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/comments/limits.ts",
+   "to": "modules/marketing/server/comments/limits.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/comments/log.ts",
+   "to": "modules/marketing/server/comments/log.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/fbstudio/comments/poller.test.ts",
+   "to": "modules/marketing/server/comments/poller.test.ts",
+   "kind": "B",
+   "note": "upstream: db; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/comments/poller.ts",
+   "to": "modules/marketing/server/comments/poller.ts",
+   "kind": "B",
+   "note": "upstream: db; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/comments/processor.test.ts",
+   "to": "modules/marketing/server/comments/processor.test.ts",
+   "kind": "B",
+   "note": "upstream: db, kill-switches; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/comments/processor.ts",
+   "to": "modules/marketing/server/comments/processor.ts",
+   "kind": "B",
+   "note": "upstream: db, agent-config, kill-switches, logger; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/comments/routes.test.ts",
+   "to": "modules/marketing/server/comments/routes.test.ts",
+   "kind": "B",
+   "note": "upstream: db, kill-switches; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/comments/routes.ts",
+   "to": "modules/marketing/server/comments/routes.ts",
+   "kind": "B",
+   "note": "upstream: agent-config, db; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/comments/rules.test.ts",
+   "to": "modules/marketing/server/comments/rules.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/comments/rules.ts",
+   "to": "modules/marketing/server/comments/rules.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/comments/sender.test.ts",
+   "to": "modules/marketing/server/comments/sender.test.ts",
+   "kind": "B",
+   "note": "upstream: db; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/comments/sender.ts",
+   "to": "modules/marketing/server/comments/sender.ts",
+   "kind": "B",
+   "note": "upstream: db, logger; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/comments/state.ts",
+   "to": "modules/marketing/server/comments/state.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/fbstudio/comments/test-utils.ts",
+   "to": "modules/marketing/server/comments/test-utils.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/fbstudio/comments/worker.test.ts",
+   "to": "modules/marketing/server/comments/worker.test.ts",
+   "kind": "B",
+   "note": "upstream: db, kill-switches; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/comments/worker.ts",
+   "to": "modules/marketing/server/comments/worker.ts",
+   "kind": "B",
+   "note": "upstream: db, kill-switches, logger; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/core/agent-chat.ts",
+   "to": "modules/marketing/server/core/agent-chat.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/fbstudio/core/cli-commands.test.ts",
+   "to": "modules/marketing/server/core/cli-commands.test.ts",
+   "kind": "B",
+   "note": "upstream: db; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/core/cli-commands.ts",
+   "to": "modules/marketing/server/core/cli-commands.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/fbstudio/core/content.test.ts",
+   "to": "modules/marketing/server/core/content.test.ts",
+   "kind": "B",
+   "note": "upstream: db; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/core/content.ts",
+   "to": "modules/marketing/server/core/content.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/fbstudio/core/dto.ts",
+   "to": "modules/marketing/server/core/dto.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/fbstudio/core/errors.ts",
+   "to": "modules/marketing/server/core/errors.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/core/media.ts",
+   "to": "modules/marketing/server/core/media.ts",
+   "kind": "B",
+   "note": "owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/core/pages.test.ts",
+   "to": "modules/marketing/server/core/pages.test.ts",
+   "kind": "B",
+   "note": "upstream: agent-config, db; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/core/pages.ts",
+   "to": "modules/marketing/server/core/pages.ts",
+   "kind": "B",
+   "note": "upstream: agent-config, db, logger; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/core/publisher.test.ts",
+   "to": "modules/marketing/server/core/publisher.test.ts",
+   "kind": "B",
+   "note": "upstream: kill-switches, db; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/core/publisher.ts",
+   "to": "modules/marketing/server/core/publisher.ts",
+   "kind": "B",
+   "note": "upstream: db, kill-switches, logger; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/core/response.test.ts",
+   "to": "modules/marketing/server/core/response.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/core/response.ts",
+   "to": "modules/marketing/server/core/response.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/core/routes.test.ts",
+   "to": "modules/marketing/server/core/routes.test.ts",
+   "kind": "B",
+   "note": "upstream: kill-switches, env-write, agent-config, db; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/core/routes.ts",
+   "to": "modules/marketing/server/core/routes.ts",
+   "kind": "B",
+   "note": "upstream: db, logger, config; owner-core: skill-commands, agent-skill-policy, vault-mentions"
+  },
+  {
+   "from": "src/fbstudio/core/state.test.ts",
+   "to": "modules/marketing/server/core/state.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/core/state.ts",
+   "to": "modules/marketing/server/core/state.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/core/status.ts",
+   "to": "modules/marketing/server/core/status.ts",
+   "kind": "B",
+   "note": "upstream: db, logger; owner-core: composio-credentials, fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/core/test-db.ts",
+   "to": "modules/marketing/server/core/test-db.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/fbstudio/core/test-fixtures.ts",
+   "to": "modules/marketing/server/core/test-fixtures.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/fbstudio/core/time.test.ts",
+   "to": "modules/marketing/server/core/time.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/core/time.ts",
+   "to": "modules/marketing/server/core/time.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/index.ts",
+   "to": "modules/marketing/server/index.ts",
+   "kind": "B",
+   "note": "upstream: db, logger; cross-module: ads(worker.ts)"
+  },
+  {
+   "from": "src/fbstudio/notify.ts",
+   "to": "modules/marketing/server/notify.ts",
+   "kind": "B",
+   "note": "upstream: logger"
+  },
+  {
+   "from": "src/fbstudio/routes.ts",
+   "to": "modules/marketing/server/routes.ts",
+   "kind": "B",
+   "note": "cross-module: ads(routes.ts)"
+  },
+  {
+   "from": "src/fbstudio/types.ts",
+   "to": "modules/marketing/server/types.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "skills/fb-comment-reply/SKILL.md",
+   "to": "modules/marketing/skills/fb-comment-reply/SKILL.md",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "skills/fb-content/SKILL.md",
+   "to": "modules/marketing/skills/fb-content/SKILL.md",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/components/fb/calendar/PostSheet.tsx",
+   "to": "modules/marketing/web/components/fb/calendar/PostSheet.tsx",
+   "kind": "B",
+   "note": "upstream: lib/api, lib/toasts"
+  },
+  {
+   "from": "web/src/components/fb/channel/HeatGrid.tsx",
+   "to": "modules/marketing/web/components/fb/channel/HeatGrid.tsx",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/components/fb/channel/PillarSection.tsx",
+   "to": "modules/marketing/web/components/fb/channel/PillarSection.tsx",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/components/fb/comments/KeywordChips.tsx",
+   "to": "modules/marketing/web/components/fb/comments/KeywordChips.tsx",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/components/fb/comments/shared.tsx",
+   "to": "modules/marketing/web/components/fb/comments/shared.tsx",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/components/fb/comments/TemplateEditor.tsx",
+   "to": "modules/marketing/web/components/fb/comments/TemplateEditor.tsx",
+   "kind": "B",
+   "note": "upstream: components/Modal, lib/api, lib/toasts"
+  },
+  {
+   "from": "web/src/components/fb/common.tsx",
+   "to": "modules/marketing/web/components/fb/common.tsx",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/components/fb/library/AgentChatPanel.tsx",
+   "to": "modules/marketing/web/components/fb/library/AgentChatPanel.tsx",
+   "kind": "B",
+   "note": "upstream: components/Pill, lib/api, lib/useFetch, lib/personalization"
+  },
+  {
+   "from": "web/src/components/fb/library/ContentCard.tsx",
+   "to": "modules/marketing/web/components/fb/library/ContentCard.tsx",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/components/fb/library/ContentEditor.tsx",
+   "to": "modules/marketing/web/components/fb/library/ContentEditor.tsx",
+   "kind": "B",
+   "note": "upstream: components/Modal, components/ConfirmModal, lib/api, lib/useFetch, lib/toasts"
+  },
+  {
+   "from": "web/src/components/fb/ops-shared.tsx",
+   "to": "modules/marketing/web/components/fb/ops-shared.tsx",
+   "kind": "B",
+   "note": "upstream: lib/api, lib/useFetch"
+  },
+  {
+   "from": "web/src/components/fb/pages/FbSettingsPanel.tsx",
+   "to": "modules/marketing/web/components/fb/pages/FbSettingsPanel.tsx",
+   "kind": "B",
+   "note": "upstream: components/Toggle, lib/api, lib/useFetch, lib/toasts"
+  },
+  {
+   "from": "web/src/components/fb/posts/PostDetail.tsx",
+   "to": "modules/marketing/web/components/fb/posts/PostDetail.tsx",
+   "kind": "B",
+   "note": "upstream: lib/useFetch"
+  },
+  {
+   "from": "web/src/components/fb/posts/PostsTable.tsx",
+   "to": "modules/marketing/web/components/fb/posts/PostsTable.tsx",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/fbstudio.ts",
+   "to": "modules/marketing/web/lib/fbstudio.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/pages/fb/FbCalendar.tsx",
+   "to": "modules/marketing/web/pages/fb/FbCalendar.tsx",
+   "kind": "B",
+   "note": "upstream: components/PageHeader, lib/api, lib/useFetch, lib/toasts"
+  },
+  {
+   "from": "web/src/pages/fb/FbChannel.tsx",
+   "to": "modules/marketing/web/pages/fb/FbChannel.tsx",
+   "kind": "B",
+   "note": "upstream: components/PageHeader, lib/useFetch"
+  },
+  {
+   "from": "web/src/pages/fb/FbCommentRules.tsx",
+   "to": "modules/marketing/web/pages/fb/FbCommentRules.tsx",
+   "kind": "B",
+   "note": "upstream: components/PageHeader, components/PageState, components/Toggle, lib/api, lib/useFetch, lib/useDebounce, lib/toasts"
+  },
+  {
+   "from": "web/src/pages/fb/FbComments.tsx",
+   "to": "modules/marketing/web/pages/fb/FbComments.tsx",
+   "kind": "B",
+   "note": "upstream: components/PageHeader, components/PageState, lib/api, lib/useFetch, lib/toasts"
+  },
+  {
+   "from": "web/src/pages/fb/FbLibrary.tsx",
+   "to": "modules/marketing/web/pages/fb/FbLibrary.tsx",
+   "kind": "B",
+   "note": "upstream: components/PageHeader, components/PageState, components/ConfirmModal, lib/api, lib/useFetch, lib/useDebounce, lib/toasts"
+  },
+  {
+   "from": "web/src/pages/fb/FbPages.tsx",
+   "to": "modules/marketing/web/pages/fb/FbPages.tsx",
+   "kind": "B",
+   "note": "upstream: components/PageHeader, components/PageState, components/Toggle, lib/api, lib/useFetch, lib/toasts"
+  },
+  {
+   "from": "web/src/pages/fb/FbPosts.tsx",
+   "to": "modules/marketing/web/pages/fb/FbPosts.tsx",
+   "kind": "B",
+   "note": "upstream: components/PageHeader, lib/useFetch"
+  },
+  {
+   "from": "web/src/pages/SocialOverview.tsx",
+   "to": "modules/marketing/web/pages/SocialOverview.tsx",
+   "kind": "B",
+   "note": "upstream: components/PageHeader"
+  }
+ ],
+ "drop": [
+  {
+   "from": "src/fbstudio-cli.test.ts",
+   "reason": "BUILD-PLAN §5: fbstudio-cli (to become 'aios module marketing ...' if time permits)"
+  },
+  {
+   "from": "src/fbstudio-cli.ts",
+   "reason": "BUILD-PLAN §5: fbstudio-cli (to become 'aios module marketing ...' if time permits)"
+  },
+  {
+   "from": "src/fbstudio/composio.ts",
+   "reason": "moved to CORE: becomes shared Composio client src/access/composio.ts (BUILD-PLAN P1-B: composio-credentials + fbstudio/composio, class B). Used by marketing, ads and gmail"
+  },
+  {
+   "from": "web/src/components/social/ChannelDetail.tsx",
+   "reason": "BUILD-PLAN §5: whop-social / other platforms in SocialHome+ChannelStrip (later)"
+  },
+  {
+   "from": "web/src/components/social/ChannelStrip.tsx",
+   "reason": "BUILD-PLAN §5: whop-social / other platforms in SocialHome+ChannelStrip (later)"
+  },
+  {
+   "from": "web/src/components/social/WhopCard.tsx",
+   "reason": "BUILD-PLAN §5: whop-social / other platforms in SocialHome+ChannelStrip (later)"
+  },
+  {
+   "from": "web/src/components/social/WhopPostDialog.tsx",
+   "reason": "BUILD-PLAN §5: whop-social / other platforms in SocialHome+ChannelStrip (later)"
+  },
+  {
+   "from": "web/src/components/social/YoutubeChannel.tsx",
+   "reason": "BUILD-PLAN §5: whop-social / other platforms in SocialHome+ChannelStrip (later)"
+  },
+  {
+   "from": "web/src/lib/whop-social.ts",
+   "reason": "BUILD-PLAN §5: whop-social / other platforms in SocialHome+ChannelStrip (later)"
+  },
+  {
+   "from": "web/src/pages/SocialHome.tsx",
+   "reason": "BUILD-PLAN §5: whop-social / other platforms in SocialHome+ChannelStrip (later)"
+  }
+ ]
+}

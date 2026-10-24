@@ -1,0 +1,2 @@
+CREATE TABLE bad_ok (id INTEGER);
+CREATE TABLE bad_extra (id INTEGER);

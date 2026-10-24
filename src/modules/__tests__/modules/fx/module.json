@@ -1,0 +1,15 @@
+{
+  "id": "fx",
+  "name": "Fixture",
+  "description": "Module thử nghiệm",
+  "version": "1.0.0",
+  "category": "other",
+  "scopes": { "read": "Đọc", "write": "Ghi" },
+  "tables": ["fx_items", "fx_search"],
+  "agentTemplates": ["fx-helper"],
+  "settings": {
+    "greeting": { "label": "Lời chào", "type": "string", "default": "xin chào" },
+    "token": { "label": "Token", "type": "secret" },
+    "limit": { "label": "Giới hạn", "type": "number", "default": 5 }
+  }
+}

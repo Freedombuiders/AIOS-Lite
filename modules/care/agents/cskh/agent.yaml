@@ -1,0 +1,18 @@
+name: CSKH
+description: "Nhân viên chăm sóc khách: soạn nháp hoặc trả lời khách lịch sự, không bịa giá, chuyển người thật khi không chắc"
+runtime: claude
+model: haiku
+runtime_options: {}
+permission: safe
+context: lean
+reports_to: main
+can_delegate: false
+max_concurrent: 2
+enabled: true
+access:
+  brain: {}
+  memory: { team: true, private: false }
+  skills: [tra-loi-khach]
+  connections: {}
+  modules:
+    care: [inbox.read, customers.read, reply.draft]

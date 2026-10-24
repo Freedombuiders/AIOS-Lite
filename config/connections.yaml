@@ -1,0 +1,15 @@
+# Kết nối ra ngoài. Chỉ ghi TÊN biến trong .env, không ghi khoá thật vào file này.
+connections:
+  - id: composio
+    type: composio
+    description: Composio, dùng cho các module (Gmail, quảng cáo, đăng bài)
+    apiKeyEnv: COMPOSIO_API_KEY
+
+  # Ví dụ MCP server (bỏ dấu # để dùng), rồi cấp cho agent ở access.connections
+  # - id: github
+  #   type: mcp
+  #   description: GitHub qua MCP
+  #   command: npx
+  #   args: ["-y", "@modelcontextprotocol/server-github"]
+  #   env:
+  #     GITHUB_PERSONAL_ACCESS_TOKEN: $GITHUB_TOKEN

@@ -1,0 +1,16 @@
+name: Lập trình viên
+description: "Viết, sửa và review code; chạy lệnh trong thư mục làm việc riêng"
+runtime: codex
+runtime_options: {}
+permission: safe
+context: standard
+reports_to: main
+can_delegate: false
+max_concurrent: 1
+enabled: true
+access:
+  brain: {}
+  memory: { team: true, private: true }
+  skills: [review-code]
+  connections: {}
+  modules: {}

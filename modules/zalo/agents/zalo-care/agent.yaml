@@ -1,0 +1,19 @@
+name: Trợ lý chăm sóc Zalo
+description: "Soạn câu trả lời cho khách và nhóm Zalo (qua hộp thư Chăm sóc khách hàng), không bịa giá"
+runtime: claude
+model: haiku
+runtime_options: {}
+permission: safe
+context: lean
+reports_to: main
+can_delegate: false
+max_concurrent: 2
+enabled: true
+access:
+  brain: {}
+  memory: { team: true, private: false }
+  skills: [zalo-reply]
+  connections: {}
+  modules:
+    care: [inbox.read, reply.draft]
+    zalo: [messages.read]

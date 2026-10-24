@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="vi" data-appearance="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="referrer" content="no-referrer" />
+    <title>AIOS-Lite</title>
+    <script>
+      try {
+        const mode = localStorage.getItem('aios.appearance');
+        // Dark by default, like FreedomOS; 'system' follows the OS.
+        const dark = mode === 'light' ? false : mode === 'system' ? window.matchMedia('(prefers-color-scheme: dark)').matches : true;
+        document.documentElement.setAttribute('data-appearance', dark ? 'dark' : 'light');
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+name: Chuyên viên phân tích quảng cáo
+description: "Đánh giá số liệu quảng cáo đã tính sẵn và đề xuất thao tác thủ công"
+runtime: mock
+runtime_options: {}
+permission: safe
+context: lean
+reports_to: main
+can_delegate: false
+max_concurrent: 1
+enabled: true
+access:
+  brain: {}
+  memory: { team: false, private: false }
+  skills: [ads-review]
+  connections: {}
+  modules:
+    ads: [reports.read]

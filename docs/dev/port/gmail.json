@@ -1,0 +1,295 @@
+{
+ "module": "gmail",
+ "entries": [
+  {
+   "from": "src/customer-care/connectors/email/email-connector.ts",
+   "to": "modules/gmail/server/connectors/email/email-connector.ts",
+   "kind": "B",
+   "note": "moved from care; cross-module: care(errors.ts+checkpoint.ts+types.ts+contract.ts)"
+  },
+  {
+   "from": "src/customer-care/connectors/email/email-dispatch.test.ts",
+   "to": "modules/gmail/server/connectors/email/email-dispatch.test.ts",
+   "kind": "B",
+   "note": "moved from care; cross-module: care(errors.ts+contract.ts)"
+  },
+  {
+   "from": "src/customer-care/connectors/email/email-sync.test.ts",
+   "to": "modules/gmail/server/connectors/email/email-sync.test.ts",
+   "kind": "B",
+   "note": "moved from care; cross-module: care(errors.ts)"
+  },
+  {
+   "from": "src/customer-care/connectors/email/email-transport.test.ts",
+   "to": "modules/gmail/server/connectors/email/email-transport.test.ts",
+   "kind": "B",
+   "note": "moved from care; cross-module: care(checkpoint.ts); owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/customer-care/connectors/email/fake-transport.ts",
+   "to": "modules/gmail/server/connectors/email/fake-transport.ts",
+   "kind": "A",
+   "note": "moved from care"
+  },
+  {
+   "from": "src/customer-care/connectors/email/gmail-transport.ts",
+   "to": "modules/gmail/server/connectors/email/gmail-transport.ts",
+   "kind": "B",
+   "note": "moved from care; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/customer-care/connectors/email/normalize.ts",
+   "to": "modules/gmail/server/connectors/email/normalize.ts",
+   "kind": "B",
+   "note": "moved from care; cross-module: care(types.ts)"
+  },
+  {
+   "from": "src/customer-care/connectors/email/store.ts",
+   "to": "modules/gmail/server/connectors/email/store.ts",
+   "kind": "B",
+   "note": "moved from care; cross-module: care(errors.ts)"
+  },
+  {
+   "from": "src/customer-care/connectors/email/test-harness.ts",
+   "to": "modules/gmail/server/connectors/email/test-harness.ts",
+   "kind": "B",
+   "note": "moved from care; cross-module: care(ingest.ts+dispatch.ts+outbox-service.ts+types.ts+schema.ts+index.ts+test-fixtures.ts+contract.ts)"
+  },
+  {
+   "from": "src/customer-care/connectors/email/transport.ts",
+   "to": "modules/gmail/server/connectors/email/transport.ts",
+   "kind": "A",
+   "note": "moved from care"
+  },
+  {
+   "from": "src/customer-care/connectors/email/window.ts",
+   "to": "modules/gmail/server/connectors/email/window.ts",
+   "kind": "A",
+   "note": "moved from care"
+  },
+  {
+   "from": "src/email/coordinator-sync-atomicity.test.ts",
+   "to": "modules/gmail/server/coordinator-sync-atomicity.test.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/email/db-email.test.ts",
+   "to": "modules/gmail/server/db-email.test.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/email/dto.ts",
+   "to": "modules/gmail/server/dto.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/email/gmail.test.ts",
+   "to": "modules/gmail/server/gmail.test.ts",
+   "kind": "B",
+   "note": "upstream: db; owner-core: composio-credentials, fbstudio/composio"
+  },
+  {
+   "from": "src/email/gmail.ts",
+   "to": "modules/gmail/server/gmail.ts",
+   "kind": "B",
+   "note": "upstream: db, logger; owner-core: composio-credentials, fbstudio/composio"
+  },
+  {
+   "from": "src/email/parse.test.ts",
+   "to": "modules/gmail/server/parse.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/email/parse.ts",
+   "to": "modules/gmail/server/parse.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/email/routes.test.ts",
+   "to": "modules/gmail/server/routes.test.ts",
+   "kind": "B",
+   "note": "upstream: db; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/email/routes.ts",
+   "to": "modules/gmail/server/routes.ts",
+   "kind": "B",
+   "note": "upstream: agent-config, db, kill-switches, logger; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/email/sender.test.ts",
+   "to": "modules/gmail/server/sender.test.ts",
+   "kind": "B",
+   "note": "upstream: kill-switches, db; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/email/sender.ts",
+   "to": "modules/gmail/server/sender.ts",
+   "kind": "B",
+   "note": "upstream: db, kill-switches, logger; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/email/serialize.ts",
+   "to": "modules/gmail/server/serialize.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/email/sync-fault.test.ts",
+   "to": "modules/gmail/server/sync-fault.test.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/email/sync.test.ts",
+   "to": "modules/gmail/server/sync.test.ts",
+   "kind": "B",
+   "note": "upstream: db; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/email/sync.ts",
+   "to": "modules/gmail/server/sync.ts",
+   "kind": "B",
+   "note": "upstream: db, logger; owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/email/test-fixtures.ts",
+   "to": "modules/gmail/server/test-fixtures.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/email/time.ts",
+   "to": "modules/gmail/server/time.ts",
+   "kind": "B",
+   "note": "upstream: db; cross-module: zalo(limits.ts)"
+  },
+  {
+   "from": "web/src/components/care-channels/email/EmailAccountParts.tsx",
+   "to": "modules/gmail/web/components/care-channels/email/EmailAccountParts.tsx",
+   "kind": "B",
+   "note": "moved from care; upstream: components/Modal, lib/api, lib/toasts; cross-module: care(shared.tsx)"
+  },
+  {
+   "from": "web/src/components/care-channels/email/EmailAssignmentEditor.tsx",
+   "to": "modules/gmail/web/components/care-channels/email/EmailAssignmentEditor.tsx",
+   "kind": "B",
+   "note": "moved from care; upstream: components/Toggle, lib/api; cross-module: care(EditorShell.tsx+shared.tsx)"
+  },
+  {
+   "from": "web/src/components/email/EmailServiceBanner.tsx",
+   "to": "modules/gmail/web/components/email/EmailServiceBanner.tsx",
+   "kind": "B",
+   "note": "upstream: components/ConfirmModal, lib/api, lib/toasts"
+  },
+  {
+   "from": "web/src/components/email/InboxUtils.ts",
+   "to": "modules/gmail/web/components/email/InboxUtils.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/email.ts",
+   "to": "modules/gmail/web/lib/email.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/pages/EmailAccounts.tsx",
+   "to": "modules/gmail/web/pages/EmailAccounts.tsx",
+   "kind": "B",
+   "note": "upstream: components/PageHeader, components/PageState, components/Pill, components/ConfirmModal, components/Toggle, lib/api, lib/useFetch, lib/toasts; cross-module: care(shared.tsx)"
+  }
+ ],
+ "drop": [
+  {
+   "from": "src/email/agent-turn.test.ts",
+   "reason": "BUILD-PLAN §5: agent-turn (old AI path / notify)"
+  },
+  {
+   "from": "src/email/agent-turn.ts",
+   "reason": "BUILD-PLAN §5: agent-turn (old AI path / notify)"
+  },
+  {
+   "from": "src/email/care-delivery.test.ts",
+   "reason": "care-delivery/care-fence (not in §5 list; extends it by mirroring the zalo drop): legacy-coexistence fence, imports dropped runtime/legacy-compat"
+  },
+  {
+   "from": "src/email/care-delivery.ts",
+   "reason": "care-delivery/care-fence (not in §5 list; extends it by mirroring the zalo drop): legacy-coexistence fence, imports dropped runtime/legacy-compat"
+  },
+  {
+   "from": "src/email/care-fence-recheck.test.ts",
+   "reason": "care-delivery/care-fence (not in §5 list; extends it by mirroring the zalo drop): legacy-coexistence fence, imports dropped runtime/legacy-compat"
+  },
+  {
+   "from": "src/email/care-fence-sync.test.ts",
+   "reason": "care-delivery/care-fence (not in §5 list; extends it by mirroring the zalo drop): legacy-coexistence fence, imports dropped runtime/legacy-compat"
+  },
+  {
+   "from": "src/email/care-fence.test.ts",
+   "reason": "care-delivery/care-fence (not in §5 list; extends it by mirroring the zalo drop): legacy-coexistence fence, imports dropped runtime/legacy-compat"
+  },
+  {
+   "from": "src/email/care-fence.ts",
+   "reason": "care-delivery/care-fence (not in §5 list; extends it by mirroring the zalo drop): legacy-coexistence fence, imports dropped runtime/legacy-compat"
+  },
+  {
+   "from": "src/email/gate.test.ts",
+   "reason": "BUILD-PLAN §5: gate (old AI path / notify)"
+  },
+  {
+   "from": "src/email/gate.ts",
+   "reason": "BUILD-PLAN §5: gate (old AI path / notify)"
+  },
+  {
+   "from": "src/email/notify.ts",
+   "reason": "BUILD-PLAN §5: notify (old AI path / notify)"
+  },
+  {
+   "from": "src/email/responder-owner-alerts.test.ts",
+   "reason": "BUILD-PLAN §5: responder (old AI path / notify)"
+  },
+  {
+   "from": "src/email/responder.test.ts",
+   "reason": "BUILD-PLAN §5: responder (old AI path / notify)"
+  },
+  {
+   "from": "src/email/responder.ts",
+   "reason": "BUILD-PLAN §5: responder (old AI path / notify)"
+  },
+  {
+   "from": "src/email/worker.test.ts",
+   "reason": "BUILD-PLAN §5: worker (old AI path / notify)"
+  },
+  {
+   "from": "src/email/worker.ts",
+   "reason": "BUILD-PLAN §5: worker (old AI path / notify)"
+  },
+  {
+   "from": "web/src/components/email/EmailBody.tsx",
+   "reason": "unreachable from kept gmail web roots (only used by dropped pages EmailInbox/EmailAgents)"
+  },
+  {
+   "from": "web/src/components/email/InboxOutbox.tsx",
+   "reason": "unreachable from kept gmail web roots (only used by dropped pages EmailInbox/EmailAgents)"
+  },
+  {
+   "from": "web/src/components/email/InboxThread.tsx",
+   "reason": "unreachable from kept gmail web roots (only used by dropped pages EmailInbox/EmailAgents)"
+  },
+  {
+   "from": "web/src/pages/EmailAgents.tsx",
+   "reason": "BUILD-PLAN §5: pages EmailInbox, EmailAgents"
+  },
+  {
+   "from": "web/src/pages/EmailInbox.tsx",
+   "reason": "BUILD-PLAN §5: pages EmailInbox, EmailAgents"
+  }
+ ]
+}

@@ -1,0 +1,58 @@
+{
+  "id": "marketing",
+  "name": "Marketing Facebook",
+  "description": "Facebook Content Studio: soạn, lên lịch và đăng bài lên Fanpage, phân tích hiệu quả, tự trả lời bình luận.",
+  "version": "0.1.0",
+  "icon": "megaphone",
+  "category": "marketing",
+  "requires": { "connections": ["composio"] },
+  "enhances": ["ads"],
+  "scopes": {
+    "content.write": "Soạn và sửa bài trong Kho nội dung (không được đăng)",
+    "publish": "Duyệt và đăng bài lên Fanpage",
+    "comments.reply": "Trả lời bình luận công khai trên Fanpage",
+    "analytics.read": "Đọc số liệu phân tích Fanpage"
+  },
+  "tables": [
+    "fb_settings",
+    "fb_pages",
+    "fb_content",
+    "fb_publish_log",
+    "fb_api_usage",
+    "fb_comments",
+    "fb_comment_watch",
+    "fb_reply_rules",
+    "fb_reply_templates",
+    "fb_post_metrics",
+    "fb_page_daily",
+    "fb_insights"
+  ],
+  "agentTemplates": ["content-fb", "fb-analyst"],
+  "skills": ["fb-content", "fb-comment-reply"],
+  "settings": {
+    "enabled": {
+      "label": "Bật Content Studio",
+      "type": "boolean",
+      "default": false,
+      "help": "Công tắc tổng: tắt thì bộ đăng bài và bộ trả lời bình luận không chạy. Mặc định tắt."
+    },
+    "publish": {
+      "label": "Cho phép tự đăng bài",
+      "type": "boolean",
+      "default": true,
+      "help": "Tắt để dừng đăng bài ngay mà vẫn giữ lịch."
+    },
+    "autoreply": {
+      "label": "Cho phép trả lời bình luận tự động",
+      "type": "boolean",
+      "default": true,
+      "help": "Tắt để dừng mọi câu trả lời công khai ngay lập tức."
+    },
+    "api_budget_per_hour": {
+      "label": "Ngân sách gọi Composio mỗi giờ",
+      "type": "number",
+      "default": 600,
+      "help": "Vượt ngân sách thì các tác vụ nền tạm dừng đến giờ sau."
+    }
+  }
+}

@@ -1,0 +1,17 @@
+name: Phân tích Facebook
+description: "Đọc số liệu Fanpage, phân loại bài theo tuyến nội dung và viết tóm tắt kèm đề xuất hành động"
+runtime: claude
+runtime_options: {}
+permission: safe
+context: lean
+reports_to: main
+can_delegate: false
+max_concurrent: 1
+enabled: true
+access:
+  brain: {}
+  memory: { team: true, private: false }
+  skills: []
+  connections: {}
+  modules:
+    marketing: [analytics.read]

@@ -1,0 +1,343 @@
+{
+  "module": "core-web-lite",
+  "entries": [
+    {
+      "from": "web/src/components/AgentPicker.tsx",
+      "to": "web/src/components/AgentPicker.tsx",
+      "kind": "B",
+      "note": "upstream: components/AgentAvatar, components/Pill; shared file, owner by import reach"
+    },
+    {
+      "from": "web/src/components/BrainLocalGraph.tsx",
+      "to": "web/src/components/BrainLocalGraph.tsx",
+      "kind": "B",
+      "note": "owner-core: brain-links; shared file, owner by import reach"
+    },
+    {
+      "from": "web/src/components/BrainNoteEditor.tsx",
+      "to": "web/src/components/BrainNoteEditor.tsx",
+      "kind": "B",
+      "note": "upstream: lib/api, lib/markdown; shared file, owner by import reach"
+    },
+    {
+      "from": "web/src/components/BrainVaultGraph.tsx",
+      "to": "web/src/components/BrainVaultGraph.tsx",
+      "kind": "A",
+      "note": "shared file, owner by import reach"
+    },
+    {
+      "from": "web/src/components/BrandIcons.tsx",
+      "to": "web/src/components/BrandIcons.tsx",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/components/ChatActivity.tsx",
+      "to": "web/src/components/ChatActivity.tsx",
+      "kind": "B",
+      "note": "upstream: lib/markdown; shared file, owner by import reach"
+    },
+    {
+      "from": "web/src/components/FolderPicker.tsx",
+      "to": "web/src/components/FolderPicker.tsx",
+      "kind": "B",
+      "note": "upstream: lib/useFetch"
+    },
+    {
+      "from": "web/src/components/MentionInput.tsx",
+      "to": "web/src/components/MentionInput.tsx",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/components/mission-detail-properties.tsx",
+      "to": "web/src/components/mission-detail-properties.tsx",
+      "kind": "B",
+      "note": "upstream: components/Pill, components/AgentAvatar, lib/api, lib/useFetch, lib/format, lib/toasts; shared file, owner by import reach"
+    },
+    {
+      "from": "web/src/components/mission-detail-shared.tsx",
+      "to": "web/src/components/mission-detail-shared.tsx",
+      "kind": "B",
+      "note": "upstream: lib/api, components/Pill; shared file, owner by import reach"
+    },
+    {
+      "from": "web/src/components/mission-detail-subtasks.tsx",
+      "to": "web/src/components/mission-detail-subtasks.tsx",
+      "kind": "B",
+      "note": "upstream: components/Modal, components/Pill, lib/api, lib/format, lib/toasts; shared file, owner by import reach"
+    },
+    {
+      "from": "web/src/components/mission-detail-thread.tsx",
+      "to": "web/src/components/mission-detail-thread.tsx",
+      "kind": "B",
+      "note": "upstream: components/Pill, lib/api, lib/markdown, lib/format, lib/toasts; shared file, owner by import reach"
+    },
+    {
+      "from": "web/src/components/org-card.tsx",
+      "to": "web/src/components/org-card.tsx",
+      "kind": "B",
+      "note": "upstream: components/AgentAvatar; shared file, owner by import reach"
+    },
+    {
+      "from": "web/src/components/org-viewport.tsx",
+      "to": "web/src/components/org-viewport.tsx",
+      "kind": "A",
+      "note": "shared file, owner by import reach"
+    },
+    {
+      "from": "web/src/components/QuickAssignTask.tsx",
+      "to": "web/src/components/QuickAssignTask.tsx",
+      "kind": "B",
+      "note": "upstream: lib/api, lib/useFetch, lib/toasts; shared file, owner by import reach"
+    },
+    {
+      "from": "web/src/components/RichTextEditor.tsx",
+      "to": "web/src/components/RichTextEditor.tsx",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/components/SkillPicker.tsx",
+      "to": "web/src/components/SkillPicker.tsx",
+      "kind": "B",
+      "note": "upstream: lib/useFetch; shared file, owner by import reach"
+    },
+    {
+      "from": "web/src/components/social/PlatformBadge.tsx",
+      "to": "web/src/components/social/PlatformBadge.tsx",
+      "kind": "A",
+      "note": "reinstated into core-web: imported by kept marketing FbCalendar/PostSheet and by core HomeDashboard/BusinessPulse; moved from marketing"
+    },
+    {
+      "from": "web/src/lib/chat-activity.ts",
+      "to": "web/src/lib/chat-activity.ts",
+      "kind": "A",
+      "note": "shared file, owner by import reach"
+    },
+    {
+      "from": "web/src/lib/chat-conversations.ts",
+      "to": "web/src/lib/chat-conversations.ts",
+      "kind": "B",
+      "note": "upstream: lib/api, lib/chat-stream; shared file, owner by import reach"
+    },
+    {
+      "from": "web/src/lib/chat-dock.ts",
+      "to": "web/src/lib/chat-dock.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/lib/chat-v2.test.ts",
+      "to": "web/src/lib/chat-v2.test.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/lib/chat-v2.ts",
+      "to": "web/src/lib/chat-v2.ts",
+      "kind": "A",
+      "note": "shared file, owner by import reach"
+    },
+    {
+      "from": "web/src/lib/home-dashboard.test.ts",
+      "to": "web/src/lib/home-dashboard.test.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/lib/home-dashboard.ts",
+      "to": "web/src/lib/home-dashboard.ts",
+      "kind": "A",
+      "note": "shared file, owner by import reach"
+    },
+    {
+      "from": "web/src/lib/i18n.ts",
+      "to": "web/src/lib/i18n.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/lib/mission-detail.test.ts",
+      "to": "web/src/lib/mission-detail.test.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/lib/mission-detail.ts",
+      "to": "web/src/lib/mission-detail.ts",
+      "kind": "A",
+      "note": "shared file, owner by import reach"
+    },
+    {
+      "from": "web/src/lib/org-layout.test.ts",
+      "to": "web/src/lib/org-layout.test.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/lib/org-layout.ts",
+      "to": "web/src/lib/org-layout.ts",
+      "kind": "A",
+      "note": "shared file, owner by import reach"
+    },
+    {
+      "from": "web/src/lib/org-view.ts",
+      "to": "web/src/lib/org-view.ts",
+      "kind": "A",
+      "note": "shared file, owner by import reach"
+    },
+    {
+      "from": "web/src/lib/page-context.test.ts",
+      "to": "web/src/lib/page-context.test.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/lib/page-context.ts",
+      "to": "web/src/lib/page-context.ts",
+      "kind": "B",
+      "note": "upstream: lib/routes; cross-module: care(unify.ts)"
+    },
+    {
+      "from": "web/src/lib/richText.ts",
+      "to": "web/src/lib/richText.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/lib/social-platforms.ts",
+      "to": "web/src/lib/social-platforms.ts",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/locales/en.json",
+      "to": "web/src/locales/en.json",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/locales/vi.json",
+      "to": "web/src/locales/vi.json",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/pages/HomeDashboard.tsx",
+      "to": "web/src/pages/HomeDashboard.tsx",
+      "kind": "B",
+      "note": "upstream: components/AgentAvatar, lib/api, lib/useFetch; cross-module: marketing(fbstudio.ts)"
+    },
+    {
+      "from": "web/src/pages/MissionTaskDetail.tsx",
+      "to": "web/src/pages/MissionTaskDetail.tsx",
+      "kind": "B",
+      "note": "upstream: components/PageHeader, components/PageState, components/Pill, lib/useFetch, lib/markdown, lib/format"
+    },
+    {
+      "from": "web/src/pages/OrgChart.tsx",
+      "to": "web/src/pages/OrgChart.tsx",
+      "kind": "B",
+      "note": "upstream: components/PageState, components/Modal, components/AgentAvatar, lib/api, lib/useFetch, lib/toasts"
+    },
+    {
+      "from": "web/src/pages/SecondBrain.tsx",
+      "to": "web/src/pages/SecondBrain.tsx",
+      "kind": "B",
+      "note": "upstream: components/PageHeader, lib/useFetch"
+    },
+    {
+      "from": "web/src/pages/SecondBrains.tsx",
+      "to": "web/src/pages/SecondBrains.tsx",
+      "kind": "B",
+      "note": "upstream: components/PageHeader, components/PageState, lib/useFetch"
+    },
+    {
+      "from": "web/src/styles/agents.css",
+      "to": "web/src/styles/agents.css",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/styles/chat-v2.css",
+      "to": "web/src/styles/chat-v2.css",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/styles/home-dashboard.css",
+      "to": "web/src/styles/home-dashboard.css",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/styles/memory.css",
+      "to": "web/src/styles/memory.css",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/styles/second-brain.css",
+      "to": "web/src/styles/second-brain.css",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/styles/sidebar-nav.css",
+      "to": "web/src/styles/sidebar-nav.css",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/styles/workspace.css",
+      "to": "web/src/styles/workspace.css",
+      "kind": "A",
+      "note": ""
+    },
+    {
+      "from": "web/src/components/fb/charts",
+      "to": "web/src/components/fb/charts",
+      "kind": "A",
+      "note": "module UIs and ads need these"
+    },
+    {
+      "from": "web/src/lib/marketing.ts",
+      "to": "web/src/lib/marketing.ts",
+      "kind": "B",
+      "note": "RichTextEditor import"
+    },
+    {
+      "from": "web/src/components/dashboard/charts.tsx",
+      "to": "web/src/components/dashboard/charts.tsx",
+      "kind": "B",
+      "note": "generic charts"
+    }
+  ],
+  "drop": [
+    {
+      "from": "web/src/components/fb/charts/DashStates.tsx",
+      "reason": "not used in AIOS-Lite core"
+    },
+    {
+      "from": "web/src/pages/HomeDashboard.tsx",
+      "reason": "not used in AIOS-Lite core"
+    },
+    {
+      "from": "web/src/components/skills",
+      "reason": "needs /api/skill-studio/*; AIOS-Lite has no skill studio backend, Skills page is built fresh"
+    },
+    {
+      "from": "web/src/lib/attention-view.ts",
+      "reason": "old attention kinds/snooze API; Cần bạn list is rewritten on /api/attention"
+    },
+    {
+      "from": "web/src/lib/attention-view.test.ts",
+      "reason": "tests the dropped attention-view"
+    },
+    {
+      "from": "web/src/components/ChatThread.tsx",
+      "reason": "rewritten from scratch (same exports) after provenance hits; do not re-copy"
+    }
+  ]
+}

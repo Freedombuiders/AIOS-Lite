@@ -1,0 +1,36 @@
+NOTICE — modules/zalo
+
+This module (modules/zalo/**) is licensed under the GNU Affero General Public License, version 3 only
+(SPDX: AGPL-3.0-only). The full text is in LICENSE.
+
+It contains code derived from ZaloCRM, which is itself licensed under AGPL-3.0:
+
+    Source: ZaloCRM (full_crm/ZaloCRM), AGPL-3.0
+
+Because of that, the whole directory modules/zalo/ is distributed under AGPL-3.0. If you run a modified
+version of this module as a network service, section 13 of the license requires you to offer its
+corresponding source code to the users of that service. Other parts of AIOS-Lite keep their own license; they
+interact with this module only through the Module SDK (src/modules/sdk.ts) and the module's `provides`.
+
+Third-party libraries used at run time keep their own licenses (for example zca-js, MIT).
+
+Files derived from ZaloCRM (12). Each was adapted for AIOS-Lite (imports, settings, removal of the AI reply path);
+the original structure, limits and behavior come from the source above:
+
+  - server/birthday-schedule.ts    [source: ZaloCRM (full_crm/ZaloCRM), AGPL-3.0]
+  - server/birthday.ts    [source: ZaloCRM (full_crm/ZaloCRM), AGPL-3.0]
+  - server/content.ts    [source: ZaloCRM (full_crm/ZaloCRM), AGPL-3.0]
+  - server/group-broadcast.ts    [source: ZaloCRM (full_crm/ZaloCRM), AGPL-3.0]
+  - server/history.ts    [source: ZaloCRM (full_crm/ZaloCRM), AGPL-3.0]
+  - server/ingest.ts    [source: ZaloCRM (full_crm/ZaloCRM), AGPL-3.0]
+  - server/limits.ts    [source: ZaloCRM (full_crm/ZaloCRM), AGPL-3.0]
+  - server/rich-text.ts    [source: ZaloCRM (full_crm/ZaloCRM), AGPL-3.0]
+  - server/schedule.ts    [source: ZaloCRM (full_crm/ZaloCRM), AGPL-3.0]
+  - server/sender.ts    [source: ZaloCRM (full_crm/ZaloCRM), AGPL-3.0]
+  - server/session.ts    [source: ZaloCRM (full_crm/ZaloCRM), AGPL-3.0]
+  - server/template.ts    [source: ZaloCRM (full_crm/ZaloCRM), AGPL-3.0]
+
+Other files under modules/zalo that mention ZaloCRM in their text (3):
+  - PORTING.md    [source: ZaloCRM (full_crm/ZaloCRM), AGPL-3.0]
+  - README.md    [source: ZaloCRM (full_crm/ZaloCRM), AGPL-3.0]
+  - web/pages/ZaloAccounts.tsx    [source: ZaloCRM (full_crm/ZaloCRM), AGPL-3.0]

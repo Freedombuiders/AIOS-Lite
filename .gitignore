@@ -1,0 +1,12 @@
+node_modules/
+dist/
+web/dist/
+data/
+workspaces/*
+!workspaces/.gitkeep
+.env
+*.log
+.DS_Store
+test-results/
+playwright-report/
+.tmp-*

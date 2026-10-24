@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+    "strict": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "types": ["vite/client"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@modules/*": ["../modules/*"],
+      "@core/*": ["../src/core/*"],
+      "react": ["../node_modules/preact/compat"],
+      "react-dom": ["../node_modules/preact/compat"]
+    }
+  },
+  "include": ["src/**/*", "../modules/*/web/**/*", "../src/core/types.ts"],
+  "exclude": ["dist", "**/*.test.ts", "**/*.test.tsx"]
+}

@@ -1,0 +1,228 @@
+{
+ "module": "ads",
+ "entries": [
+  {
+   "from": "src/fbstudio/ads/accounts.test.ts",
+   "to": "modules/ads/server/accounts.test.ts",
+   "kind": "B",
+   "note": "upstream: db; cross-module: marketing(notify.ts); owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/ads/accounts.ts",
+   "to": "modules/ads/server/accounts.ts",
+   "kind": "B",
+   "note": "upstream: db, logger; cross-module: marketing(notify.ts+types.ts); owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/ads/breakdowns.test.ts",
+   "to": "modules/ads/server/breakdowns.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/ads/breakdowns.ts",
+   "to": "modules/ads/server/breakdowns.ts",
+   "kind": "B",
+   "note": "upstream: db; cross-module: marketing(types.ts)"
+  },
+  {
+   "from": "src/fbstudio/ads/campaigns.ts",
+   "to": "modules/ads/server/campaigns.ts",
+   "kind": "B",
+   "note": "upstream: db; cross-module: marketing(types.ts)"
+  },
+  {
+   "from": "src/fbstudio/ads/dashboard.test.ts",
+   "to": "modules/ads/server/dashboard.test.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/fbstudio/ads/dashboard.ts",
+   "to": "modules/ads/server/dashboard.ts",
+   "kind": "B",
+   "note": "upstream: db; cross-module: marketing(types.ts)"
+  },
+  {
+   "from": "src/fbstudio/ads/evaluate.ts",
+   "to": "modules/ads/server/evaluate.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/fbstudio/ads/format.ts",
+   "to": "modules/ads/server/format.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/ads/graph-tools.test.ts",
+   "to": "modules/ads/server/graph-tools.test.ts",
+   "kind": "B",
+   "note": "owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/ads/graph-tools.ts",
+   "to": "modules/ads/server/graph-tools.ts",
+   "kind": "B",
+   "note": "owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/ads/metrics.test.ts",
+   "to": "modules/ads/server/metrics.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/ads/metrics.ts",
+   "to": "modules/ads/server/metrics.ts",
+   "kind": "B",
+   "note": "cross-module: marketing(types.ts)"
+  },
+  {
+   "from": "src/fbstudio/ads/model.ts",
+   "to": "modules/ads/server/model.ts",
+   "kind": "B",
+   "note": "upstream: db; cross-module: marketing(types.ts)"
+  },
+  {
+   "from": "src/fbstudio/ads/overview.test.ts",
+   "to": "modules/ads/server/overview.test.ts",
+   "kind": "B",
+   "note": "upstream: db"
+  },
+  {
+   "from": "src/fbstudio/ads/overview.ts",
+   "to": "modules/ads/server/overview.ts",
+   "kind": "B",
+   "note": "upstream: db, logger; cross-module: marketing(types.ts); owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/ads/routes.test.ts",
+   "to": "modules/ads/server/routes.test.ts",
+   "kind": "B",
+   "note": "upstream: db; cross-module: marketing(notify.ts); owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/ads/routes.ts",
+   "to": "modules/ads/server/routes.ts",
+   "kind": "B",
+   "note": "upstream: db, logger; cross-module: marketing(types.ts); owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/ads/rules.test.ts",
+   "to": "modules/ads/server/rules.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/ads/rules.ts",
+   "to": "modules/ads/server/rules.ts",
+   "kind": "B",
+   "note": "cross-module: marketing(types.ts)"
+  },
+  {
+   "from": "src/fbstudio/ads/snapshot.test.ts",
+   "to": "modules/ads/server/snapshot.test.ts",
+   "kind": "B",
+   "note": "upstream: db; cross-module: marketing(notify.ts); owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/ads/snapshot.ts",
+   "to": "modules/ads/server/snapshot.ts",
+   "kind": "B",
+   "note": "upstream: db, logger; cross-module: marketing(types.ts); owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/ads/test-fixtures.ts",
+   "to": "modules/ads/server/test-fixtures.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "src/fbstudio/ads/worker.test.ts",
+   "to": "modules/ads/server/worker.test.ts",
+   "kind": "B",
+   "note": "upstream: db; cross-module: marketing(notify.ts+index.ts); owner-core: fbstudio/composio"
+  },
+  {
+   "from": "src/fbstudio/ads/worker.ts",
+   "to": "modules/ads/server/worker.ts",
+   "kind": "B",
+   "note": "upstream: db, logger; cross-module: marketing(index.ts); owner-core: fbstudio/composio"
+  },
+  {
+   "from": "web/src/components/fb/ads/AdsAccounts.tsx",
+   "to": "modules/ads/web/components/fb/ads/AdsAccounts.tsx",
+   "kind": "B",
+   "note": "upstream: lib/api, lib/toasts, lib/useFetch, components/Toggle; cross-module: marketing(fbstudio.ts+common.tsx)"
+  },
+  {
+   "from": "web/src/components/fb/ads/AdsAudience.tsx",
+   "to": "modules/ads/web/components/fb/ads/AdsAudience.tsx",
+   "kind": "B",
+   "note": "upstream: lib/useFetch; cross-module: marketing(fbstudio.ts+common.tsx)"
+  },
+  {
+   "from": "web/src/components/fb/ads/AdsCampaigns.tsx",
+   "to": "modules/ads/web/components/fb/ads/AdsCampaigns.tsx",
+   "kind": "B",
+   "note": "upstream: lib/useFetch, components/Toggle; cross-module: marketing(fbstudio.ts+common.tsx)"
+  },
+  {
+   "from": "web/src/components/fb/ads/AdsConnect.tsx",
+   "to": "modules/ads/web/components/fb/ads/AdsConnect.tsx",
+   "kind": "B",
+   "note": "upstream: lib/api, lib/toasts, lib/useFetch; cross-module: marketing(fbstudio.ts+common.tsx)"
+  },
+  {
+   "from": "web/src/components/fb/ads/AdsCreatives.tsx",
+   "to": "modules/ads/web/components/fb/ads/AdsCreatives.tsx",
+   "kind": "B",
+   "note": "upstream: components/Toggle; cross-module: marketing(fbstudio.ts+common.tsx)"
+  },
+  {
+   "from": "web/src/components/fb/ads/adsMeta.ts",
+   "to": "modules/ads/web/components/fb/ads/adsMeta.ts",
+   "kind": "B",
+   "note": "cross-module: marketing(fbstudio.ts)"
+  },
+  {
+   "from": "web/src/components/fb/ads/AdsOverview.tsx",
+   "to": "modules/ads/web/components/fb/ads/AdsOverview.tsx",
+   "kind": "B",
+   "note": "upstream: lib/api, lib/toasts, lib/useFetch, components/Toggle; cross-module: marketing(fbstudio.ts+common.tsx)"
+  },
+  {
+   "from": "web/src/components/fb/ads/AdsQueue.tsx",
+   "to": "modules/ads/web/components/fb/ads/AdsQueue.tsx",
+   "kind": "B",
+   "note": "cross-module: marketing(fbstudio.ts)"
+  },
+  {
+   "from": "web/src/components/fb/ads/AdsTree.tsx",
+   "to": "modules/ads/web/components/fb/ads/AdsTree.tsx",
+   "kind": "B",
+   "note": "cross-module: marketing(fbstudio.ts)"
+  },
+  {
+   "from": "web/src/components/fb/common.tsx",
+   "to": "modules/ads/web/components/fb/common.tsx",
+   "kind": "A",
+   "note": "duplicate of marketing web file (module isolation)"
+  },
+  {
+   "from": "web/src/lib/fbstudio.ts",
+   "to": "modules/ads/web/lib/fbstudio.ts",
+   "kind": "A",
+   "note": "duplicate of marketing web file (module isolation)"
+  },
+  {
+   "from": "web/src/pages/fb/FbAds.tsx",
+   "to": "modules/ads/web/pages/fb/FbAds.tsx",
+   "kind": "B",
+   "note": "upstream: components/PageHeader, lib/api, lib/toasts, lib/useFetch; cross-module: marketing(fbstudio.ts+common.tsx)"
+  }
+ ],
+ "drop": []
+}

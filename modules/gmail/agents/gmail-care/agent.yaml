@@ -1,0 +1,17 @@
+name: Trợ lý chăm sóc Gmail
+description: "Soạn thư chăm sóc khách hàng trong Care"
+runtime: mock
+runtime_options: {}
+permission: safe
+context: lean
+reports_to: main
+can_delegate: false
+max_concurrent: 1
+enabled: true
+access:
+  brain: {}
+  memory: { team: true, private: false }
+  skills: [gmail-reply]
+  connections: {}
+  modules:
+    care: [reply.draft]

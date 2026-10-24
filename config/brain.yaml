@@ -1,0 +1,14 @@
+# Các thư mục Second Brain. Trỏ path sang vault Obsidian thật cũng được (hỗ trợ ~).
+folders:
+  - id: ca-nhan
+    name: Cá nhân
+    path: ./brain/ca-nhan
+    description: Ghi chú riêng, mục tiêu và thói quen làm việc
+  - id: cong-ty-a
+    name: Công ty A — Nội thất Hạ Long
+    path: ./brain/cong-ty-a
+    description: Công ty nội thất (hư cấu)
+  - id: cong-ty-b
+    name: Công ty B — Trà Sen Việt
+    path: ./brain/cong-ty-b
+    description: Công ty thương mại trà (hư cấu)

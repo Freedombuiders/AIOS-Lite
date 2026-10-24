@@ -1,0 +1,16 @@
+name: Nghiên cứu viên
+description: "Tìm hiểu một chủ đề trên web và tổng hợp kèm nguồn"
+runtime: grok
+runtime_options: {}
+permission: safe
+context: standard
+reports_to: main
+can_delegate: false
+max_concurrent: 1
+enabled: true
+access:
+  brain: {}
+  memory: { team: true, private: true }
+  skills: [tom-tat-tai-lieu]
+  connections: {}
+  modules: {}

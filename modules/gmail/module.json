@@ -1,0 +1,44 @@
+{
+  "id": "gmail",
+  "name": "Gmail",
+  "description": "Đồng bộ thư Gmail mới vào Care và trả lời đúng luồng, kèm chữ ký.",
+  "version": "1.0.0",
+  "icon": "mail",
+  "category": "sales",
+  "requires": {
+    "modules": [
+      "care"
+    ],
+    "connections": [
+      "composio"
+    ]
+  },
+  "tables": [
+    "email_settings",
+    "email_accounts",
+    "email_threads",
+    "email_messages",
+    "email_assignments",
+    "email_agent_runs",
+    "email_outbox",
+    "email_api_calls",
+    "email_sync_windows",
+    "email_connector_mailboxes",
+    "email_connector_attempts",
+    "email_connector_cooldowns"
+  ],
+  "scopes": {},
+  "settings": {
+    "enabled": {
+      "label": "Bật đồng bộ Gmail",
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "agentTemplates": [
+    "gmail-care"
+  ],
+  "skills": [
+    "gmail-reply"
+  ]
+}

@@ -1,0 +1,1 @@
+{ "id": "bad", "name": "Bad", "description": "x", "version": "1.0.0", "category": "other", "tables": ["bad_ok"] }

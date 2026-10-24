@@ -1,0 +1,1 @@
+{ "id": "needs", "name": "Needs", "description": "x", "version": "1.0.0", "category": "other", "tables": [], "requires": { "modules": ["fx"], "connections": ["composio"] } }

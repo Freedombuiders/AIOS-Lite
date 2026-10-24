@@ -1,0 +1,17 @@
+name: Trợ lý mẫu
+description: "Agent mẫu của module: trả lời ngắn gọn câu hỏi về ghi chú"
+runtime: mock
+runtime_options: {}
+permission: safe
+context: lean
+reports_to: main
+can_delegate: false
+max_concurrent: 1
+enabled: true
+access:
+  brain: {}
+  memory: { team: true, private: false }
+  skills: [template-skill]
+  connections: {}
+  modules:
+    _template: [notes.read, notes.write]

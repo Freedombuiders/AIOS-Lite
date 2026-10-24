@@ -1,0 +1,49 @@
+{
+  "id": "zalo",
+  "name": "Zalo",
+  "description": "Kết nối nick Zalo cá nhân bằng QR, chống khoá nick, gửi tin hàng loạt (mẫu tin, gửi nhóm, gửi 1-1, sinh nhật) và cấp kênh Zalo cho hộp thư Chăm sóc khách hàng.",
+  "version": "0.1.0",
+  "icon": "message-circle",
+  "category": "sales",
+  "license": "AGPL-3.0-only",
+  "enhances": ["care"],
+  "scopes": {
+    "messages.read": "Đọc tin nhắn Zalo (hội thoại, ảnh khách gửi)",
+    "broadcast.manage": "Tạo và quản lý chiến dịch gửi tin Zalo (mẫu tin, gửi nhóm, gửi 1-1, sinh nhật)"
+  },
+  "tables": [
+    "zalo_accounts",
+    "zalo_threads",
+    "zalo_messages",
+    "zalo_outbox",
+    "zalo_settings",
+    "zalo_usage",
+    "zalo_media",
+    "zalo_templates",
+    "zalo_broadcasts",
+    "zalo_broadcast_runs",
+    "zalo_broadcast_targets",
+    "zalo_list_broadcasts",
+    "zalo_list_recipients",
+    "zalo_list_batches",
+    "zalo_birthday_config",
+    "zalo_birthday_greetings",
+    "zalo_media_cache"
+  ],
+  "agentTemplates": ["zalo-care"],
+  "skills": ["zalo-reply"],
+  "settings": {
+    "marketingEnabled": {
+      "label": "Cho phép chạy chiến dịch Zalo",
+      "type": "boolean",
+      "default": true,
+      "help": "Công tắc tổng cho gửi nhóm, gửi 1-1 và chúc mừng sinh nhật. Tắt thì các chiến dịch dừng ngay, không mất dữ liệu. Giờ nghỉ, ngân sách 60% và trần tin của từng nick vẫn luôn áp dụng khi bật."
+    },
+    "controlPort": {
+      "label": "Cổng điều khiển nội bộ của dịch vụ Zalo",
+      "type": "number",
+      "default": 4381,
+      "help": "Chỉ lắng nghe ở 127.0.0.1, có token riêng mỗi lần khởi động. Đổi cổng thì cần Remove rồi Add lại module (hoặc khởi động lại AIOS)."
+    }
+  }
+}

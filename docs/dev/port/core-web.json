@@ -1,0 +1,840 @@
+{
+ "module": "core-web",
+ "entries": [
+  {
+   "from": "web/src/components/AgenticWidgets.tsx",
+   "to": "web/src/components/AgenticWidgets.tsx",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/components/AgentPicker.tsx",
+   "to": "web/src/components/AgentPicker.tsx",
+   "kind": "B",
+   "note": "upstream: components/AgentAvatar, components/Pill; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/approvals-agent-grants.tsx",
+   "to": "web/src/components/approvals-agent-grants.tsx",
+   "kind": "B",
+   "note": "upstream: lib/useFetch, lib/toasts, lib/format; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/approvals-command-list.tsx",
+   "to": "web/src/components/approvals-command-list.tsx",
+   "kind": "B",
+   "note": "upstream: components/Pill; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/approvals-grant-selector.tsx",
+   "to": "web/src/components/approvals-grant-selector.tsx",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/approvals-panels.tsx",
+   "to": "web/src/components/approvals-panels.tsx",
+   "kind": "B",
+   "note": "upstream: components/Pill, components/PageState, components/ConfirmModal, lib/api, lib/useFetch, lib/toasts, lib/format; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/BrainLocalGraph.tsx",
+   "to": "web/src/components/BrainLocalGraph.tsx",
+   "kind": "B",
+   "note": "owner-core: brain-links; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/BrainNoteEditor.tsx",
+   "to": "web/src/components/BrainNoteEditor.tsx",
+   "kind": "B",
+   "note": "upstream: lib/api, lib/markdown; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/BrainVaultGraph.tsx",
+   "to": "web/src/components/BrainVaultGraph.tsx",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/BrandIcons.tsx",
+   "to": "web/src/components/BrandIcons.tsx",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/components/budget-chart.tsx",
+   "to": "web/src/components/budget-chart.tsx",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/budget-form.tsx",
+   "to": "web/src/components/budget-form.tsx",
+   "kind": "B",
+   "note": "upstream: components/Modal, lib/api, lib/toasts; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/ChatActivity.tsx",
+   "to": "web/src/components/ChatActivity.tsx",
+   "kind": "B",
+   "note": "upstream: lib/markdown; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/ChatThread.tsx",
+   "to": "web/src/components/ChatThread.tsx",
+   "kind": "B",
+   "note": "upstream: lib/api, components/AgentAvatar, lib/chat-stream"
+  },
+  {
+   "from": "web/src/components/dashboard/BusinessPulse.tsx",
+   "to": "web/src/components/dashboard/BusinessPulse.tsx",
+   "kind": "B",
+   "note": "upstream: lib/useFetch; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/dashboard/charts.tsx",
+   "to": "web/src/components/dashboard/charts.tsx",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/dashboard/PnlSection.tsx",
+   "to": "web/src/components/dashboard/PnlSection.tsx",
+   "kind": "B",
+   "note": "upstream: lib/useFetch; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/dashboard/WhopPulse.tsx",
+   "to": "web/src/components/dashboard/WhopPulse.tsx",
+   "kind": "B",
+   "note": "upstream: lib/useFetch; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/fb/charts/chart-utils.ts",
+   "to": "web/src/components/fb/charts/chart-utils.ts",
+   "kind": "A",
+   "note": "promoted from marketing to core-web (beyond BUILD-PLAN): imported by core dashboard/pnl/RichTextEditor and by zalo/ads, so a module must not own it; moved from marketing"
+  },
+  {
+   "from": "web/src/components/fb/charts/DailyBars.tsx",
+   "to": "web/src/components/fb/charts/DailyBars.tsx",
+   "kind": "A",
+   "note": "promoted from marketing to core-web (beyond BUILD-PLAN): imported by core dashboard/pnl/RichTextEditor and by zalo/ads, so a module must not own it; moved from marketing"
+  },
+  {
+   "from": "web/src/components/fb/charts/DashStates.tsx",
+   "to": "web/src/components/fb/charts/DashStates.tsx",
+   "kind": "B",
+   "note": "promoted from marketing to core-web (beyond BUILD-PLAN): imported by core dashboard/pnl/RichTextEditor and by zalo/ads, so a module must not own it; moved from marketing; upstream: lib/api, lib/toasts, lib/useFetch; cross-module: marketing(common.tsx+fbstudio.ts)"
+  },
+  {
+   "from": "web/src/components/fb/charts/FollowBars.tsx",
+   "to": "web/src/components/fb/charts/FollowBars.tsx",
+   "kind": "A",
+   "note": "promoted from marketing to core-web (beyond BUILD-PLAN): imported by core dashboard/pnl/RichTextEditor and by zalo/ads, so a module must not own it; moved from marketing"
+  },
+  {
+   "from": "web/src/components/fb/charts/Funnel.tsx",
+   "to": "web/src/components/fb/charts/Funnel.tsx",
+   "kind": "A",
+   "note": "promoted from marketing to core-web (beyond BUILD-PLAN): imported by core dashboard/pnl/RichTextEditor and by zalo/ads, so a module must not own it; moved from marketing"
+  },
+  {
+   "from": "web/src/components/fb/charts/Legend.tsx",
+   "to": "web/src/components/fb/charts/Legend.tsx",
+   "kind": "A",
+   "note": "promoted from marketing to core-web (beyond BUILD-PLAN): imported by core dashboard/pnl/RichTextEditor and by zalo/ads, so a module must not own it; moved from marketing"
+  },
+  {
+   "from": "web/src/components/fb/charts/LineChart.tsx",
+   "to": "web/src/components/fb/charts/LineChart.tsx",
+   "kind": "A",
+   "note": "promoted from marketing to core-web (beyond BUILD-PLAN): imported by core dashboard/pnl/RichTextEditor and by zalo/ads, so a module must not own it; moved from marketing"
+  },
+  {
+   "from": "web/src/components/fb/charts/Quadrant.tsx",
+   "to": "web/src/components/fb/charts/Quadrant.tsx",
+   "kind": "A",
+   "note": "promoted from marketing to core-web (beyond BUILD-PLAN): imported by core dashboard/pnl/RichTextEditor and by zalo/ads, so a module must not own it; moved from marketing"
+  },
+  {
+   "from": "web/src/components/fb/charts/RowBars.tsx",
+   "to": "web/src/components/fb/charts/RowBars.tsx",
+   "kind": "A",
+   "note": "promoted from marketing to core-web (beyond BUILD-PLAN): imported by core dashboard/pnl/RichTextEditor and by zalo/ads, so a module must not own it; moved from marketing"
+  },
+  {
+   "from": "web/src/components/fb/charts/Sparkline.tsx",
+   "to": "web/src/components/fb/charts/Sparkline.tsx",
+   "kind": "A",
+   "note": "promoted from marketing to core-web (beyond BUILD-PLAN): imported by core dashboard/pnl/RichTextEditor and by zalo/ads, so a module must not own it; moved from marketing"
+  },
+  {
+   "from": "web/src/components/fb/charts/StackedBars.tsx",
+   "to": "web/src/components/fb/charts/StackedBars.tsx",
+   "kind": "A",
+   "note": "promoted from marketing to core-web (beyond BUILD-PLAN): imported by core dashboard/pnl/RichTextEditor and by zalo/ads, so a module must not own it; moved from marketing"
+  },
+  {
+   "from": "web/src/components/fb/charts/useElementWidth.ts",
+   "to": "web/src/components/fb/charts/useElementWidth.ts",
+   "kind": "A",
+   "note": "promoted from marketing to core-web (beyond BUILD-PLAN): imported by core dashboard/pnl/RichTextEditor and by zalo/ads, so a module must not own it; moved from marketing"
+  },
+  {
+   "from": "web/src/components/FolderPicker.tsx",
+   "to": "web/src/components/FolderPicker.tsx",
+   "kind": "B",
+   "note": "upstream: lib/useFetch"
+  },
+  {
+   "from": "web/src/components/McpHubAccess.tsx",
+   "to": "web/src/components/McpHubAccess.tsx",
+   "kind": "B",
+   "note": "upstream: lib/api, lib/useFetch, lib/toasts; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/McpHubs.tsx",
+   "to": "web/src/components/McpHubs.tsx",
+   "kind": "B",
+   "note": "upstream: lib/api, lib/useFetch, components/Modal, components/Pill, lib/toasts; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/memory/cortex-renderer.ts",
+   "to": "web/src/components/memory/cortex-renderer.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/memory/CortexStage.tsx",
+   "to": "web/src/components/memory/CortexStage.tsx",
+   "kind": "B",
+   "note": "upstream: lib/webgl; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/memory/force-client.ts",
+   "to": "web/src/components/memory/force-client.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/memory/HeardFeed.tsx",
+   "to": "web/src/components/memory/HeardFeed.tsx",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/memory/hooks.ts",
+   "to": "web/src/components/memory/hooks.ts",
+   "kind": "B",
+   "note": "upstream: lib/api; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/memory/ImportDialog.tsx",
+   "to": "web/src/components/memory/ImportDialog.tsx",
+   "kind": "B",
+   "note": "upstream: components/Modal, lib/api; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/memory/MemorySearch.tsx",
+   "to": "web/src/components/memory/MemorySearch.tsx",
+   "kind": "B",
+   "note": "upstream: lib/api, lib/useDebounce; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/memory/RecordDrawer.tsx",
+   "to": "web/src/components/memory/RecordDrawer.tsx",
+   "kind": "B",
+   "note": "upstream: lib/api, lib/markdown; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/memory/SourceMark.tsx",
+   "to": "web/src/components/memory/SourceMark.tsx",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/memory/SourcesPanel.tsx",
+   "to": "web/src/components/memory/SourcesPanel.tsx",
+   "kind": "B",
+   "note": "upstream: components/Toggle; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/memory/sphere-scene.ts",
+   "to": "web/src/components/memory/sphere-scene.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/memory/VisualCortex.tsx",
+   "to": "web/src/components/memory/VisualCortex.tsx",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/MentionInput.tsx",
+   "to": "web/src/components/MentionInput.tsx",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/components/mission-detail-properties.tsx",
+   "to": "web/src/components/mission-detail-properties.tsx",
+   "kind": "B",
+   "note": "upstream: components/Pill, components/AgentAvatar, lib/api, lib/useFetch, lib/format, lib/toasts; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/mission-detail-shared.tsx",
+   "to": "web/src/components/mission-detail-shared.tsx",
+   "kind": "B",
+   "note": "upstream: lib/api, components/Pill; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/mission-detail-subtasks.tsx",
+   "to": "web/src/components/mission-detail-subtasks.tsx",
+   "kind": "B",
+   "note": "upstream: components/Modal, components/Pill, lib/api, lib/format, lib/toasts; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/mission-detail-thread.tsx",
+   "to": "web/src/components/mission-detail-thread.tsx",
+   "kind": "B",
+   "note": "upstream: components/Pill, lib/api, lib/markdown, lib/format, lib/toasts; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/org-card.tsx",
+   "to": "web/src/components/org-card.tsx",
+   "kind": "B",
+   "note": "upstream: components/AgentAvatar; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/org-viewport.tsx",
+   "to": "web/src/components/org-viewport.tsx",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/pnl/PnlParts.tsx",
+   "to": "web/src/components/pnl/PnlParts.tsx",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/QuickAssignTask.tsx",
+   "to": "web/src/components/QuickAssignTask.tsx",
+   "kind": "B",
+   "note": "upstream: lib/api, lib/useFetch, lib/toasts; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/RichTextEditor.tsx",
+   "to": "web/src/components/RichTextEditor.tsx",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/components/RunLivenessBadge.tsx",
+   "to": "web/src/components/RunLivenessBadge.tsx",
+   "kind": "B",
+   "note": "upstream: components/Pill, lib/api, lib/toasts; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/SkillPicker.tsx",
+   "to": "web/src/components/SkillPicker.tsx",
+   "kind": "B",
+   "note": "upstream: lib/useFetch; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/skills/SkillDeck.tsx",
+   "to": "web/src/components/skills/SkillDeck.tsx",
+   "kind": "B",
+   "note": "upstream: lib/api, lib/useFetch, components/Modal, components/PageState, lib/toasts, lib/format; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/skills/SkillFeedback.tsx",
+   "to": "web/src/components/skills/SkillFeedback.tsx",
+   "kind": "B",
+   "note": "upstream: lib/api, lib/useFetch, components/PageState, components/Pill, components/Toggle, lib/toasts; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/skills/SkillUsage.tsx",
+   "to": "web/src/components/skills/SkillUsage.tsx",
+   "kind": "B",
+   "note": "upstream: lib/api, lib/useFetch, components/PageState, components/Toggle, lib/format, lib/toasts; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/components/social/PlatformBadge.tsx",
+   "to": "web/src/components/social/PlatformBadge.tsx",
+   "kind": "A",
+   "note": "reinstated into core-web: imported by kept marketing FbCalendar/PostSheet and by core HomeDashboard/BusinessPulse; moved from marketing"
+  },
+  {
+   "from": "web/src/lib/agentic-preview.ts",
+   "to": "web/src/lib/agentic-preview.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/approvals-grants.test.ts",
+   "to": "web/src/lib/approvals-grants.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/approvals-grants.ts",
+   "to": "web/src/lib/approvals-grants.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/approvals-view.test.ts",
+   "to": "web/src/lib/approvals-view.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/approvals-view.ts",
+   "to": "web/src/lib/approvals-view.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/attention-view.test.ts",
+   "to": "web/src/lib/attention-view.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/attention-view.ts",
+   "to": "web/src/lib/attention-view.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/budget-view.test.ts",
+   "to": "web/src/lib/budget-view.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/budget-view.ts",
+   "to": "web/src/lib/budget-view.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/business-pulse.test.ts",
+   "to": "web/src/lib/business-pulse.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/business-pulse.ts",
+   "to": "web/src/lib/business-pulse.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/chat-activity.ts",
+   "to": "web/src/lib/chat-activity.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/chat-conversations.ts",
+   "to": "web/src/lib/chat-conversations.ts",
+   "kind": "B",
+   "note": "upstream: lib/api, lib/chat-stream; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/chat-dock.ts",
+   "to": "web/src/lib/chat-dock.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/chat-v2.test.ts",
+   "to": "web/src/lib/chat-v2.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/chat-v2.ts",
+   "to": "web/src/lib/chat-v2.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/command-center.ts",
+   "to": "web/src/lib/command-center.ts",
+   "kind": "B",
+   "note": "upstream: lib/api; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/dashboard-kpis.test.ts",
+   "to": "web/src/lib/dashboard-kpis.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/dashboard-kpis.ts",
+   "to": "web/src/lib/dashboard-kpis.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/home-dashboard.test.ts",
+   "to": "web/src/lib/home-dashboard.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/home-dashboard.ts",
+   "to": "web/src/lib/home-dashboard.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/i18n.ts",
+   "to": "web/src/lib/i18n.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/integrations.ts",
+   "to": "web/src/lib/integrations.ts",
+   "kind": "B",
+   "note": "upstream: lib/api; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/jarvis/audio.ts",
+   "to": "web/src/lib/jarvis/audio.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/jarvis/helpers.ts",
+   "to": "web/src/lib/jarvis/helpers.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/jarvis/live.ts",
+   "to": "web/src/lib/jarvis/live.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/jarvis/protocol.ts",
+   "to": "web/src/lib/jarvis/protocol.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/jarvis/session.test.ts",
+   "to": "web/src/lib/jarvis/session.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/jarvis/session.tsx",
+   "to": "web/src/lib/jarvis/session.tsx",
+   "kind": "B",
+   "note": "upstream: lib/api, lib/chat-stream, lib/routes; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/kol-view.test.ts",
+   "to": "web/src/lib/kol-view.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/kol-view.ts",
+   "to": "web/src/lib/kol-view.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/kol.ts",
+   "to": "web/src/lib/kol.ts",
+   "kind": "B",
+   "note": "upstream: lib/api; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/marketing.ts",
+   "to": "web/src/lib/marketing.ts",
+   "kind": "B",
+   "note": "promoted from marketing to core-web (beyond BUILD-PLAN): imported by core dashboard/pnl/RichTextEditor and by zalo/ads, so a module must not own it; moved from marketing; upstream: lib/api"
+  },
+  {
+   "from": "web/src/lib/mcpHubs.ts",
+   "to": "web/src/lib/mcpHubs.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/memory-force.test.ts",
+   "to": "web/src/lib/memory-force.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/memory-force.ts",
+   "to": "web/src/lib/memory-force.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/memory-geometry.test.ts",
+   "to": "web/src/lib/memory-geometry.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/memory-geometry.ts",
+   "to": "web/src/lib/memory-geometry.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/memory.test.ts",
+   "to": "web/src/lib/memory.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/memory.ts",
+   "to": "web/src/lib/memory.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/mission-detail.test.ts",
+   "to": "web/src/lib/mission-detail.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/mission-detail.ts",
+   "to": "web/src/lib/mission-detail.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/org-layout.test.ts",
+   "to": "web/src/lib/org-layout.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/org-layout.ts",
+   "to": "web/src/lib/org-layout.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/org-view.ts",
+   "to": "web/src/lib/org-view.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/page-context.test.ts",
+   "to": "web/src/lib/page-context.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/page-context.ts",
+   "to": "web/src/lib/page-context.ts",
+   "kind": "B",
+   "note": "upstream: lib/routes; cross-module: care(unify.ts)"
+  },
+  {
+   "from": "web/src/lib/pnl.ts",
+   "to": "web/src/lib/pnl.ts",
+   "kind": "B",
+   "note": "owner-core: pnl/types; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/radar.ts",
+   "to": "web/src/lib/radar.ts",
+   "kind": "B",
+   "note": "upstream: lib/api; owner-core: radar/types; shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/richText.ts",
+   "to": "web/src/lib/richText.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/run-liveness.test.ts",
+   "to": "web/src/lib/run-liveness.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/run-liveness.ts",
+   "to": "web/src/lib/run-liveness.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/lib/social-platforms.ts",
+   "to": "web/src/lib/social-platforms.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/lib/whop-pulse.ts",
+   "to": "web/src/lib/whop-pulse.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/locales/en.json",
+   "to": "web/src/locales/en.json",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/locales/vi.json",
+   "to": "web/src/locales/vi.json",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/pages/AgenticDashboard.tsx",
+   "to": "web/src/pages/AgenticDashboard.tsx",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/pages/Approvals.tsx",
+   "to": "web/src/pages/Approvals.tsx",
+   "kind": "B",
+   "note": "upstream: components/PageHeader, lib/useFetch"
+  },
+  {
+   "from": "web/src/pages/Budgets.tsx",
+   "to": "web/src/pages/Budgets.tsx",
+   "kind": "B",
+   "note": "upstream: components/PageHeader, components/PageState, components/Pill, components/ConfirmModal, lib/api, lib/useFetch, lib/toasts, lib/format"
+  },
+  {
+   "from": "web/src/pages/command-center/format.test.ts",
+   "to": "web/src/pages/command-center/format.test.ts",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/pages/command-center/format.ts",
+   "to": "web/src/pages/command-center/format.ts",
+   "kind": "A",
+   "note": "shared file, owner by import reach"
+  },
+  {
+   "from": "web/src/pages/HomeDashboard.tsx",
+   "to": "web/src/pages/HomeDashboard.tsx",
+   "kind": "B",
+   "note": "upstream: components/AgentAvatar, lib/api, lib/useFetch; cross-module: marketing(fbstudio.ts)"
+  },
+  {
+   "from": "web/src/pages/Integrations.tsx",
+   "to": "web/src/pages/Integrations.tsx",
+   "kind": "B",
+   "note": "upstream: lib/api, components/PageHeader, components/PageState, components/Pill, components/Modal, lib/useFetch, lib/toasts"
+  },
+  {
+   "from": "web/src/pages/Memory.tsx",
+   "to": "web/src/pages/Memory.tsx",
+   "kind": "B",
+   "note": "upstream: lib/api, lib/toasts"
+  },
+  {
+   "from": "web/src/pages/MissionTaskDetail.tsx",
+   "to": "web/src/pages/MissionTaskDetail.tsx",
+   "kind": "B",
+   "note": "upstream: components/PageHeader, components/PageState, components/Pill, lib/useFetch, lib/markdown, lib/format"
+  },
+  {
+   "from": "web/src/pages/OrgChart.tsx",
+   "to": "web/src/pages/OrgChart.tsx",
+   "kind": "B",
+   "note": "upstream: components/PageState, components/Modal, components/AgentAvatar, lib/api, lib/useFetch, lib/toasts"
+  },
+  {
+   "from": "web/src/pages/SecondBrain.tsx",
+   "to": "web/src/pages/SecondBrain.tsx",
+   "kind": "B",
+   "note": "upstream: components/PageHeader, lib/useFetch"
+  },
+  {
+   "from": "web/src/pages/SecondBrains.tsx",
+   "to": "web/src/pages/SecondBrains.tsx",
+   "kind": "B",
+   "note": "upstream: components/PageHeader, components/PageState, lib/useFetch"
+  },
+  {
+   "from": "web/src/pages/SkillStudio.tsx",
+   "to": "web/src/pages/SkillStudio.tsx",
+   "kind": "B",
+   "note": "upstream: lib/api, components/PageHeader, components/PageState, components/Pill, components/Modal, lib/useFetch, lib/toasts"
+  },
+  {
+   "from": "web/src/styles/agentic-os.css",
+   "to": "web/src/styles/agentic-os.css",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/styles/agentic-reference.css",
+   "to": "web/src/styles/agentic-reference.css",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/styles/agents.css",
+   "to": "web/src/styles/agents.css",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/styles/chat-v2.css",
+   "to": "web/src/styles/chat-v2.css",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/styles/home-dashboard.css",
+   "to": "web/src/styles/home-dashboard.css",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/styles/memory.css",
+   "to": "web/src/styles/memory.css",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/styles/second-brain.css",
+   "to": "web/src/styles/second-brain.css",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/styles/sidebar-nav.css",
+   "to": "web/src/styles/sidebar-nav.css",
+   "kind": "A",
+   "note": ""
+  },
+  {
+   "from": "web/src/styles/workspace.css",
+   "to": "web/src/styles/workspace.css",
+   "kind": "A",
+   "note": ""
+  }
+ ],
+ "drop": []
+}

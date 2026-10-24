@@ -1,0 +1,53 @@
+{
+  "id": "ads",
+  "name": "Quảng cáo Meta",
+  "description": "Theo dõi số liệu và đề xuất quảng cáo, chỉ đọc trên Meta.",
+  "version": "1.0.0",
+  "icon": "chart-no-axes-combined",
+  "category": "marketing",
+  "requires": {
+    "connections": [
+      "composio"
+    ]
+  },
+  "enhances": [
+    "marketing"
+  ],
+  "scopes": {
+    "reports.read": "Đọc báo cáo quảng cáo"
+  },
+  "tables": [
+    "fb_ad_accounts",
+    "fb_ads_daily",
+    "fb_ads_placement_daily",
+    "fb_ads_recommendations"
+  ],
+  "agentTemplates": [
+    "ads-analyst"
+  ],
+  "skills": [
+    "ads-review"
+  ],
+  "settings": {
+    "enabled": {
+      "label": "Bật cập nhật số liệu",
+      "type": "boolean",
+      "default": true
+    },
+    "analyst_agent": {
+      "label": "Agent đánh giá",
+      "type": "string",
+      "default": "ads-analyst"
+    },
+    "connection_notices": {
+      "label": "Trạng thái thông báo kết nối (JSON)",
+      "type": "string",
+      "default": "{}"
+    },
+    "latest_reviews": {
+      "label": "Nhận xét mới nhất (JSON)",
+      "type": "string",
+      "default": "{}"
+    }
+  }
+}

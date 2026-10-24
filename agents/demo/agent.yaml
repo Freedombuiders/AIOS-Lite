@@ -1,0 +1,18 @@
+name: Agent demo
+description: "Agent chạy thử không cần CLI hay khoá API, dùng để xem hệ thống hoạt động"
+runtime: mock
+runtime_options: {}
+permission: safe
+context: standard
+can_delegate: true
+max_concurrent: 2
+enabled: true
+access:
+  brain:
+    ca-nhan: { read: ["**"], write: [] }
+    cong-ty-a: { read: ["**"], write: [] }
+    cong-ty-b: { read: ["**"], write: [] }
+  memory: { team: true, private: true }
+  skills: all
+  connections: {}
+  modules: {}

@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "skipLibCheck": true,
+    "outDir": "dist",
+    "rootDir": ".",
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "types": ["node"],
+    "paths": {
+      "zca-js": ["./node_modules/zca-js/dist/index.d.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "modules/*/server/**/*.ts"],
+  "exclude": ["**/*.test.ts", "**/__tests__/**", "**/test-*.ts", "**/*.fixture.ts", "node_modules", "dist"]
+}

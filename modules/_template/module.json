@@ -1,0 +1,20 @@
+{
+  "id": "_template",
+  "name": "Template",
+  "description": "Module mẫu: ghi chú nhanh, một agent hỗ trợ và một skill. Sao chép để làm module của bạn.",
+  "version": "0.1.0",
+  "icon": "notebook-pen",
+  "category": "other",
+  "scopes": {
+    "notes.read": "Đọc ghi chú của module",
+    "notes.write": "Tạo ghi chú của module"
+  },
+  "tables": ["template_notes"],
+  "agentTemplates": ["template-helper"],
+  "skills": ["template-skill"],
+  "settings": {
+    "greeting": { "label": "Lời chào của /hello", "type": "string", "default": "Xin chào từ module!" },
+    "heartbeat": { "label": "Bật nhịp định kỳ (demo schedule.every)", "type": "boolean", "default": false },
+    "apiKey": { "label": "Khoá API (ví dụ cho kiểu secret)", "type": "secret", "help": "Được mã hoá khi lưu và bị che khi đọc qua API." }
+  }
+}
