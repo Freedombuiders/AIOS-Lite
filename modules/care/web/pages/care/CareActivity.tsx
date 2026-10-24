@@ -50,7 +50,7 @@ export function CareActivity() {
   const accLabel = (id: string) => accounts.find((a) => a.id === id)?.label ?? id.slice(-6);
 
   return (
-    <div class="care-page" data-testid="care-activity">
+    <div class="care-page module-fill" data-testid="care-activity">
       <PageHeader compact breadcrumb={ct('page.breadcrumb')} title={ct('activity.title')} tabs={<CareTabs current="activity" />}
         actions={(
           <>

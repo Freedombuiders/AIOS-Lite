@@ -28,7 +28,7 @@ export function CareRules() {
 
   const agentOptions = (agents.data?.agents ?? []).map((a) => ({ id: a.id, name: a.name ?? a.id }));
   return (
-    <div class="care-page" data-testid="care-rules">
+    <div class="care-page module-fill" data-testid="care-rules">
       <PageHeader compact breadcrumb="Chăm sóc khách" title="Quy tắc" tabs={<CareTabs current="rules" />} />
       <div class="care-scroll-page">
         <div class="cch-page">

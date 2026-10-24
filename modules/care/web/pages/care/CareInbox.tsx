@@ -145,7 +145,7 @@ export function CareInbox() {
   const emptyKey = hasActiveFilters(filters) ? `inbox2.empty.${filters.wf}` : null;
 
   return (
-    <div class="care-page" data-testid="care-inbox">
+    <div class="care-page module-fill" data-testid="care-inbox">
       <PageHeader
         compact
         breadcrumb={ct('page.breadcrumb')}

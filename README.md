@@ -7,6 +7,8 @@ Lõi đủ nhỏ để đọc hiểu trong một buổi. Nghiệp vụ nằm tro
 - Tài liệu thiết kế: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), danh mục module: [docs/MODULES.md](docs/MODULES.md).
 - Học từng bước: [docs/lessons/](docs/lessons/README.md) (8 bài, tiếng Việt).
 
+**Hướng dẫn sử dụng đầy đủ:** [docs/HUONG-DAN-SU-DUNG.md](docs/HUONG-DAN-SU-DUNG.md). **Góp ý, báo lỗi:** tony@tranvanhoang.com
+
 ## Mô hình bốn tầng và module
 
 ```
@@ -98,12 +100,12 @@ npm start
 | `AIOS_MAX_DELEGATION_DEPTH`, `AIOS_MAX_CHILDREN_PER_RUN` | `3`, `5` | Giới hạn giao việc giữa các agent. |
 | `AIOS_RUN_TIMEOUT_SEC` | `900` | Thời gian tối đa một lượt chạy. |
 
-Khoá bí mật (khoá API, token) chỉ nằm trong `.env` và không bao giờ đi vào prompt hay nhật ký.
+Khoá bí mật (khoá API, token) chỉ nằm trong `.env` (đã có trong `.gitignore`) và không bao giờ đi vào prompt hay nhật ký. `.env.example` liệt kê đủ các khoá, tất cả để trống. Lần chạy đầu, nếu chưa có `AIOS_ENCRYPTION_KEY`, app tự tạo một khoá ngẫu nhiên trong `.env` để mã hoá khoá và dữ liệu nhạy cảm lưu trong `data/`.
 
 ## Bước đầu tiên
 
-1. **Mở Tổng quan.** Vào http://localhost:5173. Mục **Cần bạn** ở đầu trang gom mọi thứ cần bạn xử lý: việc chờ duyệt, việc thất bại, nháp trả lời khách của module.
-2. **Giao việc cho `demo`.** Agent `demo` chạy bằng runtime giả lập nên không cần CLI hay khoá API. Ở khung **Giao việc nhanh** chọn `demo`, gõ một yêu cầu, bấm giao. Mở **Công việc** để xem trạng thái đi từ `queued` sang `running` rồi `done`, và xem lượt chạy ở trang chi tiết.
+1. **Mở Tổng quan.** Vào http://localhost:5173. Mục **Cần bạn** ở đầu trang gom mọi thứ cần bạn xử lý: việc chờ duyệt, việc thất bại, nháp trả lời khách của module. Bên dưới là số liệu kinh doanh của các module đã thêm (doanh thu và chi phí, hiệu quả nội dung, bán hàng qua Zalo) theo kỳ 7/30/90 ngày.
+2. **Giao việc cho `demo`.** Agent `demo` chạy bằng runtime giả lập nên không cần CLI hay khoá API. Vào **Công việc**, bấm **Tạo việc**, chọn `demo`, gõ một yêu cầu. Trạng thái đi từ `queued` sang `running` rồi `done`; xem lượt chạy ở trang chi tiết.
 
    Cùng việc đó bằng dòng lệnh (khi API đang chạy):
 

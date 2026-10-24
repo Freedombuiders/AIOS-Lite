@@ -72,7 +72,7 @@ export function CareTasks() {
   }
 
   return (
-    <div class="care-page" data-testid="care-tasks">
+    <div class="care-page module-fill" data-testid="care-tasks">
       <PageHeader compact breadcrumb={cc('breadcrumb')} title={cc('tasks.title')} tabs={<CareTabs current="tasks" />} />
       <div class="care-scroll-page">
         <div class="cch-page">

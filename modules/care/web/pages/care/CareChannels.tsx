@@ -59,7 +59,7 @@ export function CareChannels() {
   const noChannels = careLoaded && careAccounts.length === 0;
 
   return (
-    <div class="care-page" data-testid="care-channels">
+    <div class="care-page module-fill" data-testid="care-channels">
       <PageHeader compact breadcrumb={cc('breadcrumb')} title={cc('title')} tabs={<CareTabs current="channels" />} />
       <div class="care-scroll-page">
         <div class="cch-page">

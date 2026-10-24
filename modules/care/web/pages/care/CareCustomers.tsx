@@ -53,7 +53,7 @@ export function CareCustomers() {
   }
 
   return (
-    <div class="care-page" data-testid="care-customers">
+    <div class="care-page module-fill" data-testid="care-customers">
       <PageHeader compact breadcrumb={cc('breadcrumb')} title={cc('customers.title')} tabs={<CareTabs current="customers" />} />
       <div class="care-scroll-page">
         <div class="cch-page">

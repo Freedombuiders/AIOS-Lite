@@ -1,4 +1,4 @@
-import { Check, Plus, Power, Trash2, X } from 'lucide-preact';
+import { Check, Plus, Power, Settings2, Trash2, X } from 'lucide-preact';
 import { useState } from 'preact/hooks';
 import { ConfirmModal } from '@/components/ConfirmModal';
 import { Modal } from '@/components/Modal';
@@ -13,6 +13,7 @@ import { useFetch } from '@/lib/useFetch';
 import { refreshModules } from '@/module-host/host';
 import { useEvents } from '@/lib/sse';
 import { useCallback } from 'preact/hooks';
+import { editableSettings, ModuleSettingsModal } from './modules/ModuleSettingsModal';
 
 function Requirement({ r }: { r: ModuleInfo['requirements'][number] }) {
   return (
@@ -23,7 +24,7 @@ function Requirement({ r }: { r: ModuleInfo['requirements'][number] }) {
   );
 }
 
-function ModuleCard({ m, onAdd, onRemove, onPurge }: { m: ModuleInfo; onAdd: () => void; onRemove: () => void; onPurge: () => void }) {
+function ModuleCard({ m, onAdd, onRemove, onPurge, onSettings }: { m: ModuleInfo; onAdd: () => void; onRemove: () => void; onPurge: () => void; onSettings: () => void }) {
   const enabled = m.state.enabled;
   const installed = m.state.installedAt !== null;
   return (
@@ -47,6 +48,7 @@ function ModuleCard({ m, onAdd, onRemove, onPurge }: { m: ModuleInfo; onAdd: () 
       )}
       <div class="mt-auto flex flex-wrap items-center gap-2 pt-1">
         {!enabled && <button type="button" class="control-button control-accent" disabled={!m.ready} title={m.ready ? undefined : 'Còn thiếu điều kiện ở trên'} onClick={onAdd}><Plus size={12} /> Thêm</button>}
+        {enabled && editableSettings(m).length > 0 && <button type="button" class="control-button" onClick={onSettings}><Settings2 size={12} /> Cài đặt</button>}
         {enabled && <button type="button" class="control-button" onClick={onRemove}><Power size={12} /> Gỡ (giữ dữ liệu)</button>}
         {!enabled && installed && <button type="button" class="control-button control-danger" onClick={onPurge}><Trash2 size={12} /> Xoá dữ liệu</button>}
         {!enabled && !m.ready && <span class="hint">Chưa thêm được: hãy làm theo mục ✗ ở trên.</span>}
@@ -66,6 +68,7 @@ export default function ModulesPage() {
   const [confirmText, setConfirmText] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [editing, setEditing] = useState<ModuleInfo | null>(null);
   const items = f.data?.items ?? [];
 
   async function done(msg: string) {
@@ -124,7 +127,7 @@ export default function ModulesPage() {
       <p class="hint mt-0 mb-3 max-w-2xl">Module là tính năng thêm vào lõi: có menu, màn hình và API riêng. Thêm module khi cần, gỡ bất kỳ lúc nào. Gỡ chỉ tắt, dữ liệu vẫn còn cho đến khi bạn chọn “Xoá dữ liệu”.</p>
       <PageState loading={f.loading && !f.data} error={f.error} empty={!!f.data && items.length === 0} emptyTitle="Chưa có module nào" emptyDescription="Module nằm trong thư mục modules/<mã>. Sao chép modules/_template để viết module đầu tiên." />
       <div class="grid gap-3 lg:grid-cols-2">
-        {items.map((m) => <ModuleCard key={m.manifest.id} m={m} onAdd={() => { setErr(null); setInstallAgents(true); setAdding(m); }} onRemove={() => setRemoving(m)} onPurge={() => { setErr(null); setConfirmText(''); setPurging(m); }} />)}
+        {items.map((m) => <ModuleCard key={m.manifest.id} m={m} onAdd={() => { setErr(null); setInstallAgents(true); setAdding(m); }} onRemove={() => setRemoving(m)} onPurge={() => { setErr(null); setConfirmText(''); setPurging(m); }} onSettings={() => setEditing(m)} />)}
       </div>
 
       <Modal open={adding !== null} onClose={() => setAdding(null)} title={`Thêm module ${adding?.manifest.name ?? ''}`} width={460} closeDisabled={busy} footer={<>{err && <span class="mr-auto text-[12px] text-[var(--color-status-failed)]">{err}</span>}<button type="button" class="control-button" disabled={busy} onClick={() => setAdding(null)}>Huỷ</button><button type="button" class="control-button control-accent" disabled={busy} onClick={() => void add()}>{busy ? 'Đang thêm…' : 'Thêm module'}</button></>}>
@@ -138,6 +141,7 @@ export default function ModulesPage() {
           </div>
         )}
       </Modal>
+      <ModuleSettingsModal module={editing} onClose={() => setEditing(null)} />
       <ConfirmModal open={removing !== null} onClose={() => setRemoving(null)} onConfirm={() => void remove()} loading={busy} title={`Gỡ module ${removing?.manifest.name ?? ''}?`} body="Menu và API của module bị ẩn, nhưng dữ liệu vẫn được giữ. Thêm lại bất kỳ lúc nào." confirmLabel="Gỡ" />
       <Modal open={purging !== null} onClose={() => setPurging(null)} title="Xoá dữ liệu của module" width={460} closeDisabled={busy} footer={<>{err && <span class="mr-auto text-[12px] text-[var(--color-status-failed)]">{err}</span>}<button type="button" class="control-button" disabled={busy} onClick={() => setPurging(null)}>Huỷ</button><button type="button" class="control-button control-danger" disabled={busy || confirmText !== purging?.manifest.id} onClick={() => void purge()}>Xoá vĩnh viễn</button></>}>
         {purging && (

@@ -83,7 +83,13 @@ body {
 }
 html { color-scheme: dark; }
 html[data-appearance="light"] { color-scheme: light; }
-* { scrollbar-width: thin; scrollbar-color: var(--color-border-strong) transparent; }
+/* Scrollbars: thin, no track, thumb only while the pointer is over that area (no grey bars standing everywhere) */
+* { scrollbar-width: thin; scrollbar-color: transparent transparent; }
+*:hover, *:focus-within { scrollbar-color: color-mix(in srgb, var(--color-text-faint) 55%, transparent) transparent; }
+@media (hover: none) { * { scrollbar-color: color-mix(in srgb, var(--color-text-faint) 55%, transparent) transparent; } }
+/* the page body never scrolls sideways; wide tables scroll inside their own box */
+html, body { overflow: hidden; }
+.app-main { overflow-x: hidden; scrollbar-gutter: stable; }
 button { font: inherit; color: inherit; }
 /* in the base layer so Tailwind utilities (text-*, on anchors too) can override it */
 @layer base {
@@ -421,7 +427,7 @@ select.care-input { display: flex; align-items: center; justify-content: space-b
 .sidebar-tool.is-active { background: var(--color-accent-soft); color: var(--color-accent); }
 .sidebar-tool:disabled { opacity: .45; cursor: not-allowed; }
 .sidebar-shortcut { margin-left: auto; padding: 2px 5px; border: 1px solid var(--color-border); border-radius: 5px; font-family: inherit; font-size: 11px; color: var(--color-text-faint); }
-.sidebar-navigation { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 12px 16px; scrollbar-width: thin; scrollbar-color: var(--color-border) transparent; }
+.sidebar-navigation { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; padding: 0 12px 16px; scrollbar-width: thin; }
 .sidebar-section { padding-top: 12px; margin-top: 12px; border-top: 1px solid var(--color-border); }
 .sidebar-section:first-child { padding-top: 0; margin-top: 0; border-top: 0; }
 .sidebar-section-workspace { --section-color: #818cf8; }
@@ -597,7 +603,14 @@ button.chat-activity-head:hover { color: var(--color-text-muted); background: va
 .module-page { width: 100%; max-width: none; min-height: 100%; display: flex; flex-direction: column; }
 .module-page .px-4, .module-page .md\:px-6 { padding-inline: 0; }
 .module-page > * { flex: 1 1 auto; min-width: 0; }
-.module-page > .h-full { height: auto; }
+/*
+ * App-like module screens (inbox, chat, editors) fill the viewport and scroll inside their own panes,
+ * so the page itself never scrolls (no double scrollbar). A module opts in with .module-fill (or h-full) on its root.
+ */
+.module-page:has(> :is(.module-fill, .h-full)) { height: 100%; padding-bottom: 14px; }
+.module-page > :is(.module-fill, .h-full) { flex: 1 1 0; min-height: 0; height: auto; }
+/* inside a scrolling column, blocks keep their height and the column scrolls (never squash a card to fit) */
+.module-page :is(.overflow-y-auto, .overflow-auto).flex-col > * { flex-shrink: 0; }
 .snav-caption { white-space: nowrap; }
 @media (min-width: 768px) {
   .saas-sidebar.is-collapsed .snav-caption { display: none; }

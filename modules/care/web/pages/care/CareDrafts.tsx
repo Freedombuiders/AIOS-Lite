@@ -48,7 +48,7 @@ export function CareDrafts() {
   const selected = rows?.find((r) => r.id === selectedId) ?? null;
 
   return (
-    <div class="care-page" data-testid="care-drafts">
+    <div class="care-page module-fill" data-testid="care-drafts">
       <PageHeader compact breadcrumb={ct('page.breadcrumb')} title={ct('drafts.title')} tabs={<CareTabs current="drafts" />}
         actions={<>{GROUPS.map((g) => <Tab key={g} label={ct(`drafts.group.${g}`)} active={g === group} onClick={() => { setGroup(g); setSelectedId(null); }} />)}</>} />
       <div class="care-layout" data-selected={selected ? 'true' : 'false'}>
