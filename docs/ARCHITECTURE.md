@@ -407,7 +407,10 @@ ctx = {
 defineWebModule({
   nav:     [{ group: 'sales', label: 'Zalo', path: '/m/zalo', icon }],
   routes:  [{ path: '/m/zalo/accounts', component: ZaloAccounts }],
-  widgets: [{ slot: 'dashboard', id: 'zalo-status', component: ZaloStatusCard }],   // thẻ trên trang Tổng quan
+  widgets: [
+    { slot: 'overview', id: 'zalo-overview', title: 'Bán hàng qua Zalo', order: 30, component: ZaloOverview },  // khối số liệu trên Tổng quan, nhận { range }
+    { slot: 'dashboard', id: 'zalo-status', component: ZaloStatusCard },  // thẻ nhỏ ở mục Theo dõi nhanh
+  ],
   agentAccess: [{ scope: 'messages.read', label: 'Đọc tin Zalo' }],  // hiện ở tab Quyền của agent
 })
 ```

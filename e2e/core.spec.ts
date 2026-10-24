@@ -93,3 +93,19 @@ test('P5 modules: add finance, radar, video and kol, their pages render without 
   }
   expect(errors).toEqual([]);
 });
+
+test('Tổng quan: period switch and business sections from enabled modules, no agent list', async ({ page, request }) => {
+  const errors = trackErrors(page);
+  await page.goto('/');
+  await expect(page.getByRole('radio', { name: '30 ngày' })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByText('Chưa có số liệu kinh doanh')).toBeVisible();
+  await expect(page.getByText('Agents & công việc')).toHaveCount(0);
+
+  expect((await request.post('/api/modules/marketing/add', { data: { installAgents: false } })).ok()).toBeTruthy();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: /Hiệu quả nội dung/ })).toBeVisible();
+  await page.getByRole('radio', { name: '7 ngày' }).click();
+  await expect(page.getByRole('radio', { name: '7 ngày' })).toHaveAttribute('aria-checked', 'true');
+  await request.post('/api/modules/marketing/remove');
+  expect(errors).toEqual([]);
+});

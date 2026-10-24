@@ -225,6 +225,21 @@ export function createRunner(deps: {
     return execute({ definition, command, args, agentId: req.agentId, taskId: req.taskId, values, via: { kind: 'approval', ref: req.approvalId } });
   }
 
+  /**
+   * A read command run by module code (dashboards, sync), not by an agent: no grant check, only read commands,
+   * same timeout, scrubbing, call log and hourly budget. `actor` is 'module:<id>'.
+   */
+  async function runRead(req: { integrationId: string; commandLine: string; actor: string }): Promise<unknown> {
+    const { definition, command, args } = parseCall({ agentId: req.actor, integration: req.integrationId, command: req.commandLine });
+    if (command.access !== 'read' || commandRiskOf(command, args) !== 'read') {
+      throw new IntegrationUsageError(`Module chỉ được chạy lệnh đọc; "${command.name}" là lệnh ghi.`);
+    }
+    const values = store.loadValues(definition.id);
+    if (!values) throw new IntegrationNotConfiguredError(definition.id);
+    assertBudget(definition);
+    return execute({ definition, command, args, agentId: req.actor, taskId: null, values, via: { kind: 'direct' } });
+  }
+
   /** The commands this agent may call, one MCP tool each. */
   function tools(agentId: string): BridgeTool[] {
     const out: BridgeTool[] = [];
@@ -249,7 +264,7 @@ export function createRunner(deps: {
     return out;
   }
 
-  return { call, executeApproved, tools };
+  return { call, executeApproved, runRead, tools };
 }
 
 class RateLimited extends Error {}

@@ -1,6 +1,7 @@
 import { Cake, FileText, MessageCircle, Send, UsersRound } from 'lucide-preact';
 import { apiGet } from '@/lib/api';
 import { defineWebModule, type WebNavItem } from '@/module-host/contracts';
+import { ZaloOverview } from './components/ZaloOverview';
 import { ZaloChannelPanel } from './components/ZaloChannelPanel';
 import { MarketingBirthday } from './pages/MarketingBirthday';
 import { MarketingGroupBroadcasts } from './pages/MarketingGroupBroadcasts';
@@ -37,6 +38,13 @@ export default defineWebModule({
     { path: '/m/zalo/group-broadcasts', component: MarketingGroupBroadcasts },
     { path: '/m/zalo/list-broadcasts', component: MarketingListBroadcasts },
     { path: '/m/zalo/birthday', component: MarketingBirthday },
+  ],
+  widgets: [
+    {
+      slot: 'overview', id: 'zalo-overview', order: 30,
+      title: 'Bán hàng qua Zalo', subtitle: 'Tin nhắn 1-1 với khách', href: '/m/care/inbox',
+      component: ZaloOverview,
+    },
   ],
   // The care module renders this inside the card of every channel account (it returns null unless channel === 'zalo').
   provides: { 'care.channelPanel': ZaloChannelPanel },

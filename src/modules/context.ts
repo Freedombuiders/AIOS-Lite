@@ -190,7 +190,10 @@ export function createModuleContext(
       isEnabled: (moduleId) => helpers.isEnabled(moduleId),
     },
     outbound: { sanitize: sanitizeOutbound },
-    integrations: { values: (integrationId) => integrationServiceFor(deps).credentials.loadValues(integrationId) },
+    integrations: {
+      values: (integrationId) => integrationServiceFor(deps).credentials.loadValues(integrationId),
+      read: (integrationId, commandLine) => integrationServiceFor(deps).runner.runRead({ integrationId, commandLine, actor: source }),
+    },
     crypto: { encrypt: (p) => deps.cipher.encrypt(p), decrypt: (v) => deps.cipher.decrypt(v) },
   };
   return ctx;

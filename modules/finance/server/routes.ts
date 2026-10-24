@@ -3,8 +3,9 @@ import { bodyLimit } from 'hono/body-limit';
 import type { ModuleContext } from '../../../src/modules/sdk.js';
 import { readSnapshot, readDaily } from './erp/store.js';
 import type { ErpSummary, ErpSync, ErpSyncStatus } from './erp/sync.js';
-import { buildPnl } from './pnl/engine.js';
-import { resolveRange } from './pnl/range.js';
+import { datesBetween, buildPnl } from './pnl/engine.js';
+import { buildOverview } from './overview.js';
+import { isDate, resolveRange } from './pnl/range.js';
 import { readInputs, readSettings, settingsSchema, writeSettings } from './pnl/store.js';
 import { PNL_PRESETS, type PnlPreset } from './pnl/types.js';
 import type { WhopSync } from './pnl/whop-sync.js';
@@ -30,6 +31,18 @@ export function registerFinanceRoutes(app: Hono, ctx: ModuleContext, erp: ErpSyn
     const range = resolveRange(preset, vnToday(), { from: c.req.query('from'), to: c.req.query('to') });
     if (!range) return c.json({ error: 'Khoảng ngày không hợp lệ (tối đa 366 ngày, không quá hôm nay).' }, 400);
     return c.json(buildPnl(readInputs(db, { preset, ...range }, flags())));
+  });
+
+  /** Tổng quan section: revenue vs costs per day for the period and the one before it. */
+  app.get('/overview', async (c) => {
+    const q = { from: c.req.query('from'), to: c.req.query('to'), prevFrom: c.req.query('prevFrom'), prevTo: c.req.query('prevTo') };
+    if (!isDate(q.from) || !isDate(q.to) || !isDate(q.prevFrom) || !isDate(q.prevTo) || q.from > q.to || q.prevFrom > q.prevTo) {
+      return c.json({ error: 'Khoảng ngày không hợp lệ.' }, 400);
+    }
+    if (datesBetween(q.from, q.to).length > 366 || datesBetween(q.prevFrom, q.prevTo).length > 366) {
+      return c.json({ error: 'Khoảng ngày tối đa 366 ngày.' }, 400);
+    }
+    return c.json(await buildOverview(ctx, { from: q.from, to: q.to, prevFrom: q.prevFrom, prevTo: q.prevTo }, flags()));
   });
 
   app.put('/pnl/settings', async (c) => {

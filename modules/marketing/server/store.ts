@@ -1021,3 +1021,55 @@ export function listFbAdsOrganicRows(sinceSec: number): FbAdsOrganicRow[] {
   ).all(sinceSec) as FbAdsOrganicRow[];
 }
 
+
+// ── Overview (Tổng quan) read side ──────────────────────────────────────────
+
+export interface FbOverviewPostRow {
+  fb_post_id: string;
+  page_id: string;
+  page_name: string | null;
+  title: string;
+  caption: string;
+  permalink: string;
+  published_at: number;
+  reach: number | null;
+  reactions: number | null;
+  comments: number | null;
+  shares: number | null;
+  clicks: number | null;
+  captured_at: number | null;
+}
+
+/** Published posts of every Page in [fromSec, toSec) with their 'latest' metric snapshot (null columns when none). */
+export function listFbOverviewPosts(fromSec: number, toSec: number): FbOverviewPostRow[] {
+  return db.prepare(
+    `SELECT c.fb_post_id, c.page_id, p.name AS page_name, c.title, c.caption, c.permalink, c.published_at,
+            m.reach, m.reactions, m.comments, m.shares, m.clicks, m.captured_at
+     FROM fb_content c
+     LEFT JOIN fb_pages p ON p.id = c.page_id
+     LEFT JOIN fb_post_metrics m ON m.post_id = c.fb_post_id AND m.milestone = 'latest'
+     WHERE c.status = 'published' AND c.fb_post_id IS NOT NULL AND c.page_id IS NOT NULL
+       AND c.published_at >= ? AND c.published_at < ?
+     ORDER BY c.published_at`,
+  ).all(fromSec, toSec) as FbOverviewPostRow[];
+}
+
+/** Comments from other people in the window, and how many got a sent AI reply. `synced` = the table has any comment at all. */
+export function countFbOverviewComments(fromSec: number, toSec: number): { received: number; replied: number; synced: boolean } {
+  const row = db.prepare(
+    `SELECT COUNT(*) AS received, COALESCE(SUM(CASE WHEN status = 'sent' THEN 1 ELSE 0 END), 0) AS replied
+     FROM fb_comments WHERE from_page = 0 AND created_time >= ? AND created_time < ?`,
+  ).get(fromSec, toSec) as { received: number; replied: number };
+  const any = db.prepare(`SELECT 1 AS x FROM fb_comments LIMIT 1`).get() as { x: number } | undefined;
+  return { ...row, synced: any !== undefined };
+}
+
+export function getFbOverviewLastFetchAt(): number | null {
+  const row = db.prepare(`SELECT MAX(captured_at) AS t FROM fb_post_metrics`).get() as { t: number | null };
+  return row.t;
+}
+
+/** Pages shown as zero-post rows in the overview: the connected ones. */
+export function listFbOverviewPages(): { id: string; name: string; enabled: number }[] {
+  return db.prepare(`SELECT id, name, enabled FROM fb_pages ORDER BY name`).all() as { id: string; name: string; enabled: number }[];
+}

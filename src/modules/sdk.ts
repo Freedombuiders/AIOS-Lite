@@ -150,6 +150,11 @@ export interface ModuleContext {
      * Secrets come back in the clear: use them server-side only, never put them in prompts, logs or responses.
      */
     values(id: string): Record<string, string> | null;
+    /**
+     * Run a READ command of a connected integration from module code, e.g. read('pancake', 'orders list --page-size 100').
+     * Write commands are refused. Throws when the integration is not connected. Logged as actor 'module:<id>'.
+     */
+    read(id: string, commandLine: string): Promise<unknown>;
   };
   crypto: {
     encrypt(plain: string): string;

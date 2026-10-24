@@ -7,6 +7,7 @@ import { FbCalendar } from '@modules/marketing/web/pages/fb/FbCalendar';
 import { FbCommentRules } from '@modules/marketing/web/pages/fb/FbCommentRules';
 import { FbComments } from '@modules/marketing/web/pages/fb/FbComments';
 import { FbLibrary } from '@modules/marketing/web/pages/fb/FbLibrary';
+import { ContentOverview } from '@modules/marketing/web/components/ContentOverview';
 import { FbPages } from '@modules/marketing/web/pages/fb/FbPages';
 import type { FbContentListDto } from '@modules/marketing/web/lib/fbstudio';
 
@@ -55,7 +56,10 @@ export default defineWebModule({
     { path: '/m/marketing/comments', component: FbComments },
     { path: '/m/marketing/comment-rules', component: FbCommentRules },
   ],
-  widgets: [{ slot: 'dashboard', id: 'marketing-scheduled', title: 'Bài sắp đăng', component: ScheduledWidget, order: 40 }],
+  widgets: [
+    { slot: 'overview', id: 'marketing-overview', title: 'Hiệu quả nội dung', subtitle: 'Facebook Pages', href: '/m/marketing/analytics', component: ContentOverview, order: 20 },
+    { slot: 'dashboard', id: 'marketing-scheduled', title: 'Bài sắp đăng', component: ScheduledWidget, order: 40 },
+  ],
   agentAccess: [
     { scope: 'content.write', label: 'Soạn nội dung', description: 'Agent được tạo và sửa bài trong Kho nội dung, không được đăng.' },
     { scope: 'publish', label: 'Duyệt và đăng bài', description: 'Agent được duyệt và đăng bài lên Fanpage.' },

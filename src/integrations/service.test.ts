@@ -92,6 +92,18 @@ describe('runner gate', () => {
     expect(h.fetchCalls.some((c) => c.method === 'PUT')).toBe(false);
   });
 
+  it('runRead: module code runs read commands without a grant, never writes', async () => {
+    h = makeHarness();
+    const read = (line: string) => h.service.runner.runRead({ integrationId: 'pancake', commandLine: line, actor: 'module:finance' });
+    await expect(read('orders list')).rejects.toThrow();
+    await h.connectPancake();
+    await expect(read('orders list --limit 3')).resolves.toBeDefined();
+    await expect(read('orders set-status 5 1')).rejects.toThrow(/lệnh ghi/);
+    expect(h.fetchCalls.some((c) => c.method === 'PUT')).toBe(false);
+    const rows = h.db.prepare("SELECT agent_id, command, ok FROM integration_calls WHERE command = 'orders list'").all();
+    expect(rows).toEqual([{ agent_id: 'module:finance', command: 'orders list', ok: 1 }]);
+  });
+
   it('tools() lists only allowed commands', async () => {
     h = makeHarness({ pancake: 'read' });
     const names = h.service.runner.tools('agent-a').map((t) => t.name);

@@ -56,3 +56,11 @@ Manifest: `docs/dev/port/finance.json`. Không có file nào của upstream. Kh�
 | `BusinessModel.tsx` bỏ đọc cấu hình vault từ `/api/dashboard/settings` | Không có API đó trong AIOS-Lite; trang vẫn dùng bản nháp trong trình duyệt |
 | `Erp.tsx`: liên kết "Kết nối › MCP Hubs" thành "Module › Cài đặt" | Kết nối nay là cài đặt module |
 | Không port `web/src/lib/business-pulse*` | Thuộc bảng điều khiển lõi, không thuộc module |
+
+## Overview section (2026-10-24)
+
+| from (FreedomOS, owner-only: absent from upstream/main) | to | kind | note |
+|---|---|---|---|
+| src/command-center/summary.ts | modules/finance/server/overview.ts | C | only the idea and `NON_REVENUE_STATUSES` (Pancake 4-7); order bucketing rewritten over `ctx.integrations.read` |
+
+Chart components are the app's own (web/src/components/fb/charts); nothing copied from business-pulse.ts, BusinessPulse.tsx or WhopPulse.tsx.

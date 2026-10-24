@@ -383,7 +383,7 @@ export default defineWebModule({
 |---|---|
 | `nav` | Mục menu: `group` (nhóm), `label`, `path` (nên bắt đầu `/m/<id>`), `icon`, `badge` (hàm trả số, được hỏi định kỳ) |
 | `routes` | `{ path, component }` theo mẫu của `wouter` |
-| `widgets` | Thẻ trên trang **Tổng quan** (`slot: 'dashboard'`) |
+| `widgets` | Trên trang **Tổng quan**: `slot: 'overview'` là một khối số liệu kinh doanh rộng hết trang, component nhận `{ range }` (kỳ 7/30/90 ngày và kỳ liền trước, xem `OverviewRange`), nên dùng `OvKpis`/`OvKpi` trong `web/src/components/overview`; `slot: 'dashboard'` là thẻ nhỏ ở mục *Theo dõi nhanh* |
 | `agentAccess` | Nhãn và mô tả scope hiện ở tab Quyền của agent (không có thì lấy từ `module.json`) |
 | `provides` | Điểm mở rộng cho module khác (ví dụ `care.channelPanel`) |
 

@@ -49,6 +49,7 @@ import {
 import { registerZaloBirthdayRoutes } from './routes-birthday.js';
 import { registerZaloGroupBroadcastRoutes } from './routes-group-broadcast.js';
 import { registerZaloListBroadcastRoutes } from './routes-list-broadcast.js';
+import { registerZaloOverviewRoute } from './routes-overview.js';
 import { registerZaloTemplateRoutes, type TemplateRouteEnv } from './routes-templates.js';
 import type { ZaloSupervisor } from './supervisor.js';
 
@@ -129,6 +130,7 @@ export function registerZaloRoutes(app: Hono, deps: ZaloRouteDeps): void {
   registerZaloGroupBroadcastRoutes(app);
   registerZaloListBroadcastRoutes(app);
   registerZaloBirthdayRoutes(app);
+  registerZaloOverviewRoute(app);
 
   // ── Service ─────────────────────────────────────────────────────────
   app.get('/status', (c) => {

@@ -9,12 +9,23 @@ import { z } from 'zod';
 import { getFbAnalyticsPage } from '../store.js';
 import { logger } from '../compat.js';
 import { clampDays, loadChannelDashboard, loadPostDetail, loadPostsDashboard } from './service.js';
+import { buildMarketingOverview } from './overview.js';
 import { startRefresh } from './worker.js';
 
 const MILESTONES = ['latest', '24h', '7d', '28d'] as const;
 const RefreshBody = z.object({ pageId: z.string().min(1) });
 
 export function registerAnalyticsRoutes(app: Hono): void {
+  // Cross-Page summary for the Tổng quan home section.
+  app.get('/overview', (c) => {
+    const out = buildMarketingOverview({
+      from: c.req.query('from') ?? '', to: c.req.query('to') ?? '',
+      prevFrom: c.req.query('prevFrom') || undefined, prevTo: c.req.query('prevTo') || undefined,
+    });
+    if ('error' in out) return c.json({ error: out.error }, 400);
+    return c.json(out);
+  });
+
   app.get('/analytics/channel', (c) => {
     const pageId = c.req.query('page') ?? '';
     if (!pageId) return c.json({ error: 'Thiếu tham số page' }, 400);

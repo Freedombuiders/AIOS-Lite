@@ -25,11 +25,29 @@ export interface WebRoute {
   component: ComponentType<any>;
 }
 
+/** Period picked on Tổng quan, passed to every 'overview' widget. Dates are YYYY-MM-DD in Asia/Ho_Chi_Minh, inclusive. */
+export interface OverviewRange {
+  days: number;
+  from: string;
+  to: string;
+  /** the same number of days just before `from`, for "so với kỳ trước" */
+  prevFrom: string;
+  prevTo: string;
+}
+
 export interface WebWidget {
-  /** where it renders */
-  slot: 'dashboard';
+  /**
+   * where it renders:
+   *   'overview'  → a full-width business section on Tổng quan (revenue, content, sales…); the component gets { range: OverviewRange }
+   *   'dashboard' → a small card under the sections (waiting lists, next posts…)
+   */
+  slot: 'dashboard' | 'overview';
   id: string;
   title?: string;
+  /** 'overview' only: one line under the title, e.g. where the numbers come from */
+  subtitle?: string;
+  /** 'overview' only: "Xem chi tiết" link in the section head */
+  href?: string;
   component: ComponentType<any>;
   order?: number;
 }

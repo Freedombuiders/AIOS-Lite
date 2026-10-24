@@ -440,3 +440,28 @@
   .hd-whop-value { font-size: 24px; }
 }
 @media (prefers-reduced-motion: reduce) { .hd-live i { animation: none; } }
+
+/* Tổng quan › period switch and business sections ('overview' widget slot) */
+.hd-range { display: inline-flex; padding: 3px; gap: 2px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-card); }
+.hd-range button { padding: 6px 12px; border-radius: 7px; font-size: 12.5px; color: var(--color-text-muted); }
+.hd-range button:hover { color: var(--color-text); }
+.hd-range button.is-on { background: var(--color-elevated, var(--color-control-hover)); color: var(--color-text); font-weight: 600; }
+.hd-range button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+.hd-ov-list { display: flex; flex-direction: column; gap: 18px; }
+.hd-ov .hd-card-head h2 { flex-wrap: wrap; }
+.ov-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.ov-kpi { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-bg); min-width: 0; }
+.ov-kpi-label { font-size: 11.5px; color: var(--color-text-muted); }
+.ov-kpi-value { font-size: 22px; font-weight: 600; letter-spacing: -.5px; color: var(--color-text); font-variant-numeric: tabular-nums; }
+.ov-kpi-delta, .ov-kpi-hint { font-size: 11px; color: var(--color-text-faint); }
+.ov-kpi-delta.is-good { color: color-mix(in srgb, #22c55e 60%, var(--color-text)); }
+.ov-kpi-delta.is-bad { color: color-mix(in srgb, #ef4444 60%, var(--color-text)); }
+.ov-sources { display: flex; flex-wrap: wrap; gap: 6px; margin: -4px 0 14px; }
+.ov-source { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--color-border); color: var(--color-text-muted); }
+a.ov-source:hover { border-color: var(--color-accent); color: var(--color-text); }
+.ov-source i { width: 7px; height: 7px; border-radius: 50%; background: var(--color-text-faint); }
+.ov-source i.is-ok { background: #22c55e; }
+.ov-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 18px; }
+@media (max-width: 1000px) { .ov-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) { .ov-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ov-kpi { padding: 10px 12px; } .ov-kpi-value { font-size: 18px; } }
+.ov-sub { font-size: 12.5px; font-weight: 600; color: var(--color-text); margin: 0 0 8px; }
