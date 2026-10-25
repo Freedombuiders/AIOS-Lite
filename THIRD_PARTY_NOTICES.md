@@ -11,6 +11,7 @@ Giấy phép của chính AIOS-Lite là **MIT**, © 2026 Tony Hoang (file [LICEN
 3. [ZaloCRM (AGPL-3.0): module `zalo`](#3-zalocrm-agpl-30-module-zalo)
 4. [Thư viện npm chính](#4-thư-viện-npm-chính)
 5. [Công cụ dòng lệnh bên ngoài](#5-công-cụ-dòng-lệnh-bên-ngoài)
+6. [OpenFilm (MIT): module `video`, Dựng nhanh](#6-openfilm-mit-module-video-dựng-nhanh)
 
 ---
 
@@ -133,6 +134,44 @@ Ghi chú:
 ## 5. Công cụ dòng lệnh bên ngoài
 
 AIOS-Lite **không** kèm theo và không phân phối các CLI sau. Bạn tự cài và tự đăng nhập, theo điều khoản của từng nhà cung cấp: Claude Code (Anthropic), Codex (OpenAI), Grok Build (xAI), Hermes / Rocket Agent. AIOS-Lite chỉ gọi chúng như các tiến trình con.
+
+## 6. OpenFilm (MIT): module `video`, Dựng nhanh
+
+Lớp chỉnh tay (overrides) và thao tác plan theo id của tab Dựng nhanh được viết lại bằng TypeScript dựa trên [OpenFilm](https://github.com/openfilm/openfilm) (giấy phép MIT, bản đọc ở commit `42c46e6`). Mỗi file bên dưới có ghi chú nguồn ở đầu file.
+
+| File nguồn của OpenFilm (`packages/openfilm/`) | File trong AIOS-Lite | Mức độ lấy |
+|---|---|---|
+| `studio/ui/src/lib/film-overrides.ts` (`tidy`, `mergeStyle`, `nextOverrides`) | `modules/video/server/edit/overrides.ts` (`mergeElementOverride`, `mergeOverrides`) | Viết lại theo cùng luật: khoá không nêu thì giữ, `null` xoá, khoá lồng nhau gộp từng khoá, mục không còn gì thì bỏ |
+| `studio/ui/src/lib/dropped-overrides.ts` (`droppedOverrides`) | `modules/video/server/edit/overrides.ts` (`droppedElements`) | Viết lại cho plan theo phiên bản: phần tử có chỉnh tay mà bản AI mới làm mất |
+| `studio/server/ops.mjs` (`applyOps`, `EditError`, `mintClipId`) | `modules/video/server/edit/plan-ops.ts` (`applyPlanOps`, `PlanOpError`) | Viết lại cho EditPlan: thao tác theo id, lỗi `conflict`/`invalid`, nửa phải khi tách có id `<id>-b` |
+| `studio/ui/src/editor/undo.ts` (`inverse`) | `modules/video/server/edit/plan-ops.ts` (op `restore`) | Chỉ lấy ý tưởng: khôi phục theo id, phần tử đã có lại thì không làm gì |
+| `src/overrides.mjs` | (chưa dùng ở đây; lớp áp overrides lên khung hình thuộc composition) | Chỉ đọc |
+
+Thông báo bản quyền của OpenFilm:
+
+```
+MIT License
+
+Copyright (c) 2026 OpenFilm contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
 ---
 

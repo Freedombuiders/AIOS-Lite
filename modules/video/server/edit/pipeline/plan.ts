@@ -2,11 +2,15 @@
 // manual edits as new versions, diff versions, and validate plans the agent submits.
 //
 // Source of truth for cuts is `cutWords` (+ `gapMs`). Everything else about the cut (`keep`,
-// `removed`, durations, overlay times) is derived here and never trusted from outside.
+// `removed`, durations, overlay and element times) is derived here and never trusted from outside.
+//
+// Plan v2 (Dựng nhanh) adds beats/scenes/graphics with ids; every new field is optional, so a legacy plan
+// validates and derives exactly as before.
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import type {
-  AnalysisResult, EditPlan, HookOption, RemovedKind, Transcript, VideoAspect, VideoProfile, VideoProject, VideoStyle,
+  AnalysisResult, BrollItem, EditPlan, ElementProps, GraphicItem, HookOption, PlanElementKind, RemovedKind, SceneItem,
+  TextBeat, Transcript, VideoAspect, VideoProfile, VideoProject, VideoStyle, ZoomItem,
 } from '../types.js';
 import { findFillers, findRetakes, isFillerWord, normWord } from './analyze.js';
 import { fmtDur, r1, r3 } from './tools.js';
@@ -153,18 +157,24 @@ function chosenHook(plan: Pick<EditPlan, 'hook'>): HookOption | undefined {
   return plan.hook?.options.find((o) => o.id === plan.hook?.chosen);
 }
 
-/** Recompute keep/removed/durations and re-time anchored overlays from the plan's source of truth. */
+/** Source seconds → output seconds for the plan's cut list (null when that moment is cut). */
+export function planMapper(plan: Pick<EditPlan, 'cutWords' | 'gapMs' | 'hook'>, ctx: PlanContext) {
+  const res = computeKeep(ctx.transcript, plan.cutWords, plan.gapMs, chosenHook(plan), { kindOf: kindResolver(ctx) });
+  return { map: makeMapper(res.segments), total: res.outputDurationSec };
+}
+
+/** Recompute keep/removed/durations and re-time anchored overlays and elements from the plan's source of truth. */
 export function derivePlan(plan: EditPlan, ctx: PlanContext): EditPlan {
   const words = ctx.transcript.words;
   const cutWords = [...new Set(plan.cutWords.filter((i) => Number.isInteger(i) && i >= 0 && i < words.length))].sort((a, b) => a - b);
   const res = computeKeep(ctx.transcript, cutWords, plan.gapMs, chosenHook(plan), { kindOf: kindResolver(ctx) });
   const map = makeMapper(res.segments);
   const total = res.outputDurationSec;
-  const overlays = plan.overlays.map((o) => {
+  const retime = <T extends { anchorWord?: number; at: number }>(o: T): T => {
     if (o.anchorWord === undefined || !words[o.anchorWord]) return o;
     const at = map(words[o.anchorWord].start);
     return at === null ? o : { ...o, at: r3(Math.min(at, Math.max(0, total - 0.1))) };
-  });
+  };
   return {
     ...plan,
     cutWords,
@@ -172,8 +182,102 @@ export function derivePlan(plan: EditPlan, ctx: PlanContext): EditPlan {
     removed: res.removed,
     sourceDurationSec: r3(ctx.transcript.durationSec),
     outputDurationSec: total,
-    overlays,
+    overlays: plan.overlays.map(retime),
+    zooms: Array.isArray(plan.zooms) ? plan.zooms.map(retime) : plan.zooms,
+    ...(plan.beats ? { beats: plan.beats.map(retime) } : {}),
+    ...(plan.scenes ? { scenes: plan.scenes.map(retime) } : {}),
+    ...(plan.graphics ? { graphics: plan.graphics.map(retime) } : {}),
   };
+}
+
+// ── Plan elements by id (beats, scenes, graphics, B-roll, zooms) ──
+
+export type PlanElement = TextBeat | SceneItem | GraphicItem | BrollItem | ZoomItem;
+export type ElementListKey = 'beats' | 'scenes' | 'graphics' | 'brolls' | 'zooms';
+
+/** Each element list: its kind, the id prefix the machine mints, and its Vietnamese name. */
+export const ELEMENT_LISTS: readonly { kind: PlanElementKind; key: ElementListKey; prefix: string; label: string }[] = [
+  { kind: 'beat', key: 'beats', prefix: 'b', label: 'chữ' },
+  { kind: 'scene', key: 'scenes', prefix: 's', label: 'cảnh minh hoạ' },
+  { kind: 'graphic', key: 'graphics', prefix: 'g', label: 'đồ hoạ' },
+  { kind: 'broll', key: 'brolls', prefix: 'br', label: 'B-roll' },
+  { kind: 'zoom', key: 'zooms', prefix: 'z', label: 'zoom' },
+];
+
+export const listOf = (plan: Pick<EditPlan, ElementListKey>, key: ElementListKey): PlanElement[] | undefined =>
+  plan[key] as PlanElement[] | undefined;
+
+/** Every element that has an id, in list order. */
+export function planElements(plan: Pick<EditPlan, ElementListKey>): { kind: PlanElementKind; key: ElementListKey; el: PlanElement }[] {
+  return ELEMENT_LISTS.flatMap(({ kind, key }) => (listOf(plan, key) ?? []).filter((el) => el.id).map((el) => ({ kind, key, el })));
+}
+
+export function findElement(plan: Pick<EditPlan, ElementListKey>, id: string) {
+  return planElements(plan).find((e) => e.el.id === id) ?? null;
+}
+
+/** First free `<prefix><n>` (b1, b2 …). */
+export function mintId(prefix: string, taken: Set<string>): string {
+  let n = 1;
+  while (taken.has(`${prefix}${n}`)) n++;
+  return `${prefix}${n}`;
+}
+
+const clip40 = (s: string) => (s.length > 40 ? `${s.slice(0, 39)}…` : s);
+
+/** Short owner-facing name of an element ("Làm *3 bước*" → «Làm 3 bước»). */
+export function elementLabel(kind: PlanElementKind, el: PlanElement): string {
+  if (kind === 'beat') return clip40(markupText((el as TextBeat).title));
+  if (kind === 'broll') return clip40((el as BrollItem).title);
+  if (kind === 'zoom') return `zoom ${r1((el as ZoomItem).at)}s`;
+  const c = el as SceneItem | GraphicItem;
+  const first = Object.values(c.props ?? {}).find((v): v is string => typeof v === 'string' && v.trim() !== '');
+  return clip40(first ? `${c.component}: ${first}` : c.component);
+}
+
+/** Title markup as plain words: `*` marks dropped, `|` line breaks as spaces. */
+export function markupText(text: string): string {
+  return text.replace(/\*/g, '').split('|').map((l) => l.trim()).filter(Boolean).join(' ');
+}
+
+/** Words and lines of title markup (`*` is not a word, `|` breaks a line). */
+export function markupStats(text: string): { words: number; lines: number } {
+  const lines = text.split('|');
+  return { words: lines.flatMap((l) => l.replace(/\*/g, ' ').split(/\s+/)).filter(Boolean).length, lines: lines.length };
+}
+
+/**
+ * Elements the owner added (origin 'owner') that the next plan left out go back in, so an AI revision never
+ * loses them. Mutates `next`; returns one Vietnamese line per element kept.
+ */
+function keepOwnerElements(prev: EditPlan | null | undefined, next: EditPlan): string[] {
+  if (!prev) return [];
+  const present = new Set(planElements(next).map((e) => e.el.id));
+  const kept: string[] = [];
+  for (const { kind, key, label } of ELEMENT_LISTS) {
+    for (const el of listOf(prev, key) ?? []) {
+      if (el.origin !== 'owner' || !el.id || present.has(el.id)) continue;
+      (next as unknown as Record<ElementListKey, PlanElement[]>)[key] = [...(listOf(next, key) ?? []), structuredClone(el)];
+      present.add(el.id);
+      kept.push(`Giữ ${label} bạn đã thêm: «${elementLabel(kind, el)}»`);
+    }
+  }
+  if (kept.length && (next.beats || next.scenes || next.graphics)) next.planFormat = 2;
+  return kept;
+}
+
+/**
+ * The runner calls this when the AI hands in a new plan: owner elements the new plan dropped are copied back
+ * and named in `changes`. Idempotent; validateAgentPlan already applies it when it gets the previous plan.
+ * With `ctx`, anchored elements are re-timed to the new cut list.
+ */
+export function preserveOwnerElements(prev: EditPlan | null | undefined, next: EditPlan, ctx?: PlanContext): EditPlan {
+  const out = structuredClone(next);
+  const kept = keepOwnerElements(prev, out);
+  if (!kept.length) return next;
+  const plan = ctx ? derivePlan(out, ctx) : out;
+  plan.changes = [...(next.changes ?? []).filter((c) => c !== 'Không có thay đổi'), ...kept];
+  return plan;
 }
 
 // ── Automatic plan (v1) ──
@@ -277,7 +381,7 @@ export interface PlanPatch {
   meta?: Partial<EditPlan['meta']>;
 }
 
-function wordsText(words: Transcript['words'], idx: number[], max = 6): string {
+export function wordsText(words: Transcript['words'], idx: number[], max = 6): string {
   const shown = idx.slice(0, max).map((i) => words[i]?.text ?? '').filter(Boolean).join(' ');
   return idx.length > max ? `${shown} …` : shown;
 }
@@ -388,6 +492,16 @@ export function diffPlans(from: EditPlan, to: EditPlan, transcript?: Pick<Transc
     out.push(`Hiệu ứng chữ: ${from.overlays.length} → ${to.overlays.length}`);
   }
   if (!sameJson(from.zooms, to.zooms)) out.push(`Zoom: ${from.zooms.length} → ${to.zooms.length}`);
+  if (to.templateId && from.templateId !== to.templateId) out.push(`Mẫu edit: ${to.templateId}`);
+  for (const { key, label } of ELEMENT_LISTS.filter((l) => l.key === 'beats' || l.key === 'scenes' || l.key === 'graphics')) {
+    const a = new Map((listOf(from, key) ?? []).map((x) => [x.id, x]));
+    const b = listOf(to, key) ?? [];
+    const added = b.filter((x) => !a.has(x.id)).length;
+    const changed = b.filter((x) => a.has(x.id) && !sameJson(a.get(x.id), x)).length;
+    const dropped = [...a.keys()].filter((k) => !b.some((x) => x.id === k)).length;
+    const parts = [added && `thêm ${added}`, dropped && `bỏ ${dropped}`, changed && `sửa ${changed}`].filter(Boolean);
+    if (parts.length) out.push(`${label[0].toUpperCase()}${label.slice(1)}: ${parts.join(', ')}`);
+  }
   if (!sameJson(from.captions, to.captions)) out.push('Đổi cách hiện phụ đề');
   if (!sameJson(from.music, to.music)) out.push(to.music ? `Nhạc nền: ${to.music.mood || to.music.assetId}` : 'Bỏ nhạc nền');
   if (from.sfx.length !== to.sfx.length) out.push(`Tiếng động: ${from.sfx.length} → ${to.sfx.length}`);
@@ -404,8 +518,30 @@ export function diffPlans(from: EditPlan, to: EditPlan, transcript?: Pick<Transc
 
 const aspectEnum = z.enum(['9:16', '16:9', '1:1', '4:5']);
 const id = () => z.string().trim().min(1).max(60).default(() => randomUUID().slice(0, 8));
-const propValue = z.union([z.string().max(500), z.number(), z.array(z.string().max(300)).max(20)]);
+export const propValueSchema = z.union([z.string().max(500), z.number(), z.array(z.string().max(300)).max(20)]);
+const propValue = propValueSchema;
 const nonNeg = z.number().finite().min(0);
+
+/** Plan v2 ids end up in `data-el-id` attributes and overrides.json keys. */
+export const elementIdSchema = z.string().trim().regex(/^[A-Za-z0-9][A-Za-z0-9_-]{0,59}$/, 'id chỉ gồm chữ, số, "-" và "_" (tối đa 60)');
+const originEnum = z.enum(['ai', 'owner']);
+const componentId = z.string().trim().min(1).max(60);
+const animInId = z.string().trim().min(1).max(60);
+const propsRecord = z.record(z.string().min(1).max(40), propValue);
+export const elementSoundSchema = z.object({
+  mode: z.enum(['auto', 'none', 'asset']),
+  assetId: z.string().min(1).max(200).optional(),
+  volume: z.number().finite().min(0).max(2).default(1),
+});
+const elementBase = {
+  id: elementIdSchema.optional(),
+  anchorWord: z.number().int().min(0).optional(),
+  at: nonNeg.optional(),
+  duration: z.number().positive().max(60),
+  animIn: animInId.optional(),
+  sound: elementSoundSchema.optional(),
+  origin: originEnum.optional(),
+};
 
 const hookOptionSchema = z.object({
   id: id(),
@@ -417,6 +553,47 @@ const hookOptionSchema = z.object({
   moveToWord: z.number().int().min(0).optional(),
 });
 
+const brollSchema = z.object({
+  id: id(),
+  anchorWord: z.number().int().min(0),
+  duration: z.number().positive().max(30),
+  title: z.string().trim().min(1).max(160),
+  reason: z.string().max(300).default(''),
+  source: z.enum(['product', 'library', 'ai', 'upload', 'pexels']).default('library'),
+  assetId: z.string().max(200).optional(),
+  prompt: z.string().max(1000).optional(),
+  layout: z.enum(['full', 'card', 'cutout']).default('card'),
+  box: z.object({ x: z.number().min(0).max(100), y: z.number().min(0).max(100), w: z.number().positive().max(100), h: z.number().positive().max(100) }).optional(),
+  enabled: z.boolean().default(true),
+  hint: z.string().trim().max(500).optional(),
+  query: z.object({ description: z.string().trim().min(1).max(300), keywords: z.array(z.string().trim().min(1).max(60)).min(1).max(8) }).optional(),
+  animIn: animInId.optional(),
+  sound: elementSoundSchema.optional(),
+  origin: originEnum.optional(),
+});
+
+const zoomSchema = z.object({
+  id: elementIdSchema.optional(),
+  anchorWord: z.number().int().min(0).optional(),
+  at: nonNeg.optional(),
+  duration: z.number().positive().max(10),
+  scale: z.number().min(1).max(2),
+  origin: originEnum.optional(),
+});
+
+const beatSchema = z.object({
+  ...elementBase,
+  component: componentId.default('text-beat'),
+  kicker: z.string().trim().max(80).optional(),
+  title: z.string().trim().min(1).max(200),
+  sub: z.string().trim().max(200).optional(),
+});
+const sceneSchema = z.object({ ...elementBase, component: componentId, props: propsRecord.default({}) });
+const graphicSchema = z.object({ ...elementBase, component: componentId, assetId: z.string().min(1).max(200).optional(), props: propsRecord.optional() });
+
+/** One element of each kind, as plans and POST /plan/ops `add` carry it. */
+export const ELEMENT_SCHEMAS = { beat: beatSchema, scene: sceneSchema, graphic: graphicSchema, broll: brollSchema, zoom: zoomSchema } as const;
+
 export const planInputSchema = z.object({
   styleId: z.string().max(40).default(''),
   aspect: aspectEnum.optional(),
@@ -425,19 +602,7 @@ export const planInputSchema = z.object({
   cutWords: z.array(z.number().int().min(0)).max(20000).default([]),
   gapMs: z.number().int().min(0).max(5000).default(250),
   hook: z.object({ options: z.array(hookOptionSchema).min(1).max(8), chosen: z.string().min(1) }).optional(),
-  brolls: z.array(z.object({
-    id: id(),
-    anchorWord: z.number().int().min(0),
-    duration: z.number().positive().max(30),
-    title: z.string().trim().min(1).max(160),
-    reason: z.string().max(300).default(''),
-    source: z.enum(['product', 'library', 'ai', 'upload', 'pexels']).default('library'),
-    assetId: z.string().max(200).optional(),
-    prompt: z.string().max(1000).optional(),
-    layout: z.enum(['full', 'card', 'cutout']).default('card'),
-    box: z.object({ x: z.number().min(0).max(100), y: z.number().min(0).max(100), w: z.number().positive().max(100), h: z.number().positive().max(100) }).optional(),
-    enabled: z.boolean().default(true),
-  })).max(40).default([]),
+  brolls: z.array(brollSchema).max(40).default([]),
   captions: z.object({
     styleId: z.string().max(60).default('bottom-clean'),
     position: z.enum(['bottom', 'middle', 'behind']).default('bottom'),
@@ -452,7 +617,7 @@ export const planInputSchema = z.object({
     duration: z.number().positive().max(30),
     props: z.record(z.string(), propValue).default({}),
   })).max(80).default([]),
-  zooms: z.array(z.object({ at: nonNeg, duration: z.number().positive().max(10), scale: z.number().min(1).max(2) })).max(60).default([]),
+  zooms: z.array(zoomSchema).max(60).default([]),
   music: z.object({ assetId: z.string().min(1).max(200), mood: z.string().max(60).default(''), gainDb: z.number().min(-60).max(12), duck: z.boolean().default(true) }).optional(),
   sfx: z.array(z.object({ at: nonNeg, assetId: z.string().min(1).max(200), gainDb: z.number().min(-60).max(12).optional() })).max(120).default([]),
   covers: z.array(z.object({ frameAt: nonNeg, title: z.string().trim().max(120), subtitle: z.string().trim().max(160).optional() })).max(6).default([]),
@@ -462,32 +627,177 @@ export const planInputSchema = z.object({
     hashtags: z.array(z.string().max(80)).max(40).default([]),
     hook: z.string().max(300).optional(),
   }).default({ title: '', caption: '', hashtags: [] }),
+  // Plan v2 (Dựng nhanh)
+  planFormat: z.literal(2).optional(),
+  templateId: z.string().trim().min(1).max(80).optional(),
+  autoCut: z.boolean().optional(),
+  beats: z.array(beatSchema).max(80).optional(),
+  scenes: z.array(sceneSchema).max(40).optional(),
+  graphics: z.array(graphicSchema).max(20).optional(),
 });
+
+// ── Template rules (the registry lives in templates/; the validator only reads this much of a manifest) ──
+
+export interface PlanPropDef {
+  type: 'text' | 'markup' | 'list' | 'number' | 'color' | 'asset';
+  required?: boolean;
+  maxWords?: number;
+  maxLines?: number;
+  maxItems?: number;
+}
+
+/** What the validator reads of a template; templates/types.ts TemplateManifest fits it. */
+export interface PlanTemplate {
+  legacy?: boolean;
+  components: Record<string, { kind: 'beat' | 'scene' | 'graphic' | 'broll-frame'; props: Record<string, PlanPropDef>; animations?: string[] }>;
+  animations: { id: string }[];
+}
+
+/** Registry lookup (templates/registry.ts getTemplate); null = the template is not on this machine. */
+export type TemplateLookup = (id: string) => PlanTemplate | null;
+
+export interface ElementCheckEnv {
+  /** Transcript word count. */
+  words: number;
+  cut: Set<number>;
+  /** The plan's template when the registry has it; legacy templates are not checked. */
+  template: PlanTemplate | null;
+  /** Plan v2 rule for B-roll too: no anchor on a cut word (legacy plans keep the old rule). */
+  strictBroll: boolean;
+}
+
+/** The fields checkElement reads; every plan element fits it. */
+export interface CheckedElement {
+  id?: string;
+  anchorWord?: number;
+  at?: number;
+  animIn?: string;
+  sound?: { mode: string; assetId?: string };
+  component?: string;
+  props?: ElementProps;
+  kicker?: string;
+  title?: string;
+  sub?: string;
+  query?: { keywords: string[] };
+}
+
+function textStats(type: PlanPropDef['type'], value: string): { words: number; lines: number } {
+  if (type === 'markup') return markupStats(value);
+  return { words: value.split(/\s+/).filter(Boolean).length, lines: value.split('\n').length };
+}
+
+function checkProps(where: string, component: string, props: ElementProps, defs: Record<string, PlanPropDef>, errors: string[], warnings: string[], unknown = true) {
+  if (unknown) for (const key of Object.keys(props)) if (!defs[key]) errors.push(`${where}: component "${component}" không có prop "${key}"`);
+  for (const [key, def] of Object.entries(defs)) {
+    const value = props[key];
+    if (value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) {
+      if (def.required) errors.push(`${where}: thiếu prop "${key}"`);
+      continue;
+    }
+    const ok = def.type === 'number' ? typeof value === 'number' : def.type === 'list' ? Array.isArray(value) : typeof value === 'string';
+    if (!ok) {
+      errors.push(`${where}: prop "${key}" phải là ${def.type === 'number' ? 'số' : def.type === 'list' ? 'danh sách chữ' : 'chữ'}`);
+      continue;
+    }
+    if (Array.isArray(value)) {
+      if (def.maxItems && value.length > def.maxItems) errors.push(`${where}: prop "${key}" tối đa ${def.maxItems} mục (đang ${value.length})`);
+      if (def.maxWords && value.some((v) => textStats('text', v).words > def.maxWords!)) warnings.push(`${where}: mỗi mục của "${key}" nên tối đa ${def.maxWords} từ`);
+    } else if (typeof value === 'string') {
+      const s = textStats(def.type, value);
+      if (def.maxWords && s.words > def.maxWords) warnings.push(`${where}: "${key}" nên tối đa ${def.maxWords} từ (đang ${s.words})`);
+      if (def.maxLines && s.lines > def.maxLines) warnings.push(`${where}: "${key}" nên tối đa ${def.maxLines} dòng (đang ${s.lines})`);
+    }
+  }
+}
+
+/** One element against the transcript and the template: errors block the plan, warnings do not. */
+export function checkElement(kind: PlanElementKind, where: string, el: CheckedElement, env: ElementCheckEnv, errors: string[], warnings: string[]) {
+  if (el.anchorWord !== undefined) {
+    if (el.anchorWord >= env.words) errors.push(`${where}: anchorWord vượt quá ${env.words - 1}`);
+    else if (env.cut.has(el.anchorWord) && (kind !== 'broll' || env.strictBroll)) errors.push(`${where}: anchorWord ${el.anchorWord} là từ đã cắt (cutWords)`);
+  } else if (kind !== 'broll' && el.at === undefined) errors.push(`${where}: cần at hoặc anchorWord`);
+  if (el.sound?.mode === 'asset' && !el.sound.assetId) errors.push(`${where}: sound mode "asset" cần assetId`);
+  if (kind === 'beat' && el.title !== undefined) {
+    const s = markupStats(el.title);
+    if (s.words < 2 || s.words > 6) warnings.push(`${where}: tiêu đề nên 2–6 từ (đang ${s.words})`);
+    if (s.lines > 2) warnings.push(`${where}: tiêu đề tối đa 2 dòng (đang ${s.lines})`);
+  }
+  if (kind === 'broll' && el.query && (el.query.keywords.length < 2 || el.query.keywords.length > 4)) {
+    warnings.push(`${where}: query nên có 2–4 từ khoá tiếng Anh`);
+  }
+
+  const t = env.template;
+  if (!t || t.legacy) return;
+  if (el.animIn !== undefined && !t.animations.some((a) => a.id === el.animIn)) errors.push(`${where}: mẫu không có hiệu ứng vào "${el.animIn}"`);
+  if (kind !== 'beat' && kind !== 'scene' && kind !== 'graphic') return;
+  const def = el.component ? t.components[el.component] : undefined;
+  if (!def) { errors.push(`${where}: mẫu không có component "${el.component ?? ''}"`); return; }
+  if (def.kind !== kind) { errors.push(`${where}: component "${el.component}" dành cho ${def.kind}, không dùng cho ${kind}`); return; }
+  if (el.animIn !== undefined && def.animations && !def.animations.includes(el.animIn)) {
+    errors.push(`${where}: component "${el.component}" không nhận hiệu ứng vào "${el.animIn}"`);
+  }
+  if (kind === 'beat') {
+    // A beat's words are its own fields; its title has the fixed rule above.
+    const fields: ElementProps = {};
+    if (el.kicker !== undefined) fields.kicker = el.kicker;
+    if (el.sub !== undefined) fields.sub = el.sub;
+    const defs = Object.fromEntries(Object.entries(def.props).filter(([k]) => k === 'kicker' || k === 'sub'));
+    checkProps(where, el.component!, fields, defs, errors, warnings, false);
+  } else checkProps(where, el.component!, el.props ?? {}, def.props, errors, warnings);
+}
+
+/** Elements on the same track that overlap in time (warning only). */
+function overlapWarnings(plan: EditPlan, ctx: PlanContext): string[] {
+  const out: string[] = [];
+  const words = ctx.transcript.words;
+  const { map } = planMapper(plan, ctx);
+  const brolls = plan.brolls.filter((b) => b.enabled).flatMap((b) => {
+    const at = words[b.anchorWord] ? map(words[b.anchorWord].start) : null;
+    return at === null ? [] : [{ id: b.id, at, duration: b.duration }];
+  });
+  const tracks: [string, { id?: string; at: number; duration: number }[]][] = [
+    ['Chữ', plan.beats ?? []], ['Minh hoạ', plan.scenes ?? []], ['Đồ hoạ', plan.graphics ?? []], ['Cảnh trám', brolls], ['Zoom', plan.zooms],
+  ];
+  const name = (x: { id?: string; at: number }) => x.id ?? `${r1(x.at)}s`;
+  for (const [track, items] of tracks) {
+    const sorted = [...items].sort((a, b) => a.at - b.at);
+    let last = sorted[0];
+    for (const cur of sorted.slice(1)) {
+      if (cur.at < last.at + last.duration - 0.05) out.push(`Track ${track}: "${name(cur)}" chồng thời gian với "${name(last)}"`);
+      if (cur.at + cur.duration > last.at + last.duration) last = cur;
+    }
+  }
+  return out;
+}
 
 export interface ValidatedPlan {
   plan?: EditPlan;
   errors: string[];
+  /** Advice that does not block (title length, overlaps on a track, template not installed). */
+  warnings: string[];
 }
 
-function zodIssues(err: z.ZodError): string[] {
+export function zodIssues(err: z.ZodError): string[] {
   return err.issues.slice(0, 12).map((i) => `${i.path.join('.') || 'plan'}: ${i.message}`);
 }
 
 /**
  * Check a plan an agent wrote and turn it into the next version: derived fields recomputed,
- * overlay times re-anchored, author "agent", `changes` from the diff when the agent gave none.
+ * overlay and element times re-anchored, author "agent", owner elements of the previous version kept,
+ * `changes` from the diff when the agent gave none.
  */
 export function validateAgentPlan(
   input: unknown,
   ctx: PlanContext,
-  base: { previous?: EditPlan | null; version: number; aspect: VideoAspect; styleId?: string; note?: string },
+  base: { previous?: EditPlan | null; version: number; aspect: VideoAspect; styleId?: string; note?: string; templates?: TemplateLookup },
 ): ValidatedPlan {
   const parsed = planInputSchema.safeParse(input);
-  if (!parsed.success) return { errors: zodIssues(parsed.error) };
+  if (!parsed.success) return { errors: zodIssues(parsed.error), warnings: [] };
   const p = parsed.data;
   const words = ctx.transcript.words;
   const n = words.length;
   const errors: string[] = [];
+  const warnings: string[] = [];
 
   const badCut = p.cutWords.filter((i) => i >= n);
   if (badCut.length) errors.push(`cutWords: chỉ số từ vượt quá ${n - 1} (${badCut.slice(0, 5).join(', ')})`);
@@ -502,7 +812,6 @@ export function validateAgentPlan(
     const ids = p.hook.options.map((o) => o.id);
     if (new Set(ids).size !== ids.length) errors.push('hook.options có id trùng');
   }
-  for (const b of p.brolls) if (b.anchorWord >= n) errors.push(`brolls "${b.id}": anchorWord vượt quá ${n - 1}`);
   for (const o of p.overlays) if (o.anchorWord !== undefined && o.anchorWord >= n) errors.push(`overlays "${o.id}": anchorWord vượt quá ${n - 1}`);
   const dupe = (list: { id: string }[], what: string) => {
     if (new Set(list.map((x) => x.id)).size !== list.length) errors.push(`${what} có id trùng`);
@@ -511,9 +820,54 @@ export function validateAgentPlan(
   dupe(p.overlays, 'overlays');
   const sourceDur = ctx.transcript.durationSec;
   for (const c of p.covers) if (c.frameAt > sourceDur + 0.5) errors.push(`covers: frameAt ${c.frameAt}s vượt thời lượng gốc ${r1(sourceDur)}s`);
-  if (errors.length) return { errors };
 
+  // ── Plan v2 ──
+  const v2 = p.planFormat === 2 || p.templateId !== undefined || p.autoCut !== undefined || Boolean(p.beats || p.scenes || p.graphics);
   const prev = base.previous ?? null;
+  const taken = new Set<string>([...(p.beats ?? []), ...(p.scenes ?? []), ...(p.graphics ?? []), ...p.brolls, ...p.zooms].flatMap((x) => (x.id ? [x.id] : [])));
+  // Missing ids are minted per kind: b1.., s1.., g1.., and z1.. for the zooms of a v2 plan.
+  const fill = <T extends { id?: string }>(list: T[], prefix: string): (T & { id: string })[] => list.map((x) => {
+    if (x.id) return x as T & { id: string };
+    const fresh = mintId(prefix, taken);
+    taken.add(fresh);
+    return { ...x, id: fresh };
+  });
+  const beats = p.beats && fill(p.beats, 'b');
+  const scenes = p.scenes && fill(p.scenes, 's');
+  const graphics = p.graphics && fill(p.graphics, 'g');
+  const zooms = v2 ? fill(p.zooms, 'z') : p.zooms;
+
+  const seen = new Set<string>();
+  const twice = new Set<string>();
+  for (const x of [...(beats ?? []), ...(scenes ?? []), ...(graphics ?? []), ...p.brolls, ...zooms]) {
+    if (!x.id) continue;
+    if (seen.has(x.id)) twice.add(x.id);
+    else seen.add(x.id);
+  }
+  for (const b of p.brolls) if (p.brolls.filter((y) => y.id === b.id).length > 1) twice.delete(b.id); // reported above
+  if (twice.size) errors.push(`id phần tử bị trùng: ${[...twice].slice(0, 5).join(', ')}`);
+
+  if (p.autoCut === false && p.cutWords.length) errors.push('autoCut false (tắt tự cắt) thì cutWords phải rỗng');
+  const template = p.templateId && base.templates ? base.templates(p.templateId) : null;
+  if (p.templateId && base.templates && !template) warnings.push(`Mẫu "${p.templateId}" chưa có trên máy: chưa kiểm tra component và hiệu ứng`);
+  const env: ElementCheckEnv = { words: n, cut: new Set(p.cutWords), template, strictBroll: v2 };
+  const lists: [PlanElementKind, ElementListKey, CheckedElement[] | undefined][] = [
+    ['beat', 'beats', beats], ['scene', 'scenes', scenes], ['graphic', 'graphics', graphics], ['broll', 'brolls', p.brolls], ['zoom', 'zooms', zooms],
+  ];
+  for (const [kind, key, list] of lists) {
+    (list ?? []).forEach((el, k) => checkElement(kind, el.id ? `${key} "${el.id}"` : `${key}[${k}]`, el, env, errors, warnings));
+  }
+  if (errors.length) return { errors, warnings };
+
+  // An agent cannot make its own elements the owner's: origin 'owner' stays only on the owner's elements.
+  const ownerIds = new Set(prev ? planElements(prev).filter((e) => e.el.origin === 'owner').map((e) => e.el.id!) : []);
+  const own = <T extends { id?: string; origin?: 'ai' | 'owner' }>(x: T): T => {
+    if (x.origin !== 'owner' || (x.id && ownerIds.has(x.id))) return x;
+    const { origin: _drop, ...rest } = x;
+    return rest as T;
+  };
+  const timed = <T extends { id?: string; origin?: 'ai' | 'owner'; at?: number }>(x: T) => ({ ...own(x), at: x.at ?? 0 });
+
   const draft: EditPlan = {
     version: base.version,
     createdAt: new Date().toISOString(),
@@ -528,19 +882,28 @@ export function validateAgentPlan(
     keep: [],
     removed: [],
     ...(p.hook ? { hook: p.hook } : {}),
-    brolls: p.brolls,
+    brolls: p.brolls.map(own),
     captions: p.captions,
     overlays: p.overlays,
-    zooms: p.zooms,
+    zooms: zooms.map(timed),
     ...(p.music ? { music: p.music } : {}),
     sfx: p.sfx,
     covers: p.covers.length ? p.covers : (prev?.covers ?? []),
     meta: { ...p.meta, title: p.meta.title || prev?.meta.title || '' },
     author: 'agent',
+    ...(v2 ? { planFormat: 2 as const } : {}),
+    ...(p.templateId ? { templateId: p.templateId } : {}),
+    ...(p.autoCut !== undefined ? { autoCut: p.autoCut } : {}),
+    ...(beats ? { beats: beats.map(timed) } : {}),
+    ...(scenes ? { scenes: scenes.map(timed) } : {}),
+    ...(graphics ? { graphics: graphics.map(timed) } : {}),
   };
+  const kept = keepOwnerElements(prev, draft);
   const plan = derivePlan(draft, ctx);
+  warnings.push(...overlapWarnings(plan, ctx));
   const note = base.note?.trim();
   const diff = prev ? diffPlans(prev, plan, ctx.transcript) : [];
   plan.changes = note ? [note, ...diff.filter((d) => d !== 'Không có thay đổi')] : diff.length ? diff : ['Kế hoạch đầu tiên của agent'];
-  return { plan, errors: [] };
+  if (kept.length) plan.changes = [...plan.changes.filter((c) => c !== 'Không có thay đổi'), ...kept];
+  return { plan, errors: [], warnings };
 }

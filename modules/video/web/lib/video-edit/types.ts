@@ -123,6 +123,63 @@ export interface HookOption {
   moveToWord?: number;
 }
 
+// ── Plan v2 elements (Dựng nhanh): every element has an id that overrides.json keys on ──
+
+/** ai = the director wrote it; owner = the owner added it in the editor (kept when the AI revises). */
+export type ElementOrigin = 'ai' | 'owner';
+
+export interface ElementSound {
+  /** auto = the template's sound rules; none = silent; asset = an SFX from the library. */
+  mode: 'auto' | 'none' | 'asset';
+  assetId?: string;
+  /** 0..2, 1 = the template's default level. */
+  volume: number;
+}
+
+export interface ElementBase {
+  /** Unique in the plan: beat 'b1'.., scene 's1'.., graphic 'g1'.., broll keeps its id, zoom 'z1'.. */
+  id: string;
+  /** Transcript word index; `at` is re-timed from it when the cut list changes. */
+  anchorWord?: number;
+  /** Output seconds. */
+  at: number;
+  duration: number;
+  /** Entrance preset id of the template ('typewriter' | 'slide-short' | 'slide-up' | 'pop' | 'fade' …). */
+  animIn?: string;
+  sound?: ElementSound;
+  /** Default 'ai'. */
+  origin?: ElementOrigin;
+}
+
+export type ElementProps = Record<string, string | number | string[]>;
+
+export interface TextBeat extends ElementBase {
+  /** Component id in the template, default 'text-beat'. */
+  component: string;
+  /** Small label, e.g. "BƯỚC 1". */
+  kicker?: string;
+  /** Markup: *word* = highlighted, | = line break; 2–6 words, at most 2 lines. */
+  title: string;
+  sub?: string;
+}
+
+export interface SceneItem extends ElementBase {
+  /** e.g. 'scene-steps' | 'scene-before-after'. */
+  component: string;
+  /** Per the component's props schema. */
+  props: ElementProps;
+}
+
+export interface GraphicItem extends ElementBase {
+  /** e.g. 'logo-end'. */
+  component: string;
+  assetId?: string;
+  props?: ElementProps;
+}
+
+/** The kinds of plan element the editor and POST /plan/ops address by id. */
+export type PlanElementKind = 'beat' | 'scene' | 'graphic' | 'broll' | 'zoom';
+
 export interface BrollItem {
   id: string;
   /** Transcript word the cut-in starts on; re-timed automatically when cuts change. */
@@ -140,10 +197,30 @@ export interface BrollItem {
   /** Percent of the video frame, used to keep a cutout above the speaker. */
   box?: { x: number; y: number; w: number; h: number };
   enabled: boolean;
+  /** The owner's description sent with their own footage. */
+  hint?: string;
+  /** What the director wants found for a filler shot (keywords in English, 2–4). */
+  query?: { description: string; keywords: string[] };
+  animIn?: string;
+  sound?: ElementSound;
+  origin?: ElementOrigin;
+}
+
+export interface ZoomItem {
+  /** 'z1'.. in plan v2; legacy plans have none. */
+  id?: string;
+  anchorWord?: number;
+  /** Output seconds. */
+  at: number;
+  duration: number;
+  scale: number;
+  origin?: ElementOrigin;
 }
 
 export interface EditPlan {
   version: number;
+  /** In-place edits of an owner draft (POST /plan/ops) bump this instead of `version`. */
+  rev?: number;
   createdAt: string;
   styleId: string;
   aspect: VideoAspect;
@@ -175,7 +252,7 @@ export interface EditPlan {
     duration: number;
     props: Record<string, string | number | string[]>;
   }[];
-  zooms: { at: number; duration: number; scale: number }[];
+  zooms: ZoomItem[];
   music?: { assetId: string; mood: string; gainDb: number; duck: boolean };
   sfx: { at: number; assetId: string; gainDb?: number }[];
   covers: { frameAt: number; title: string; subtitle?: string }[];
@@ -184,6 +261,84 @@ export interface EditPlan {
   author: 'auto' | 'agent' | 'owner';
   /** Owner-visible list of what changed vs the previous version. */
   changes?: string[];
+  // Plan v2 (Dựng nhanh): all optional, so a plan without them is a legacy plan and still valid.
+  planFormat?: 2;
+  templateId?: string;
+  autoCut?: boolean;
+  /** Track "Chữ". */
+  beats?: TextBeat[];
+  /** Track "Minh hoạ". */
+  scenes?: SceneItem[];
+  /** Track "Đồ hoạ". */
+  graphics?: GraphicItem[];
+}
+
+// ── Owner overrides (overrides.json next to project.json) ──
+// The owner's hand edits by element id, applied over the plan by the composition. The AI never writes
+// this file; when a new AI plan drops an element that has an override, GET /overrides lists it in `dropped`.
+
+export interface ElementOverride {
+  /** Offset, percent of the frame (x, y). */
+  t?: [number, number];
+  /** Size multiplier, 1 = unchanged. */
+  s?: number;
+  text?: { kicker?: string; title?: string; sub?: string };
+  props?: ElementProps;
+  animIn?: string;
+  sound?: ElementSound;
+  at?: number;
+  duration?: number;
+  /** The owner deleted an AI element. */
+  hidden?: boolean;
+  updatedAt: string;
+}
+
+export interface OverridesDoc {
+  version: 1;
+  /** Key = element id. */
+  elements: Record<string, ElementOverride>;
+  /** Caption style the owner changed (CaptionStyle: see the template contract). */
+  captions?: Partial<CaptionStyle>;
+  updatedAt: string;
+}
+
+/** An AI element with an override that the current plan no longer has; the editor offers to restore it. */
+export interface DroppedElement {
+  id: string;
+  kind: PlanElementKind;
+  label: string;
+  /** Latest plan version that still had it (POST /plan/ops `restore`). */
+  fromVersion: number;
+}
+
+/**
+ * POST /projects/:id/plan/ops body `{ baseVersion, ops }`: structural owner edits by element id. They gather
+ * into one working draft (an owner draft is edited in place, `rev` bumped); 409 when baseVersion is stale.
+ */
+export type PlanOp =
+  /** The machine assigns the id; origin 'owner'. */
+  | { op: 'add'; kind: PlanElementKind; element: object }
+  /** Owner elements only; an AI element is hidden with an override instead. */
+  | { op: 'remove'; id: string }
+  /** Split a timed element at `at` (output seconds). */
+  | { op: 'split'; id: string; at: number }
+  /** Cut / keep words, as PATCH /plan toggleWords. */
+  | { op: 'toggleWords'; words: number[] }
+  | { op: 'restore'; id: string; fromVersion: number };
+
+/** Caption look of a template (templates/types.ts re-exports it). */
+export interface CaptionStyle {
+  /** 0..1 from the top. */
+  pos: number;
+  maxWidthPct: number;
+  align: 'center' | 'left';
+  font: { family: string; sizePct: number; weight: number; upper?: boolean };
+  fill: string;
+  stroke?: { color: string; width: number };
+  shadow?: string;
+  box?: { color: string; padding: number; radius: number };
+  highlight: { color: string; mode: 'color' | 'box' | 'pop' };
+  maxWordsPerChunk: number;
 }
 
 /** Review marks the owner pins on the timeline/transcript, sent to the agent in one batch. */
@@ -375,10 +530,27 @@ export interface VideoProject {
   /** Chosen cover (1..3) after delivery. */
   chosenCover?: number;
   outputs: { final?: boolean; covers?: number };
+  /** Dựng nhanh settings saved by POST /projects/:id/ai-edit. */
+  quick?: QuickSettings;
   /** True while an agent turn is running. */
   busy: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface QuickSettings {
+  /** manual = "Bỏ qua, tự chỉnh tay": no director turn, the machine makes the plan. */
+  mode: 'ai' | 'manual';
+  autoCut: boolean;
+  /** Suggested gapMs 800 / 400 / 250. */
+  cutLevel: 'nhe' | 'vua' | 'sat';
+  templateId: string;
+  assets: { assetId: string; hint?: string }[];
+  music: { mode: 'ai' | 'pick' | 'none'; assetId?: string; duck: boolean; snapToBeat: boolean; endOnFinal: boolean };
+  /** Allow searching stock footage for filler shots. */
+  stock: boolean;
+  note?: string;
+  startedAt: string;
 }
 
 export type VideoProjectSummary = Pick<
@@ -500,6 +672,16 @@ export interface VideoAsset {
   /** Fonts: family name and the faces installed (file per weight/style). */
   family?: string;
   faces?: { weight: number; style: 'normal' | 'italic'; file: string }[];
+  /** Asset Hub index: Vietnamese description and quality 0..1 written by the AI. */
+  caption?: string;
+  quality?: number;
+  indexedAt?: string;
+  /** Music: strong-beat times in seconds, sung or not, genre. */
+  beats?: number[];
+  vocals?: boolean;
+  genre?: string;
+  /** Footage the owner added to one project (Dựng nhanh "tư liệu"). */
+  projectId?: string;
   createdAt?: string;
   updatedAt?: string;
 }
