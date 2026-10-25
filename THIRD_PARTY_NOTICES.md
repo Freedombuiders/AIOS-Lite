@@ -12,6 +12,7 @@ Giấy phép của chính AIOS-Lite là **MIT**, © 2026 Tony Hoang (file [LICEN
 4. [Thư viện npm chính](#4-thư-viện-npm-chính)
 5. [Công cụ dòng lệnh bên ngoài](#5-công-cụ-dòng-lệnh-bên-ngoài)
 6. [OpenFilm (MIT): module `video`, Dựng nhanh](#6-openfilm-mit-module-video-dựng-nhanh)
+7. [video-use (MIT): module `video`, phụ đề Dựng nhanh](#7-video-use-mit-module-video-phụ-đề-dựng-nhanh)
 
 ---
 
@@ -145,7 +146,7 @@ Lớp chỉnh tay (overrides) và thao tác plan theo id của tab Dựng nhanh 
 | `studio/ui/src/lib/dropped-overrides.ts` (`droppedOverrides`) | `modules/video/server/edit/overrides.ts` (`droppedElements`) | Viết lại cho plan theo phiên bản: phần tử có chỉnh tay mà bản AI mới làm mất |
 | `studio/server/ops.mjs` (`applyOps`, `EditError`, `mintClipId`) | `modules/video/server/edit/plan-ops.ts` (`applyPlanOps`, `PlanOpError`) | Viết lại cho EditPlan: thao tác theo id, lỗi `conflict`/`invalid`, nửa phải khi tách có id `<id>-b` |
 | `studio/ui/src/editor/undo.ts` (`inverse`) | `modules/video/server/edit/plan-ops.ts` (op `restore`) | Chỉ lấy ý tưởng: khôi phục theo id, phần tử đã có lại thì không làm gì |
-| `src/overrides.mjs` | (chưa dùng ở đây; lớp áp overrides lên khung hình thuộc composition) | Chỉ đọc |
+| `src/overrides.mjs` (`override`) | `modules/video/server/edit/pipeline/composition-v2/overrides.ts` (`overridesScript`) | Lấy cách áp sau mỗi lần vẽ khung bằng thuộc tính CSS `translate`/`scale` riêng; viết lại cho phần tử theo `data-el-id` (chữ, props, hiệu ứng vào, thời gian, ẩn áp lúc dựng composition) |
 
 Thông báo bản quyền của OpenFilm:
 
@@ -153,6 +154,40 @@ Thông báo bản quyền của OpenFilm:
 MIT License
 
 Copyright (c) 2026 OpenFilm contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## 7. video-use (MIT): module `video`, phụ đề Dựng nhanh
+
+Cách chia phụ đề thành cụm ngắn của composition Dựng nhanh được viết lại bằng TypeScript dựa trên [video-use](https://github.com/browser-use/video-use) (giấy phép MIT, bản đọc ở commit `43cfc56`). File có ghi chú nguồn ở đầu file.
+
+| File nguồn của video-use | File trong AIOS-Lite | Mức độ lấy |
+|---|---|---|
+| `helpers/render.py` (`chunk_words`, `CHUNK_WORDS`, `CHUNK_MAX_WORDS`, `CHUNK_MIN_S`, `CHUNK_PAUSE_S`, `PUNCT_BREAK`) | `modules/video/server/edit/pipeline/composition-v2/captions.ts` (`chunkWords`) | Viết lại cùng luật: ngắt ở dấu câu hoặc khoảng lặng ≥0,3s, mặc định 2 từ, cụm ngắn hơn 0,35s được thêm từ tới mức tối đa (lấy `maxWordsPerChunk` của mẫu thay cho 3) |
+
+Thông báo bản quyền của video-use:
+
+```
+MIT License
+
+Copyright (c) 2026 Browser Use
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

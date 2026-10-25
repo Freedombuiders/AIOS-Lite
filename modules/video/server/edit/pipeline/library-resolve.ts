@@ -12,6 +12,9 @@ export interface ResolvedAsset {
   file: string;
   ext: string;
   durationSec?: number;
+  /** Music: tempo and strong-beat times in seconds from the start of the track (Asset Hub index). */
+  bpm?: number;
+  beats?: number[];
 }
 
 export interface AssetResolver {
@@ -35,6 +38,8 @@ export function createAssetResolver(root: string): AssetResolver {
       return {
         id: asset.id, kind: asset.kind, name: asset.name, file, ext: extOf(file),
         ...(asset.durationSec ? { durationSec: asset.durationSec } : {}),
+        ...(asset.bpm ? { bpm: asset.bpm } : {}),
+        ...(asset.beats?.length ? { beats: asset.beats } : {}),
       };
     } catch {
       return null;

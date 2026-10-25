@@ -36,7 +36,8 @@ export async function runHyperframesRender(a: HyperframesRenderArgs): Promise<vo
 
 export interface RenderInput {
   store: VideoEditStore;
-  project: Pick<VideoProject, 'id' | 'code' | 'title' | 'aspect'>;
+  /** `quick` carries the owner's music choices for template plans (duck, snapToBeat, endOnFinal). */
+  project: Pick<VideoProject, 'id' | 'code' | 'title' | 'aspect' | 'quick'>;
   profile: Pick<VideoProfile, 'brand' | 'audio'>;
   style?: VideoStyle | null;
   plan: EditPlan;
@@ -110,9 +111,10 @@ export async function renderExport(input: RenderInput): Promise<RenderRecord & {
     throw new Error('Phong cách Quyên cần ít nhất một ảnh Pexels tách nền trên đầu. Thêm PNG alpha vào kho và cập nhật B-roll trong kế hoạch trước khi xuất.');
   }
 
-  // 1. composition
+  // 1. composition (template plans take the owner's overrides.json on top)
   const built = buildComposition({
     plan, transcript, project, profile: input.profile, style: input.style, mode: 'export', resolver: input.resolver,
+    overrides: store.readOverrides(project.id),
   });
   const compDir = store.compositionDir(project.id);
   fs.mkdirSync(compDir, { recursive: true });
@@ -122,8 +124,13 @@ export async function renderExport(input: RenderInput): Promise<RenderRecord & {
 
   const wordsKept = transcript.words.length - plan.cutWords.length;
   log('cut', `đã cắt ${r1(plan.sourceDurationSec)}s → còn ${r1(plan.outputDurationSec)}s (${built.stats.segments} đoạn, ${wordsKept} từ giữ lại)`);
-  log('captions', `${built.stats.captions} cụm phụ đề, kiểu ${plan.captions.styleId}, tô ${plan.captions.highlight.length} từ khoá`);
-  log('effects', `${plan.hook ? 'hook, ' : ''}${built.stats.overlays} hiệu ứng, ${built.stats.brolls} B-roll${built.warnings.length ? `, bỏ qua ${built.warnings.length} mục` : ''}`);
+  const st = built.stats;
+  const blocks = st.beats !== undefined;
+  log('captions', `${st.captions} cụm phụ đề, kiểu ${blocks ? `của mẫu ${plan.templateId}` : plan.captions.styleId}, tô ${plan.captions.highlight.length} từ khoá`);
+  const effects = blocks
+    ? `${st.beats} nhịp chữ, ${st.scenes} cảnh minh hoạ, ${st.graphics} đồ hoạ`
+    : `${st.overlays} hiệu ứng`;
+  log('effects', `${plan.hook ? 'hook, ' : ''}${effects}, ${st.brolls} B-roll${built.warnings.length ? `, bỏ qua ${built.warnings.length} mục` : ''}`);
   for (const w of built.warnings) log('effects', w);
   const a = input.profile.audio;
   log('audio', `${built.stats.music ? 'nhạc nền, ' : 'không nhạc, '}${built.stats.sfx} tiếng động, chuẩn hoá về ${a.finalLufs} LUFS`);

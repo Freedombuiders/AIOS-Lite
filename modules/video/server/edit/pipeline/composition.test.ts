@@ -30,8 +30,9 @@ function plan(extra: Partial<EditPlan> = {}): EditPlan {
   return derivePlan({ ...base, ...extra }, { transcript: T });
 }
 
-const build = (p: EditPlan, mode: 'preview' | 'export' = 'preview', resolver = none) =>
-  buildComposition({ plan: p, transcript: T, project: { code: 'V', title: 't', aspect: '9:16' }, profile: { brand: {}, audio: { speechRate: 1, voiceLufs: -16, musicLufs: -34, finalLufs: -15.5 } }, mode, resolver });
+const input = (p: EditPlan, mode: 'preview' | 'export' = 'preview', resolver = none) =>
+  ({ plan: p, transcript: T, project: { code: 'V', title: 't', aspect: '9:16' as const }, profile: { brand: {}, audio: { speechRate: 1, voiceLufs: -16, musicLufs: -34, finalLufs: -15.5 } }, mode, resolver });
+const build = (p: EditPlan, mode: 'preview' | 'export' = 'preview', resolver = none) => buildComposition(input(p, mode, resolver));
 
 describe('buildComposition', () => {
   it('emits one video clip per kept range, preview media and a registered timeline', () => {
@@ -121,5 +122,54 @@ describe('buildComposition', () => {
   it('sizes the canvas per aspect', () => {
     const b = buildComposition({ plan: { ...plan(), aspect: '16:9' }, transcript: T, project: { code: 'V', title: 't', aspect: '16:9' }, profile: { brand: {}, audio: { speechRate: 1, voiceLufs: -16, musicLufs: -34, finalLufs: -15.5 } }, mode: 'preview', resolver: none });
     expect([b.width, b.height]).toEqual([1920, 1080]);
+  });
+});
+
+// Legacy plans (no templateId, or a `style:<id>` template) keep the builder they had before plan v2: the HTML is
+// compared with the files under __snapshots__/, written by the builder before the v2 work.
+describe('buildComposition · legacy plans unchanged', () => {
+  const rich = (extra: Partial<EditPlan> = {}) => plan({
+    hook: { options: [{ id: 'h1', kind: 'number', text: 'Giảm 50%', subtext: 'chỉ hôm nay', mode: 'overlay' }], chosen: 'h1' },
+    overlays: ['two-tier-title', 'keyword-pop', 'big-number', 'stacked-list', 'compare-ab', 'cta-button'].map((effect, i) => ({
+      id: `o${i}`, effect, anchorWord: i % 4, at: 0, duration: 1.2,
+      props: { small: 'nhỏ', big: 'LỚN', text: 'chữ', value: '50%', label: 'giảm', title: 'Ba bước', items: ['một', 'hai'], textA: 'cũ', textB: 'mới' },
+    })),
+    brolls: [{ id: 'br1', anchorWord: 2, duration: 1.5, title: 'Cảnh kho', reason: '', source: 'library', layout: 'card', enabled: true }],
+    zooms: [{ at: 0.5, duration: 1, scale: 1.12 }],
+    music: { assetId: 'bgm:x', mood: 'm', gainDb: -18, duck: true },
+    sfx: [{ at: 1, assetId: 'bgm:x' }],
+    ...extra,
+  });
+  const fonts: AssetResolver = {
+    byId: withAudio.byId,
+    font: (spec) => (spec ? { id: `font:${spec}`, kind: 'font', name: spec, file: `/lib/${spec}.ttf`, ext: 'ttf' } : null),
+  };
+
+  it('preview, 9:16, karaoke captions, every overlay, B-roll placeholder, zoom, music and sfx', async () => {
+    const b = build(rich({ captions: { styleId: 'caption:karaoke', position: 'bottom', highlight: ['50%'], maxWordsPerChunk: 3 } }), 'preview', withAudio);
+    await expect(b.html).toMatchFileSnapshot('__snapshots__/legacy-preview.html');
+  });
+
+  it('export, 16:9, brand fonts, highlight bar captions', async () => {
+    const p = { ...rich({ captions: { styleId: 'highlight-bar', position: 'middle', highlight: ['nay'], maxWordsPerChunk: 2 } }), aspect: '16:9' as const };
+    const b = buildComposition({
+      plan: p, transcript: T, project: { code: 'V', title: 't', aspect: '16:9' },
+      profile: { brand: { fontHeading: 'Anton', fontCaption: 'Be Vietnam Pro', accent: '#22CCAA' }, audio: { speechRate: 1, voiceLufs: -16, musicLufs: -30, finalLufs: -14 } },
+      mode: 'export', resolver: fonts,
+    });
+    await expect(b.html).toMatchFileSnapshot('__snapshots__/legacy-export.html');
+  });
+
+  it('never captions a synthetic filler the transcriber inserted', () => {
+    const words = T.words.map((w) => (w.i === 6 ? { ...w, text: 'ừm', synthetic: true } : w));
+    const b = buildComposition({ ...input(plan()), transcript: { ...T, words } });
+    expect(b.html).not.toContain('>ừm<');
+    expect(b.html).toContain('&lt;b&gt;mua&lt;/b&gt;');
+  });
+
+  it('a legacy style:<id> template renders exactly like no template', () => {
+    const a = build(rich(), 'preview', withAudio);
+    const b = build(rich({ templateId: 'style:kienthuc', planFormat: 2 }), 'preview', withAudio);
+    expect(b.html).toBe(a.html);
   });
 });
