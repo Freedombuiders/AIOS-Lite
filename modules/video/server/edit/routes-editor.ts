@@ -216,8 +216,11 @@ export function registerEditorRoutes(app: Hono, kit: EditorKit) {
     if (!plan || !transcript || !profile) return fail(c, 404, 'Thiếu dữ liệu để dựng bản xem trước.', 'no_plan');
     if (!fs.existsSync(store.proxyFile(project.id))) return fail(c, 409, 'Bản xem nhẹ chưa sẵn sàng.', 'not_ingested');
     const style = VIDEO_STYLES.find((s) => s.id === project.styleId) ?? null;
-    // Cheap to build, so it is rebuilt per request; the file on disk is the per-version cache others can open.
-    const built = buildComposition({ plan, transcript, project, profile, style, mode: 'preview', resolver: pipeline.resolver });
+    // Cheap to build, so it is rebuilt per request (always with the latest overrides.json); the file on disk is the
+    // per-version cache others can open.
+    const built = buildComposition({
+      plan, transcript, project, profile, style, mode: 'preview', resolver: pipeline.resolver, overrides: store.readOverrides(project.id),
+    });
     const dir = store.compositionDir(project.id);
     fs.mkdirSync(dir, { recursive: true });
     const file = path.join(dir, 'preview.html');

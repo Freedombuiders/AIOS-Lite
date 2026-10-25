@@ -166,3 +166,27 @@ describe('GET/PUT /projects/:id/overrides', () => {
     expect(doc.elements['b2-b'].t).toEqual([1, 2]);
   });
 });
+
+describe('GET /projects/:id/composition/preview.html (template plan)', () => {
+  it('builds the plan from the template blocks with the latest overrides, rebuilt on every request', async () => {
+    const project = await seeded();
+    const url = `/edit/projects/${project.id}/composition/preview.html`;
+    const before = await (await app.request(url)).text();
+    expect(before).toContain('data-el-id="b1"');
+    expect(before).toContain('data-el-id="b2"');
+    expect(before).toContain('data-composition-id="text-beat"');
+
+    await put(`/edit/projects/${project.id}/overrides`, { elements: { b1: { text: { title: 'Sửa *tay*' }, t: [2, 3] }, b2: { hidden: true } } });
+    const after = await (await app.request(url)).text();
+    expect(after).toContain('&quot;title&quot;:&quot;Sửa *tay*&quot;');
+    expect(after).toContain('var OV=[{"id":"b1","t":[2,3]}];');
+    expect(after).not.toContain('data-el-id="b2"');
+
+    // The block file is written into the project's composition folder, so the assets route serves it.
+    const name = /data-composition-src="assets\/([^"]+)"/.exec(after)![1];
+    const block = await app.request(`/edit/projects/${project.id}/composition/assets/${name}`);
+    expect(block.status).toBe(200);
+    expect(block.headers.get('content-type')).toContain('text/html');
+    expect(await block.text()).toContain('data-composition-id="text-beat"');
+  });
+});

@@ -14,7 +14,7 @@ Giấy phép của chính AIOS-Lite là **MIT**, © 2026 Tony Hoang (file [LICEN
 6. [OpenFilm (MIT): module `video`, Dựng nhanh](#6-openfilm-mit-module-video-dựng-nhanh)
 7. [FireRed-OpenStoryline (Apache-2.0): module `video`, kho tư liệu Dựng nhanh](#7-firered-openstoryline-apache-20-module-video-kho-tư-liệu-dựng-nhanh)
 8. [open-edit (Apache-2.0): module `video`, đo tiếng nói](#8-open-edit-apache-20-module-video-đo-tiếng-nói)
-9. [video-use (MIT): module `video`, HDR sang SDR](#9-video-use-mit-module-video-hdr-sang-sdr)
+9. [video-use (MIT): module `video`, HDR sang SDR và phụ đề Dựng nhanh](#9-video-use-mit-module-video-hdr-sang-sdr-và-phụ-đề-dựng-nhanh)
 
 ---
 
@@ -148,7 +148,7 @@ Lớp chỉnh tay (overrides) và thao tác plan theo id của tab Dựng nhanh 
 | `studio/ui/src/lib/dropped-overrides.ts` (`droppedOverrides`) | `modules/video/server/edit/overrides.ts` (`droppedElements`) | Viết lại cho plan theo phiên bản: phần tử có chỉnh tay mà bản AI mới làm mất |
 | `studio/server/ops.mjs` (`applyOps`, `EditError`, `mintClipId`) | `modules/video/server/edit/plan-ops.ts` (`applyPlanOps`, `PlanOpError`) | Viết lại cho EditPlan: thao tác theo id, lỗi `conflict`/`invalid`, nửa phải khi tách có id `<id>-b` |
 | `studio/ui/src/editor/undo.ts` (`inverse`) | `modules/video/server/edit/plan-ops.ts` (op `restore`) | Chỉ lấy ý tưởng: khôi phục theo id, phần tử đã có lại thì không làm gì |
-| `src/overrides.mjs` | (chưa dùng ở đây; lớp áp overrides lên khung hình thuộc composition) | Chỉ đọc |
+| `src/overrides.mjs` (`override`) | `modules/video/server/edit/pipeline/composition-v2/overrides.ts` (`overridesScript`) | Lấy cách áp sau mỗi lần vẽ khung bằng thuộc tính CSS `translate`/`scale` riêng; viết lại cho phần tử theo `data-el-id` (chữ, props, hiệu ứng vào, thời gian, ẩn áp lúc dựng composition) |
 
 Thông báo bản quyền của OpenFilm:
 
@@ -227,13 +227,16 @@ Licensed under the Apache License, Version 2.0 (see the LICENSE file).
 
 Prompt cắt thô từng câu của đạo diễn (`modules/video/server/edit/agent/director.ts`, `ROUGH_CUT_RULES`) chỉ học ý tưởng từ [FireRed-OpenStoryline](https://github.com/FireRedTeam/FireRed-OpenStoryline) (Apache-2.0, `prompts/tasks/speech_rough_cut`) và luật chọn lần nói tốt nhất của video-use; viết lại bằng tiếng Việt, không chép chữ hay mã.
 
-## 9. video-use (MIT): module `video`, HDR sang SDR
+## 9. video-use (MIT): module `video`, HDR sang SDR và phụ đề Dựng nhanh
 
 Bước chuẩn hoá video chuyển video HDR (HLG của iPhone, PQ) sang SDR bằng chuỗi bộ lọc lấy từ [video-use](https://github.com/browser-use/video-use) (giấy phép MIT, bản đọc ở commit `43cfc56`).
 
 | File nguồn của video-use | File trong AIOS-Lite | Mức độ lấy |
 |---|---|---|
 | `helpers/render.py` (`HDR_TRANSFERS`, `TONEMAP_CHAIN`, `is_hdr_source`) | `modules/video/server/edit/pipeline/normalize.ts` (`HDR_TRANSFERS`, `TONEMAP_CHAIN`, `probeColorTransfer`, `masterVideoFilter`) | Chép chuỗi `zscale` + `tonemap` (Hable) và cách nhận ra nguồn HDR; viết lại bằng TypeScript, chỉ bật khi ffmpeg có zimg |
+| `helpers/render.py` (`chunk_words`, `CHUNK_WORDS`, `CHUNK_MAX_WORDS`, `CHUNK_MIN_S`, `CHUNK_PAUSE_S`, `PUNCT_BREAK`) | `modules/video/server/edit/pipeline/composition-v2/captions.ts` (`chunkWords`) | Viết lại cùng luật: ngắt ở dấu câu hoặc khoảng lặng ≥0,3s, mặc định 2 từ, cụm ngắn hơn 0,35s được thêm từ tới mức tối đa (lấy `maxWordsPerChunk` của mẫu thay cho 3) |
+
+Cách chia phụ đề thành cụm ngắn của composition Dựng nhanh được viết lại bằng TypeScript dựa trên [video-use](https://github.com/browser-use/video-use) (giấy phép MIT, bản đọc ở commit `43cfc56`). File có ghi chú nguồn ở đầu file.
 
 Thông báo bản quyền của video-use:
 

@@ -1,14 +1,21 @@
 // EditPlan → HyperFrames composition (one HTML file). The same builder serves the live preview
 // (proxy media, played by <hyperframes-player>) and the export (master media, rendered to MP4).
-// Deterministic: same plan + transcript + profile → same HTML.
-import { createHash } from 'node:crypto';
+// Deterministic: same plan + transcript + profile (+ overrides) → same HTML.
+//
+// A plan with a non-legacy template (plan v2, Dựng nhanh) is built from the template's blocks by
+// composition-v2/build.ts; every other plan keeps the builder below, unchanged.
 import fs from 'node:fs';
 import path from 'node:path';
-import type { EditPlan, Transcript, VideoAspect, VideoProfile, VideoStyle } from '../types.js';
+import type { EditPlan, OverridesDoc, QuickSettings, Transcript, VideoAspect, VideoProfile, VideoStyle } from '../types.js';
+import { getTemplate, LEGACY_PREFIX, templateDir } from '../templates/registry.js';
+import type { TemplateManifest } from '../templates/types.js';
 import { normWord } from './analyze.js';
 import { makeMapper, computeKeep, type Segment } from './plan.js';
 import type { AssetResolver, ResolvedAsset } from './library-resolve.js';
 import { GSAP_URL, r3 } from './tools.js';
+import { buildTemplateComposition } from './composition-v2/build.js';
+import { isSynthetic } from './composition-v2/captions.js';
+import { cssFont, dbToGain, esc, mediaName, pngHasAlpha, safeColor } from './composition-v2/util.js';
 
 export const ASPECT_SIZE: Record<VideoAspect, { w: number; h: number }> = {
   '9:16': { w: 1080, h: 1920 },
@@ -35,42 +42,52 @@ export function resolveEffect(effect: string): BuiltinEffect | null {
   return EFFECT_ALIASES[key] ?? null;
 }
 
+/** Where template packs come from (default: templates/registry.ts). */
+export interface TemplateSource {
+  get(id: string): TemplateManifest | null;
+  dir(id: string): string | null;
+}
+
 export interface BuildInput {
   plan: EditPlan;
   transcript: Transcript;
-  project: { code: string; title: string; aspect: VideoAspect };
+  /** `quick` (Dựng nhanh settings) carries the owner's music choices: duck, snapToBeat, endOnFinal. */
+  project: { code: string; title: string; aspect: VideoAspect; quick?: Pick<QuickSettings, 'music'> };
   profile: Pick<VideoProfile, 'brand' | 'audio'>;
   style?: VideoStyle | null;
   mode: 'preview' | 'export';
   resolver: AssetResolver;
+  /** The owner's hand edits (overrides.json); template plans only, legacy plans have no element ids to edit. */
+  overrides?: OverridesDoc | null;
+  templates?: TemplateSource;
 }
 
 export interface BuiltComposition {
   html: string;
-  /** Files to expose under `assets/` next to the HTML (name → absolute path). */
-  assets: { name: string; file: string }[];
+  /**
+   * Files to expose under `assets/` next to the HTML (name → absolute path). `content` is written as a file
+   * instead of a link (template blocks: the preview's assets route only serves files inside the project).
+   */
+  assets: { name: string; file: string; content?: string }[];
   durationSec: number;
   width: number;
   height: number;
   warnings: string[];
-  stats: { segments: number; captions: number; overlays: number; brolls: number; sfx: number; music: boolean };
+  stats: {
+    segments: number; captions: number; overlays: number; brolls: number; sfx: number; music: boolean;
+    /** Template plans: elements drawn from the template's blocks. */
+    beats?: number; scenes?: number; graphics?: number;
+  };
 }
 
-const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
-const cssFont = (s: string) => s.replace(/['"\;{}<>]/g, '');
-const dbToGain = (db: number) => Math.min(3.98, Math.max(0, 10 ** (db / 20)));
-const safeColor = (c: string | undefined, fallback: string) => (c && /^#[0-9a-fA-F]{3,8}$/.test(c) ? c : fallback);
+const REGISTRY: TemplateSource = { get: getTemplate, dir: templateDir };
 
-/** Prevent an opaque photo from appearing as a rectangle in a cutout slot. */
-function pngHasAlpha(file: string): boolean {
-  let fd: number | undefined;
-  try {
-    fd = fs.openSync(file, 'r');
-    const header = Buffer.alloc(26);
-    if (fs.readSync(fd, header, 0, header.length, 0) !== header.length) return false;
-    return header.subarray(0, 8).toString('hex') === '89504e470d0a1a0a' && (header[25] === 4 || header[25] === 6);
-  } catch { return false; }
-  finally { if (fd !== undefined) fs.closeSync(fd); }
+/** The plan's template when it is a block template on this machine; legacy `style:<id>` templates are not. */
+function blockTemplate(plan: EditPlan, source: TemplateSource): { manifest: TemplateManifest; dir: string } | null {
+  if (!plan.templateId || plan.templateId.startsWith(LEGACY_PREFIX)) return null;
+  const manifest = source.get(plan.templateId);
+  const dir = manifest && !manifest.legacy ? source.dir(plan.templateId) : null;
+  return manifest && dir ? { manifest, dir } : null;
 }
 
 interface Theme {
@@ -83,15 +100,21 @@ interface Theme {
   fontFaces: string;
 }
 
-function mediaName(a: ResolvedAsset): string {
-  const slug = a.id.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'asset';
-  const hash = createHash('sha1').update(a.file).digest('hex').slice(0, 6);
-  return `${slug}-${hash}.${a.ext}`;
+export function buildComposition(input: BuildInput): BuiltComposition {
+  const { plan } = input;
+  const size = ASPECT_SIZE[plan.aspect ?? input.project.aspect] ?? ASPECT_SIZE['9:16'];
+  const template = blockTemplate(plan, input.templates ?? REGISTRY);
+  if (template) return buildTemplateComposition(input, template, size);
+  const built = buildLegacy(input, size);
+  if (plan.templateId && !plan.templateId.startsWith(LEGACY_PREFIX)) {
+    built.warnings.unshift(`Mẫu "${plan.templateId}" không có trên máy — dựng theo kiểu cũ.`);
+  }
+  return built;
 }
 
-export function buildComposition(input: BuildInput): BuiltComposition {
+function buildLegacy(input: BuildInput, size: { w: number; h: number }): BuiltComposition {
   const { plan, transcript, profile, style, mode, resolver } = input;
-  const { w: W, h: H } = ASPECT_SIZE[plan.aspect ?? input.project.aspect] ?? ASPECT_SIZE['9:16'];
+  const { w: W, h: H } = size;
   const u = Math.min(W, H) / 1080;
   const landscape = W > H;
   const warnings: string[] = [];
@@ -171,7 +194,7 @@ export function buildComposition(input: BuildInput): BuiltComposition {
     : `bottom:${(landscape ? 0.1 : plan.aspect === '9:16' ? 0.2 : 0.14) * H}px`;
   const chunks: { id: string; start: number; end: number; ws: { text: string; o: number; key: boolean }[] }[] = [];
   for (const seg of segments) {
-    const inSeg = words.filter((x) => !cutSet.has(x.i) && x.start >= seg.start - 0.001 && x.start < seg.end);
+    const inSeg = words.filter((x) => !cutSet.has(x.i) && !isSynthetic(x) && x.start >= seg.start - 0.001 && x.start < seg.end);
     let cur: typeof inSeg = [];
     const flush = () => {
       if (!cur.length) return;
@@ -456,13 +479,14 @@ function effectHtml(effect: BuiltinEffect, id: string, props: Record<string, str
 
 /**
  * Write the assets the composition needs next to it as symlinks (`@master` resolves to the project's
- * master file). Rebuilt from scratch each time so stale links never linger.
+ * master file), or as files for entries with `content`. Rebuilt from scratch each time so stale links never linger.
  */
 export function materializeAssets(compositionDir: string, assets: BuiltComposition['assets'], masterFile: string): void {
   const dir = path.join(compositionDir, 'assets');
   fs.rmSync(dir, { recursive: true, force: true });
   fs.mkdirSync(dir, { recursive: true });
   for (const a of assets) {
+    if (a.content !== undefined) { fs.writeFileSync(path.join(dir, a.name), a.content); continue; }
     const target = a.file === '@master' ? masterFile : a.file;
     try { fs.symlinkSync(target, path.join(dir, a.name)); } catch { /* exists or unsupported: skip */ }
   }
