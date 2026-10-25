@@ -1,5 +1,5 @@
-// Asset Hub contract (Dựng nhanh). Providers, the director shortlist and B-roll resolution share these shapes.
-// See modules/video/docs/dung-nhanh-gd1-plan.md › "Asset Hub".
+// Asset Hub contract (Dựng nhanh). Providers (providers.ts), the director shortlist (shortlist.ts) and B-roll
+// resolution (resolve.ts) share these shapes. See modules/video/docs/dung-nhanh-gd1-plan.md › "Asset Hub".
 
 export type AssetSource = 'project' | 'mine' | 'pexels' | 'pexels-photo';
 

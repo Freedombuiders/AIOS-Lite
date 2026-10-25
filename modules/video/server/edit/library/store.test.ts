@@ -4,7 +4,7 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   addFile, assetFilePath, clearLibraryCache, deleteAsset, enrichLibrary, findAsset, getLibrary, installSeedAsset, isSeedInstalled,
-  libraryDir, libraryStats, listFonts, rescanLibrary, resolveLibraryFile, setLibraryDeps, updateAsset,
+  LibraryError, libraryDir, libraryStats, listFonts, onLibraryAdded, recordAssetIndex, rescanLibrary, resolveLibraryFile, setLibraryDeps, updateAsset,
 } from './store.js';
 
 let root: string;
@@ -177,5 +177,30 @@ describe('paths', () => {
     expect(resolveLibraryFile(root, '/etc/passwd')).toBeNull();
     expect(resolveLibraryFile(root, 'sfx/a.mp3')).toBe(path.join(libraryDir(root), 'sfx', 'a.mp3'));
     expect(assetFilePath(root, { file: '../manifest.json' })).toBeNull();
+  });
+});
+
+describe('Asset Hub index', () => {
+  it('stores index results, on a builtin entry too, and keeps them across reads', async () => {
+    const clip = await addFile(root, { kind: 'video', tempPath: tmp('c.mp4', 'v'), fileName: 'c.mp4', meta: { projectId: 'p1' } });
+    expect(clip.projectId).toBe('p1');
+    const saved = recordAssetIndex(root, clip.id, { caption: 'Rót cà phê', quality: 0.8, indexedAt: '2026-10-25T00:00:00Z' });
+    expect(saved).toMatchObject({ caption: 'Rót cà phê', quality: 0.8, available: true });
+    clearLibraryCache();
+    expect(findAsset(root, clip.id)).toMatchObject({ caption: 'Rót cà phê', quality: 0.8, indexedAt: '2026-10-25T00:00:00Z' });
+
+    expect(recordAssetIndex(root, 'bgm:tap-trung', { genre: 'BGM' })).toMatchObject({ id: 'bgm:tap-trung', genre: 'BGM', mood: 'Tập trung' });
+    expect(() => recordAssetIndex(root, 'lib:video:none', { caption: 'x' })).toThrow(LibraryError);
+  });
+
+  it('tells listeners about added and dropped-in files', async () => {
+    const seen: string[] = [];
+    const stop = onLibraryAdded((r, assets) => { if (r === root) seen.push(...assets.map((a) => a.id)); });
+    const a = await addFile(root, { kind: 'image', tempPath: tmp('a.png', 'p'), fileName: 'a.png' });
+    put('video/dropped.mp4', 'v');
+    getLibrary(root);
+    stop();
+    await addFile(root, { kind: 'image', tempPath: tmp('b.png', 'p'), fileName: 'b.png' });
+    expect(seen).toEqual([a.id, 'lib:video:dropped']);
   });
 });
