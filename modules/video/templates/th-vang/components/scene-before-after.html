@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="vi" data-composition-variables='[
+  {"id":"title","type":"string","label":"Tiêu đề","default":"","maxLength":120},
+  {"id":"beforeLabel","type":"string","label":"Nhãn trước","default":"TRƯỚC","maxLength":30},
+  {"id":"before","type":"string","label":"Trước","default":"Edit tay *3 tiếng*","maxLength":160},
+  {"id":"beforeImage","type":"string","label":"Ảnh trước","default":""},
+  {"id":"afterLabel","type":"string","label":"Nhãn sau","default":"SAU","maxLength":30},
+  {"id":"after","type":"string","label":"Sau","default":"AI dựng *10 phút*","maxLength":160},
+  {"id":"afterImage","type":"string","label":"Ảnh sau","default":""},
+  {"id":"animIn","type":"enum","label":"Hiệu ứng vào","default":"slide-short","options":[
+    {"value":"slide-short","label":"Trượt ngắn"},{"value":"pop","label":"Bật lên"},{"value":"fade","label":"Hiện mờ"}]},
+  {"id":"duration","type":"number","label":"Thời lượng","default":4,"min":1,"max":30,"step":0.1,"unit":"s"}
+]'>
+<head><meta charset="utf-8"><title>Talking head vàng · Trước – sau</title></head>
+<body>
+<template id="scene-before-after">
+<style>
+  #root { position: absolute; inset: 0; container-type: size; overflow: hidden; }
+  .ba-scene { position: absolute; inset: 0; }
+  .ba-bg { position: absolute; inset: 0; background: var(--th-bg, #000000); }
+  .ba-body {
+    position: absolute; left: 7cqw; right: 7cqw; top: 9cqh; bottom: 24cqh;
+    display: flex; flex-direction: column; align-items: stretch; gap: 2.4cqmin;
+  }
+  .ba-title {
+    display: none; text-align: center;
+    font-family: var(--th-font-title, 'Anton'), sans-serif; font-weight: 400; text-transform: uppercase;
+    font-size: 7.4cqmin; line-height: 1.1; color: var(--th-text, #FFFFFF);
+  }
+  .ba-pair { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: stretch; gap: 1.4cqmin; }
+  .ba-card {
+    position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; align-items: center;
+    gap: 2cqmin; padding: 3.2cqmin; border-radius: 3cqmin; text-align: center; overflow: hidden;
+    background: rgba(255, 255, 255, 0.06); border: 0.5cqmin solid rgba(255, 255, 255, 0.18);
+  }
+  .ba-after { border-color: var(--th-accent, #FFD23F); background: color-mix(in srgb, var(--th-accent, #FFD23F) 10%, transparent); }
+  .ba-label {
+    padding: 0.4cqmin 1.8cqmin; border-radius: 0.8cqmin; background: rgba(255, 255, 255, 0.16); color: var(--th-text, #FFFFFF);
+    font-family: var(--th-font-sub, 'Montserrat'), sans-serif; font-weight: 800; font-size: 3.2cqmin; line-height: 1.5;
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .ba-after .ba-label { background: var(--th-accent, #FFD23F); color: var(--th-dark, #141416); }
+  .ba-media { display: none; width: 100%; flex: 1; min-height: 0; border-radius: 2cqmin; overflow: hidden; }
+  .ba-media img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .ba-text {
+    font-family: var(--th-font-title, 'Anton'), sans-serif; font-weight: 400; text-transform: uppercase;
+    font-size: 7.6cqmin; line-height: 1.1; color: var(--th-text, #FFFFFF);
+  }
+  .ba-before .ba-text { color: rgba(255, 255, 255, 0.78); }
+  .ba-hl { color: var(--th-accent, #FFD23F); }
+  .ba-break { display: block; }
+  .ba-arrow {
+    position: relative; z-index: 2; flex: none; align-self: center; width: 11cqmin; height: 11cqmin;
+    display: flex; align-items: center; justify-content: center; border-radius: 50%;
+    background: var(--th-accent, #FFD23F); box-shadow: 0 0 0 1.2cqmin var(--th-bg, #000000);
+  }
+  .ba-arrow svg { display: block; width: 55%; height: 55%; transform: rotate(90deg); }
+  @container (min-aspect-ratio: 3/4) {
+    .ba-body { left: 8cqw; right: 8cqw; top: 10cqh; bottom: 14cqh; }
+    .ba-pair { flex-direction: row; }
+    .ba-arrow svg { transform: none; }
+    .ba-text { font-size: 6.4cqmin; }
+  }
+</style>
+<div id="root" data-composition-id="scene-before-after">
+  <div class="ba-scene">
+    <div class="ba-bg"></div>
+    <div class="ba-body">
+      <div class="ba-title"></div>
+      <div class="ba-pair">
+        <div class="ba-card ba-before">
+          <div class="ba-label"></div>
+          <div class="ba-media"><img alt="" data-var-src="beforeImage"></div>
+          <div class="ba-text"></div>
+        </div>
+        <div class="ba-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#141416" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+        <div class="ba-card ba-after">
+          <div class="ba-label"></div>
+          <div class="ba-media"><img alt="" data-var-src="afterImage"></div>
+          <div class="ba-text"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  // Talking head vàng · Trước – sau: hai thẻ (dọc: trên/dưới, ngang: trái/phải), thẻ "sau" viền vàng.
+  // beforeImage/afterImage: đường dẫn ảnh do composition truyền vào (không có thì chỉ hiện chữ).
+  const vars = (window.__hyperframes && window.__hyperframes.getVariables && window.__hyperframes.getVariables()) || {};
+  const text = (v) => (v === undefined || v === null ? '' : String(v)).trim();
+  const D = Math.max(1, Number(vars.duration) || 4);
+  const anim = ['slide-short', 'pop', 'fade'].indexOf(vars.animIn) >= 0 ? vars.animIn : 'slide-short';
+
+  const el = (tag, cls, content) => {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (content !== undefined) node.textContent = content;
+    return node;
+  };
+  // "*từ*" tô vàng; "|" xuống dòng bằng một span khối rỗng (không dùng <br>).
+  const markup = (parent, src) => {
+    src.normalize('NFC').split('*').forEach((part, i) => {
+      part.split('|').forEach((piece, k) => {
+        if (k > 0) parent.appendChild(el('span', 'ba-break'));
+        if (piece) parent.appendChild(i % 2 ? el('span', 'ba-hl', piece) : document.createTextNode(piece));
+      });
+    });
+  };
+
+  const scene = document.querySelector('.ba-scene');
+  const bg = document.querySelector('.ba-bg');
+  const titleEl = document.querySelector('.ba-title');
+  const before = document.querySelector('.ba-before');
+  const after = document.querySelector('.ba-after');
+  const arrow = document.querySelector('.ba-arrow');
+
+  const title = text(vars.title);
+  if (title) { markup(titleEl, title); titleEl.style.display = 'block'; }
+  for (const [card, label, body, image, fallback] of [
+    [before, vars.beforeLabel, vars.before, vars.beforeImage, 'TRƯỚC'],
+    [after, vars.afterLabel, vars.after, vars.afterImage, 'SAU'],
+  ]) {
+    card.querySelector('.ba-label').textContent = text(label) || fallback;
+    markup(card.querySelector('.ba-text'), text(body));
+    if (text(image)) card.querySelector('.ba-media').style.display = 'block';
+  }
+
+  const tl = gsap.timeline({ paused: true });
+  tl.fromTo(bg, { opacity: 0 }, { opacity: 1, duration: 0.2, ease: 'power1.out' }, 0);
+  let t = 0.1;
+  if (title) { tl.fromTo(titleEl, { opacity: 0, yPercent: 40 }, { opacity: 1, yPercent: 0, duration: 0.3, ease: 'power3.out' }, t); t += 0.12; }
+
+  const IN = (sign) => ({
+    'slide-short': [{ opacity: 0, xPercent: 10 * sign }, { opacity: 1, xPercent: 0, duration: 0.36, ease: 'power3.out' }],
+    pop: [{ opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.34, ease: 'back.out(2)' }],
+    fade: [{ opacity: 0 }, { opacity: 1, duration: 0.4, ease: 'sine.out' }],
+  })[anim];
+  tl.fromTo(before, IN(-1)[0], IN(-1)[1], t);
+  // "Sau" lands around 40% of the scene so the owner has time to read "trước" first; "trước" then steps back.
+  const tAfter = Math.min(Math.max(t + 0.6, D * 0.4), Math.max(t + 0.45, D - 0.9));
+  tl.to(before, { opacity: 0.6, scale: 0.97, duration: 0.3, ease: 'power2.out' }, tAfter - 0.05);
+  tl.fromTo(arrow, { opacity: 0, scale: 0.2, rotation: -90 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.34, ease: 'back.out(2.4)' }, tAfter - 0.12);
+  tl.fromTo(after, IN(1)[0], IN(1)[1], tAfter);
+  tl.fromTo(after.querySelector('.ba-label'), { scale: 0.6 }, { scale: 1, duration: 0.3, ease: 'back.out(3)' }, tAfter + 0.18);
+
+  const out = Math.max(tAfter + 0.7, D - 0.25);
+  if (out < D - 0.05) tl.to(scene, { opacity: 0, duration: Math.min(0.22, D - out), ease: 'power1.in' }, out);
+
+  window.__timelines["scene-before-after"] = tl;
+</script>
+</template>
+</body>
+</html>

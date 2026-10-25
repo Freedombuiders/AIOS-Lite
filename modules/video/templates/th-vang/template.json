@@ -1,0 +1,119 @@
+{
+  "id": "th-vang",
+  "version": "1.0.0",
+  "name": "Talking head vàng",
+  "description": "Chữ Anton vàng căn giữa theo nhịp nói, cảnh minh hoạ nền đen, zoom nhấn ý, SFX nhẹ.",
+  "tags": ["Talking head", "Thương hiệu cá nhân", "Kiến thức"],
+  "tier": "free",
+  "aspects": ["9:16", "4:5", "1:1", "16:9"],
+  "styleId": "kienthuc",
+  "tokens": {
+    "fonts": { "title": "Anton", "sub": "Montserrat", "caption": "Montserrat" },
+    "colors": { "accent": "#FFD23F", "text": "#FFFFFF", "dark": "#141416", "bg": "#000000", "tone": "#2D2A26" }
+  },
+  "captions": {
+    "pos": 0.76,
+    "maxWidthPct": 84,
+    "align": "center",
+    "font": { "family": "Montserrat", "sizePct": 6.2, "weight": 800 },
+    "fill": "#FFFFFF",
+    "stroke": { "color": "#000000", "width": 4 },
+    "shadow": "0 4px 14px rgba(0,0,0,0.85)",
+    "highlight": { "color": "#FFD23F", "mode": "color" },
+    "maxWordsPerChunk": 3
+  },
+  "components": {
+    "text-beat": {
+      "kind": "beat",
+      "label": "Nhịp chữ",
+      "file": "components/text-beat.html",
+      "runtime": "gsap",
+      "props": {
+        "kicker": { "type": "text", "label": "Nhãn nhỏ", "maxWords": 3 },
+        "title": { "type": "markup", "label": "Tiêu đề", "required": true, "maxWords": 6, "maxLines": 2 },
+        "sub": { "type": "text", "label": "Chữ phụ", "maxWords": 8 }
+      },
+      "duration": { "min": 1, "max": 4, "default": 2.2 },
+      "safeZone": { "top": 10, "bottom": 30 },
+      "useWhen": "Ý chính, con số hoặc câu chốt người nói vừa nói; mỗi 3–6 giây một nhịp, chữ trùng lời nói.",
+      "avoidWhen": "Đang có cảnh minh hoạ, logo cuối hoặc cảnh trám dạng card/pip-circle (cùng vùng phía trên); người nói đang liệt kê nhiều bước (dùng scene-steps)."
+    },
+    "scene-steps": {
+      "kind": "scene",
+      "label": "Các bước",
+      "file": "components/scene-steps.html",
+      "runtime": "gsap",
+      "props": {
+        "step": { "type": "number", "label": "Số bước (BƯỚC n), 0 để ẩn" },
+        "title": { "type": "markup", "label": "Tiêu đề", "required": true, "maxWords": 6, "maxLines": 2 },
+        "items": { "type": "list", "label": "Các mục", "required": true, "maxItems": 5, "maxWords": 6 }
+      },
+      "duration": { "min": 2.5, "max": 8, "default": 5 },
+      "animations": ["slide-up", "pop", "fade"],
+      "useWhen": "Người nói liệt kê 2–5 bước hoặc ý ngắn; đặt `at` đúng lúc bắt đầu liệt kê, mục hiện lần lượt trên nền đen.",
+      "avoidWhen": "Chỉ có một ý (dùng text-beat); mục dài hơn 6 từ; đoạn có biểu cảm mặt quan trọng."
+    },
+    "scene-before-after": {
+      "kind": "scene",
+      "label": "Trước – sau",
+      "file": "components/scene-before-after.html",
+      "runtime": "gsap",
+      "props": {
+        "title": { "type": "markup", "label": "Tiêu đề", "maxWords": 6, "maxLines": 1 },
+        "beforeLabel": { "type": "text", "label": "Nhãn trước", "maxWords": 3 },
+        "before": { "type": "markup", "label": "Trước", "required": true, "maxWords": 8, "maxLines": 2 },
+        "beforeImage": { "type": "asset", "label": "Ảnh trước" },
+        "afterLabel": { "type": "text", "label": "Nhãn sau", "maxWords": 3 },
+        "after": { "type": "markup", "label": "Sau", "required": true, "maxWords": 8, "maxLines": 2 },
+        "afterImage": { "type": "asset", "label": "Ảnh sau" }
+      },
+      "duration": { "min": 2.5, "max": 7, "default": 4 },
+      "animations": ["slide-short", "pop", "fade"],
+      "useWhen": "So sánh trước và sau, cách cũ và cách mới, sai và đúng; “sau” hiện khoảng 40% thời lượng.",
+      "avoidWhen": "Không có hai vế rõ ràng; câu dài hơn 8 từ mỗi vế."
+    },
+    "broll-frame": {
+      "kind": "broll-frame",
+      "label": "Khung cảnh trám",
+      "file": "components/broll-frame.html",
+      "runtime": "gsap",
+      "props": {
+        "layout": { "type": "text", "label": "Kiểu khung: full, card hoặc pip-circle" },
+        "caption": { "type": "text", "label": "Chú thích", "maxWords": 6 }
+      },
+      "duration": { "min": 1.5, "max": 6, "default": 2.5 },
+      "animations": ["pop", "slide-up", "fade"],
+      "useWhen": "full: cảnh trám thay hẳn người nói; card: tư liệu minh hoạ phía trên, người nói vẫn thấy; pip-circle: ảnh hoặc vật thể nhỏ trong vòng tròn phía trên đầu.",
+      "avoidWhen": "Hai cảnh trám giống nhau liền nhau; card/pip-circle cùng lúc với text-beat."
+    },
+    "logo-end": {
+      "kind": "graphic",
+      "label": "Logo cuối",
+      "file": "components/logo-end.html",
+      "runtime": "gsap",
+      "props": {
+        "logo": { "type": "asset", "label": "Logo" },
+        "name": { "type": "text", "label": "Tên kênh", "required": true, "maxWords": 5 },
+        "handle": { "type": "text", "label": "Tài khoản", "maxWords": 2 },
+        "cta": { "type": "text", "label": "Lời kêu gọi", "maxWords": 6 }
+      },
+      "duration": { "min": 1.5, "max": 4, "default": 2.5 },
+      "animations": ["pop", "slide-up", "fade"],
+      "useWhen": "1,5–3 giây cuối video, sau câu chốt.",
+      "avoidWhen": "Giữa video; khi người nói vẫn còn đang nói câu quan trọng."
+    }
+  },
+  "animations": [
+    { "id": "typewriter", "label": "Gõ chữ", "sound": "sfx:typing" },
+    { "id": "slide-short", "label": "Trượt ngắn", "sound": "sfx:whoosh" },
+    { "id": "slide-up", "label": "Trượt lên", "sound": "sfx:whoosh" },
+    { "id": "pop", "label": "Bật lên", "sound": "sfx:pop" },
+    { "id": "fade", "label": "Hiện mờ" }
+  ],
+  "sounds": { "density": "low", "transition": "sfx:whoosh", "click": "sfx:mouse-click" },
+  "rules": "rules.md",
+  "license": {
+    "source": "AIOS-Lite",
+    "attribution": "Thiết kế và mã viết riêng cho AIOS-Lite. Font Anton, Montserrat (SIL OFL 1.1) lấy từ thư viện font của module."
+  }
+}

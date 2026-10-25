@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="vi" data-composition-variables='[
+  {"id":"step","type":"number","label":"Số bước (0 = ẩn)","default":1,"min":0,"max":99,"step":1},
+  {"id":"title","type":"string","label":"Tiêu đề","default":"Ba việc *mỗi sáng*","maxLength":120},
+  {"id":"items","type":"string","label":"Các mục (mỗi dòng một mục)","default":"Uống một ly nước\nViết ra *3 việc chính*\nTắt thông báo 1 giờ","maxLength":600},
+  {"id":"animIn","type":"enum","label":"Hiệu ứng vào","default":"slide-up","options":[
+    {"value":"slide-up","label":"Trượt lên"},{"value":"pop","label":"Bật lên"},{"value":"fade","label":"Hiện mờ"}]},
+  {"id":"duration","type":"number","label":"Thời lượng","default":5,"min":1,"max":30,"step":0.1,"unit":"s"}
+]'>
+<head><meta charset="utf-8"><title>Talking head vàng · Các bước</title></head>
+<body>
+<template id="scene-steps">
+<style>
+  #root { position: absolute; inset: 0; container-type: size; overflow: hidden; }
+  .ss-scene { position: absolute; inset: 0; }
+  .ss-bg {
+    position: absolute; inset: 0; background: var(--th-bg, #000000);
+    background-image: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--th-accent, #FFD23F) 16%, transparent), transparent 62%);
+  }
+  .ss-body {
+    position: absolute; left: 8cqw; right: 8cqw; top: 20cqh;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 3.2cqmin;
+  }
+  @container (orientation: landscape) { .ss-body { left: 16cqw; right: 16cqw; top: 12cqh; gap: 2.6cqmin; } }
+  .ss-kicker {
+    display: none; padding: 0.5cqmin 1.8cqmin; border-radius: 0.8cqmin;
+    background: var(--th-accent, #FFD23F); color: var(--th-dark, #141416);
+    font-family: var(--th-font-sub, 'Montserrat'), sans-serif; font-weight: 800;
+    font-size: 3.4cqmin; line-height: 1.5; letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .ss-title {
+    font-family: var(--th-font-title, 'Anton'), sans-serif; font-weight: 400; text-transform: uppercase;
+    font-size: min(11.5cqmin, calc(84cqw / (var(--chars, 12) * 0.46))); line-height: 1.1;
+    color: var(--th-text, #FFFFFF);
+  }
+  @container (orientation: landscape) { .ss-title { font-size: min(9cqmin, calc(68cqw / (var(--chars, 12) * 0.5))); } }
+  .ss-line { display: block; }
+  .ss-hl { color: var(--th-accent, #FFD23F); }
+  .ss-list { display: flex; flex-direction: column; gap: 2.6cqmin; width: 100%; margin-top: 2cqmin; }
+  .ss-item {
+    display: flex; align-items: center; gap: 2.6cqmin; width: 100%;
+    padding: 2.6cqmin 3cqmin; border-radius: 2cqmin;
+    background: rgba(255, 255, 255, 0.06); border-left: 0.8cqmin solid var(--th-accent, #FFD23F);
+  }
+  .ss-num {
+    flex: none; display: flex; align-items: center; justify-content: center;
+    width: 8.4cqmin; height: 8.4cqmin; border-radius: 50%;
+    background: var(--th-accent, #FFD23F); color: var(--th-dark, #141416);
+    font-family: var(--th-font-title, 'Anton'), sans-serif; font-size: 5cqmin; line-height: 1;
+  }
+  .ss-text {
+    font-family: var(--th-font-sub, 'Montserrat'), sans-serif; font-weight: 700;
+    font-size: 5.2cqmin; line-height: 1.25; color: var(--th-text, #FFFFFF);
+  }
+  @container (orientation: landscape) { .ss-text { font-size: 3.8cqmin; } }
+</style>
+<div id="root" data-composition-id="scene-steps">
+  <div class="ss-scene">
+    <div class="ss-bg"></div>
+    <div class="ss-body">
+      <div class="ss-kicker"></div>
+      <div class="ss-title"></div>
+      <div class="ss-list"></div>
+    </div>
+  </div>
+</div>
+<script>
+  // Talking head vàng · Các bước: nhãn "BƯỚC n", tiêu đề, 2–5 mục hiện lần lượt trên nền đen.
+  // items: JSON array, or one item per line ("\n" or "|"). Markup *từ* tô vàng.
+  const vars = (window.__hyperframes && window.__hyperframes.getVariables && window.__hyperframes.getVariables()) || {};
+  const text = (v) => (v === undefined || v === null ? '' : String(v)).trim();
+  const D = Math.max(1, Number(vars.duration) || 5);
+  const anim = ['slide-up', 'pop', 'fade'].indexOf(vars.animIn) >= 0 ? vars.animIn : 'slide-up';
+  const step = Math.floor(Number(vars.step) || 0);
+
+  const el = (tag, cls, content) => {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (content !== undefined) node.textContent = content;
+    return node;
+  };
+  // Appends "a *b* c" to `parent`, the starred part in a highlight span.
+  const markup = (parent, src) => {
+    src.split('*').forEach((part, i) => { if (part) parent.appendChild(i % 2 ? el('span', 'ss-hl', part) : document.createTextNode(part)); });
+  };
+  function listOf(v) {
+    if (Array.isArray(v)) return v.map(text).filter(Boolean);
+    const s = text(v);
+    if (s.startsWith('[')) { try { const a = JSON.parse(s); if (Array.isArray(a)) return a.map(text).filter(Boolean); } catch (e) { /* plain text */ } }
+    return s.split(/\n|\|/).map((x) => x.trim()).filter(Boolean);
+  }
+
+  const scene = document.querySelector('.ss-scene');
+  const bg = document.querySelector('.ss-bg');
+  const kickerEl = document.querySelector('.ss-kicker');
+  const titleEl = document.querySelector('.ss-title');
+  const listEl = document.querySelector('.ss-list');
+
+  if (step > 0) { kickerEl.textContent = 'BƯỚC ' + step; kickerEl.style.display = 'block'; }
+  const lines = text(vars.title).normalize('NFC').split('|').map((s) => s.trim()).filter(Boolean).slice(0, 2);
+  let longest = 1;
+  for (const line of lines) {
+    const node = el('span', 'ss-line');
+    markup(node, line);
+    titleEl.appendChild(node);
+    longest = Math.max(longest, Array.from(line.replace(/\*/g, '')).length);
+  }
+  titleEl.style.setProperty('--chars', String(longest));
+  const items = listOf(vars.items).slice(0, 5);
+  items.forEach((item, i) => {
+    const row = el('div', 'ss-item');
+    row.appendChild(el('span', 'ss-num', String(i + 1)));
+    const label = el('span', 'ss-text');
+    markup(label, item.normalize('NFC'));
+    row.appendChild(label);
+    listEl.appendChild(row);
+  });
+
+  const tl = gsap.timeline({ paused: true });
+  tl.fromTo(bg, { opacity: 0 }, { opacity: 1, duration: 0.2, ease: 'power1.out' }, 0);
+  let t = 0.12;
+  if (step > 0) { tl.fromTo(kickerEl, { opacity: 0, xPercent: -20 }, { opacity: 1, xPercent: 0, duration: 0.26, ease: 'power3.out' }, t); t += 0.1; }
+  const titleLines = Array.from(titleEl.querySelectorAll('.ss-line'));
+  if (anim === 'pop') tl.fromTo(titleLines, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.34, ease: 'back.out(2.2)', stagger: 0.08 }, t);
+  else if (anim === 'fade') tl.fromTo(titleLines, { opacity: 0 }, { opacity: 1, duration: 0.4, ease: 'sine.out', stagger: 0.08 }, t);
+  else tl.fromTo(titleLines, { opacity: 0, yPercent: 60 }, { opacity: 1, yPercent: 0, duration: 0.36, ease: 'power3.out', stagger: 0.08 }, t);
+  t += 0.36 + 0.08 * Math.max(0, titleLines.length - 1);
+
+  // Items arrive one by one across the scene; the newest is full strength, earlier ones step back.
+  const rows = Array.from(listEl.querySelectorAll('.ss-item'));
+  const end = D - 0.5;
+  const gap = rows.length ? Math.min(0.9, Math.max(0.22, (end - t - 0.3) / rows.length)) : 0;
+  rows.forEach((row, i) => {
+    const at = t + 0.1 + i * gap;
+    tl.fromTo(row, { opacity: 0, xPercent: -8 }, { opacity: 1, xPercent: 0, duration: 0.3, ease: 'power3.out' }, at);
+    tl.fromTo(row.querySelector('.ss-num'), { scale: 0.3 }, { scale: 1, duration: 0.3, ease: 'back.out(2.6)' }, at + 0.05);
+    if (i > 0) tl.to(rows[i - 1], { opacity: 0.55, duration: 0.2, ease: 'power1.out' }, at);
+  });
+
+  const out = Math.max(t + gap * rows.length + 0.4, D - 0.25);
+  if (out < D - 0.05) tl.to(scene, { opacity: 0, duration: Math.min(0.22, D - out), ease: 'power1.in' }, out);
+
+  window.__timelines["scene-steps"] = tl;
+</script>
+</template>
+</body>
+</html>

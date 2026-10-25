@@ -21,6 +21,7 @@ import { registerEditorRoutes } from './routes-editor.js';
 import { registerProductionRoutes, type ProductionKit } from './production/routes.js';
 import { serveFile } from './serve.js';
 import { createVideoEditStore, StoreError, type VideoEditStore } from './store.js';
+import { registerTemplateRoutes } from './templates/routes.js';
 import { listVideoAgents, resolveDefaultAgentId } from './turn.js';
 import {
   STEP_DEFS, STYLE_GROUPS,
@@ -239,6 +240,7 @@ export function registerVideoEditRoutes(app: Hono, options: VideoEditRouteOption
   app.get(`${P}/styles`, (c) => c.json({ groups: STYLE_GROUPS, styles: VIDEO_STYLES }));
   app.get(`${P}/brains`, guard((c) => c.json({ enabled: true, activeVaultId: 'default', vaults: [{ id: 'default', name: 'Kho tri thức' }] })));
   registerVideoLibraryRoutes(app, { root });
+  registerTemplateRoutes(app, { root });
 
   // ── Profiles ──
   app.get(`${P}/profiles`, guard((c) => c.json({ profiles: store.listProfiles() })));
