@@ -1,7 +1,7 @@
 // Plan v2 → HyperFrames composition built from the template's blocks (Dựng nhanh). Beats, scenes, graphics,
-// the hook and the B-roll frames are block instances (sub-compositions, props as variable values), each host
-// slot tagged data-el-id with the plan element's id; overrides.json is applied on top; captions follow the
-// template's CaptionStyle; the music bed makes room for the voice. Deterministic like the legacy builder.
+// the hook and the B-roll frames are block instances (sub-compositions, props as variable values), each plan
+// element's host slot tagged data-el-id with its id; overrides.json is applied on top (music included); captions
+// follow the template's CaptionStyle; the music bed makes room for the voice. Deterministic like the legacy builder.
 import type { BuildInput, BuiltComposition } from '../composition.js';
 import type { OverridesDoc } from '../../types.js';
 import type { ComponentDef, TemplateManifest } from '../../templates/types.js';
@@ -112,11 +112,14 @@ export function buildTemplateComposition(
   });
 
   // ── Music placement first: snapToBeat needs the beats on the output timeline ──
+  // The owner's editor choice (overrides.json) wins over the Dựng nhanh settings, which win over the plan.
+  const ownMusic = ov?.music;
+  const musicId = ownMusic?.off ? undefined : ownMusic?.assetId ?? plan.music?.assetId;
   let bed: MusicPlan | null = null;
-  if (plan.music) {
-    const a = resolver.byId(plan.music.assetId);
+  if (musicId) {
+    const a = resolver.byId(musicId);
     if (isAudio(a)) bed = placeMusic(a, total, Boolean(music?.endOnFinal), warnings);
-    else warnings.push(`Nhạc "${plan.music.assetId}" không có trong kho — bỏ qua.`);
+    else warnings.push(`Nhạc "${musicId}" không có trong kho — bỏ qua.`);
   }
   const beatsToSnap = music?.snapToBeat && bed?.beats.length ? bed.beats : null;
 
@@ -176,10 +179,12 @@ export function buildTemplateComposition(
     const b = blockFor(g.component);
     if (!b) { missing('Đồ hoạ', g.id, g.component); continue; }
     const values: Record<string, unknown> = withProps(g.props, o);
-    // The element's own asset (or the channel logo for a `logo` prop) fills the block's first empty asset prop.
-    const assetProp = Object.entries(b.def.props).find(([key, p]) => p.type === 'asset' && !values[key]);
+    // The element's own asset (or the channel logo for a `logo` prop) fills the block's first empty asset prop;
+    // the owner's swapped file takes that prop too, or the first asset prop when the props fill them all.
+    const assetProps = Object.entries(b.def.props).filter(([, p]) => p.type === 'asset');
+    const assetProp = assetProps.find(([key]) => !values[key]) ?? (o?.assetId ? assetProps[0] : undefined);
     if (assetProp) {
-      const id = g.assetId ?? (assetProp[0] === 'logo' ? profile.brand.logoAssetId : undefined);
+      const id = o?.assetId ?? g.assetId ?? (assetProp[0] === 'logo' ? profile.brand.logoAssetId : undefined);
       if (id) values[assetProp[0]] = id;
     }
     resolveAssetProps(b.def, values, `Đồ hoạ "${g.id}"`);
@@ -198,10 +203,13 @@ export function buildTemplateComposition(
     const props = withProps(undefined, o);
     const layout = typeof props.layout === 'string' && props.layout ? props.layout : br.layout === 'cutout' ? 'pip-circle' : br.layout;
     const values: Record<string, unknown> = { ...props, layout };
-    const a = br.assetId ? resolver.byId(br.assetId) : null;
+    // The owner's swapped file over the plan's.
+    const assetId = o?.assetId ?? br.assetId;
+    const a = assetId ? resolver.byId(assetId) : null;
     if (a && VIDEO_EXTS.includes(a.ext)) values.video = useAsset(a);
     else if (a && IMAGE_EXTS.includes(a.ext)) values.image = useAsset(a);
     else if (mode === 'export') { warnings.push(`B-roll "${br.title}" chưa có file — bỏ qua khi xuất.`); continue; }
+    else if (assetId) warnings.push(`B-roll "${br.title}": tư liệu "${assetId}" không có trong kho — để trống.`);
     slots.push({ id: br.id, kind: 'broll', ...b, ...effective({ ...br, at: mapped ?? 0 }, o), values, fullFrame: layout === 'full' });
   }
   for (const o of plan.overlays) {
@@ -230,7 +238,10 @@ export function buildTemplateComposition(
     const { track, z } = LAYER[s.kind];
     const file = blockInstance(s.block, values);
     assets.set(file.name, { file: s.block.file, content: file.html });
-    clips.push(`<div id="el-${s.id}" class="clip el" data-el-id="${esc(s.id)}" data-composition-id="${esc(s.block.compositionId)}" data-composition-src="assets/${file.name}" data-variable-values="${esc(JSON.stringify(values))}" data-start="${r3(s.at)}" data-duration="${r3(s.duration)}" data-track-index="${track}" data-width="${W}" data-height="${H}" style="position:absolute;inset:0;z-index:${z}"></div>`);
+    // The hook is not a plan element (it is plan.hook's chosen option, changed by picking another option), so it
+    // has no data-el-id: the editor cannot select it, and PUT /overrides has nothing to key it on.
+    const ident = s.kind === 'hook' ? 'id="hook" class="clip"' : `id="el-${s.id}" class="clip el" data-el-id="${esc(s.id)}"`;
+    clips.push(`<div ${ident} data-composition-id="${esc(s.block.compositionId)}" data-composition-src="assets/${file.name}" data-variable-values="${esc(JSON.stringify(values))}" data-start="${r3(s.at)}" data-duration="${r3(s.duration)}" data-track-index="${track}" data-width="${W}" data-height="${H}" style="position:absolute;inset:0;z-index:${z}"></div>`);
     if (s.t || s.s !== undefined) moved.push({ id: s.id, ...(s.t ? { t: s.t } : {}), ...(s.s !== undefined ? { s: s.s } : {}) });
     if (s.kind === 'broll') stats.brolls++;
     else if (s.kind === 'beat') stats.beats++;
@@ -290,10 +301,12 @@ export function buildTemplateComposition(
   });
 
   // ── Music bed ──
-  if (bed && plan.music) {
-    // gainDb is the bed under the voice; the owner's Dựng nhanh choice decides ducking when there is one.
-    const rel = Number.isFinite(plan.music.gainDb) ? plan.music.gainDb : audio.musicLufs - audio.voiceLufs;
-    const duck = music ? music.duck : plan.music.duck;
+  if (bed) {
+    // The plan's gainDb is the bed under the voice; the owner's gainDb fine-tunes around the profile level instead.
+    const profileRel = audio.musicLufs - audio.voiceLufs;
+    const rel = ownMusic?.gainDb !== undefined ? profileRel + ownMusic.gainDb
+      : plan.music && Number.isFinite(plan.music.gainDb) ? plan.music.gainDb : profileRel;
+    const duck = ownMusic?.duck ?? music?.duck ?? plan.music?.duck ?? true;
     const attrs = musicAttrs(bed, rel, duck ? speechRanges(words, segments, cut) : null);
     const extra = Object.entries(attrs).map(([k, v]) => `${k}="${esc(v)}"`).join(' ');
     clips.push(`<audio id="music" class="clip" src="${useAsset(bed.asset)}" data-start="${r3(bed.start)}" data-duration="${r3(bed.duration)}" data-media-start="${r3(bed.mediaStart)}" ${extra} data-track-index="10"></audio>`);

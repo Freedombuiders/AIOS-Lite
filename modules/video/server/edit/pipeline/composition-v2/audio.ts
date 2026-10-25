@@ -14,10 +14,13 @@ import { dbToGain } from './util.js';
 
 const AUDIO_EXTS = ['mp3', 'wav', 'm4a', 'ogg', 'aac'];
 
-/** Bed level between phrases, above its level under the voice. */
-const OPEN_DB = 6;
+/**
+ * Bed level between phrases, above its level under the voice: the usual 12 dB duck. The profile's music level
+ * stays the level under the voice, so the bed never fights a phrase and comes up in the pauses.
+ */
+const OPEN_DB = 12;
 /** Seconds the bed takes to get out of the way before a phrase, and to come back after it (slow on purpose). */
-const ATTACK = 0.15;
+const ATTACK = 0.2;
 const RELEASE = 0.5;
 /** Voice-band dips of the carve, and how deep they go under the voice. */
 const CARVE_BANDS = [{ id: 'n1', frequency: 1000, label: 'Chừa giọng 1 kHz' }, { id: 'n2', frequency: 2500, label: 'Chừa giọng 2,5 kHz' }];
