@@ -60,15 +60,15 @@ describe('applyQuickSettings', () => {
 describe('enforceQuickSettings', () => {
   it('forces the template, auto-cut off and the music choice onto the director\'s plan', () => {
     const agent = { summary: 's', cutWords: [2], gapMs: 250, templateId: 'khac', music: { assetId: 'lib:bgm:x', mood: 'vui', gainDb: -3, duck: false } };
-    expect(enforceQuickSettings(agent, { ...QUICK, autoCut: false }, -18)).toMatchObject({ templateId: 'th-vang', planFormat: 2, autoCut: false, cutWords: [], gapMs: NO_CUT_GAP_MS });
-    expect(enforceQuickSettings(agent, QUICK, -18)).not.toHaveProperty('music');
-    expect((enforceQuickSettings(agent, { ...QUICK, music: { ...QUICK.music, mode: 'pick', assetId: 'lib:bgm:mine' } }, -18) as EditPlan).music)
+    expect(enforceQuickSettings(agent, { ...QUICK, autoCut: false })).toMatchObject({ templateId: 'th-vang', planFormat: 2, autoCut: false, cutWords: [], gapMs: NO_CUT_GAP_MS });
+    expect(enforceQuickSettings(agent, QUICK)).not.toHaveProperty('music');
+    expect((enforceQuickSettings(agent, { ...QUICK, music: { ...QUICK.music, mode: 'pick', assetId: 'lib:bgm:mine' } }) as EditPlan).music)
       .toEqual({ assetId: 'lib:bgm:mine', mood: 'vui', gainDb: -3, duck: true });
-    expect((enforceQuickSettings({ summary: 's' }, { ...QUICK, music: { ...QUICK.music, mode: 'pick', assetId: 'lib:bgm:mine' } }, -18) as EditPlan).music)
-      .toEqual({ assetId: 'lib:bgm:mine', mood: '', gainDb: -18, duck: true });
+    expect((enforceQuickSettings({ summary: 's' }, { ...QUICK, music: { ...QUICK.music, mode: 'pick', assetId: 'lib:bgm:mine' } }) as EditPlan).music)
+      .toEqual({ assetId: 'lib:bgm:mine', mood: '', gainDb: 0, duck: true });
     // auto-cut on: the director's cut stays
-    expect(enforceQuickSettings(agent, QUICK, -18)).toMatchObject({ cutWords: [2], gapMs: 250 });
-    expect(enforceQuickSettings('not a plan', QUICK, -18)).toBe('not a plan');
+    expect(enforceQuickSettings(agent, QUICK)).toMatchObject({ cutWords: [2], gapMs: 250 });
+    expect(enforceQuickSettings('not a plan', QUICK)).toBe('not a plan');
   });
 });
 

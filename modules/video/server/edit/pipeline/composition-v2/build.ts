@@ -7,7 +7,7 @@ import type { OverridesDoc } from '../../types.js';
 import type { ComponentDef, TemplateManifest } from '../../templates/types.js';
 import { computeKeep, makeMapper } from '../plan.js';
 import type { ResolvedAsset } from '../library-resolve.js';
-import { GSAP_URL, r3 } from '../tools.js';
+import { GSAP_URL, musicRelDb, r3 } from '../tools.js';
 import { isAudio, elementSounds, musicAttrs, placeMusic, snapToBeat, speechRanges, type MusicPlan } from './audio.js';
 import { blockInstance, blockValues, loadBlock, varDefault, type Block } from './blocks.js';
 import { captionCues, captionFamily, captionLayer, captionStyle } from './captions.js';
@@ -302,10 +302,9 @@ export function buildTemplateComposition(
 
   // ── Music bed ──
   if (bed) {
-    // The plan's gainDb is the bed under the voice; the owner's gainDb fine-tunes around the profile level instead.
+    // Both the owner's and the plan's gainDb fine-tune around the profile level (musicRelDb keeps old absolute values).
     const profileRel = audio.musicLufs - audio.voiceLufs;
-    const rel = ownMusic?.gainDb !== undefined ? profileRel + ownMusic.gainDb
-      : plan.music && Number.isFinite(plan.music.gainDb) ? plan.music.gainDb : profileRel;
+    const rel = ownMusic?.gainDb !== undefined ? profileRel + ownMusic.gainDb : musicRelDb(plan.music?.gainDb, profileRel);
     const duck = ownMusic?.duck ?? music?.duck ?? plan.music?.duck ?? true;
     const attrs = musicAttrs(bed, rel, duck ? speechRanges(words, segments, cut) : null);
     const extra = Object.entries(attrs).map(([k, v]) => `${k}="${esc(v)}"`).join(' ');

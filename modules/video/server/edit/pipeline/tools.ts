@@ -9,6 +9,16 @@ import { childPath, findBin, missingToolHint, MissingToolError } from '../../bin
 export const HYPERFRAMES_VERSION = '0.8.156';
 export const hyperframesVersion = () => process.env.VIDEO_EDIT_HF_VERSION?.trim() || HYPERFRAMES_VERSION;
 /** GSAP build loaded by the compositions (the same one the HyperFrames docs use). */
+/**
+ * Music level under the voice in dB. A plan's `music.gainDb` is a fine-tune around the profile level
+ * (skill docs: about -6..+3, default 0). Plans saved before that rule stored the level itself (about -18):
+ * a value at or below -12 is still read that way so they keep their sound.
+ */
+export function musicRelDb(gainDb: number | undefined, profileRelDb: number): number {
+  if (gainDb === undefined || !Number.isFinite(gainDb)) return profileRelDb;
+  return gainDb <= -12 ? gainDb : profileRelDb + gainDb;
+}
+
 export const GSAP_URL = 'https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js';
 
 export interface RunResult {

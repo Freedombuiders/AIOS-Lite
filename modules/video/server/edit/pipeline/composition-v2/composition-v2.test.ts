@@ -364,8 +364,10 @@ describe('music, beats and sounds', () => {
     expect(slot(off.html, 'b1')!.start).toBe(0.8);
 
     // gainDb fine-tunes around the profile level (-18 dB) instead of the plan's level.
+    // The plan's gainDb too: -3 fine-tunes to -21 dB; an old absolute level (≤ -12, here -20) is kept as is.
+    expect(tag(build(plan({ music: { assetId: 'bgm:x', mood: 'vui', gainDb: -3, duck: true } }), quick({ duck: false })))).toContain('data-volume="0.089"');
+    expect(tag(build(plan({ music: { assetId: 'bgm:x', mood: 'vui', gainDb: -20, duck: true } }), quick({ duck: false })))).toContain('data-volume="0.1"');
     const p10 = plan({ music: { assetId: 'bgm:x', mood: 'vui', gainDb: -10, duck: true } });
-    expect(tag(build(p10, quick({ duck: false })))).toContain('data-volume="0.316"');
     expect(tag(music({ gainDb: 0 }, quick({ duck: false }), p10))).toContain('data-volume="0.126"');
     expect(tag(music({ gainDb: -3 }, quick({ duck: false }), p10))).toContain('data-volume="0.089"');
 
