@@ -11,7 +11,7 @@ Prompt có mục **MẪU EDIT** cho đúng mẫu đang dùng: luật của mẫu
 | `beat` | `beats[]` | `component`, `kicker?`, `title`, `sub?` là trường riêng của beat (không nằm trong `props`) |
 | `scene` | `scenes[]` | nội dung trong `props`, theo đúng schema của component |
 | `graphic` | `graphics[]` | logo cuối, nhãn tên; `assetId` khi cần ảnh (logo) |
-| `broll-frame` | `brolls[]` | khung cảnh trám của mẫu; bạn chỉ chọn `layout`, máy lắp khung |
+| `broll-frame` | `brolls[]` | khung cảnh trám của mẫu; bạn chỉ chọn `layout` (`full`, `card` hoặc `pip-circle`: vòng tròn phía trên đầu người nói; `cutout` được dựng thành `pip-circle`), máy lắp khung và file. B-roll không có `props`: các prop khác của khung (ví dụ `caption`) chủ kênh chỉnh trong editor |
 
 Ghi `component` đúng id trong danh sách (ví dụ `text-beat`, `scene-steps`). Component không có trong mẫu thì máy từ chối plan.
 
@@ -39,20 +39,20 @@ Ghi `component` đúng id trong danh sách (ví dụ `text-beat`, `scene-steps`)
 
 - **TƯ LIỆU** là ảnh/video chủ kênh gửi kèm mô tả. Dùng trước tiên: B-roll `source: "upload"`, đúng `assetId`, chép mô tả vào `hint`, neo vào câu đang nói đúng nội dung đó. Ảnh nhỏ của tư liệu được đính kèm để bạn nhìn.
 - **KHO GỢI Ý** là danh sách máy chọn sẵn từ Kho của tôi, nhạc và SFX theo mẫu, mỗi mục có `assetId` thật. Chỉ chọn trong danh sách này.
-- Chỗ cần cảnh trám mà không có tư liệu hợp: nếu chủ kênh cho tìm thêm, ghi B-roll `source: "pexels"`, **không** `assetId`, kèm `query: { description, keywords }` (mô tả tiếng Việt điều cần thấy, 2–4 từ khoá tiếng Anh cụ thể như `["laptop", "night", "working"]`). Máy tìm, chấm theo câu đang nói và tải về; không có cảnh đạt thì máy bỏ chỗ đó. Không cho tìm thêm thì bỏ chỗ trám.
+- Chỗ cần cảnh trám mà không có tư liệu hợp: nếu chủ kênh cho tìm thêm, ghi B-roll `source: "pexels"`, **không** `assetId`, kèm `query: { description, keywords }` (mô tả tiếng Việt điều cần thấy, 2–4 từ khoá tiếng Anh cụ thể như `["laptop", "night", "working"]`). Máy tìm lần lượt trong tư liệu, Kho của tôi, video rồi ảnh Pexels, chấm 1–5 theo câu đang nói, lấy cảnh từ 3 điểm, không lặp một cảnh ở hai chỗ liền nhau, rồi tải về kho và điền `assetId`; không có cảnh đạt thì máy bỏ chỗ đó. Không cho tìm thêm thì máy chỉ tìm trong tư liệu và Kho của tôi: đừng đặt chỗ trám nếu ở đó không có cảnh hợp.
 
 ## Cài đặt của chủ kênh
 
 Mục DỰNG NHANH trong prompt ghi cài đặt chủ kênh chọn; máy ép lại nếu plan lệch:
 
-- Tự cắt tắt: `autoCut: false`, `cutWords: []`, giữ nguyên video.
+- Tự cắt tắt: `autoCut: false`, `cutWords: []`, `gapMs: 5000`, giữ nguyên video.
 - Tự cắt bật: `autoCut: true`, mức nhẹ / vừa / sát gợi ý `gapMs` 800 / 400 / 250.
 - Nhạc: không nhạc thì bỏ `music`; chủ kênh chọn bài thì giữ đúng bài đó; AI chọn thì lấy trong KHO GỢI Ý. `music.duck` theo cài đặt giảm nhạc khi nói.
 - Ghi chú của chủ kênh đứng trên mọi luật khác.
 
 ## Chỉnh tay của chủ kênh
 
-Chủ kênh chỉnh trong editor (vị trí, cỡ, chữ, hiệu ứng vào, ẩn một phần tử) và tự thêm phần tử. Những chỉnh này nằm ngoài plan, AI không ghi vào. Prompt liệt kê chúng ở mục PHẦN TỬ CHỦ KÊNH ĐÃ SỬA TAY: **giữ nguyên id**, không xoá, không viết lại, không thêm lại phần tử chủ kênh đã ẩn. Máy cũng tự chép lại phần tử chủ kênh tự thêm nếu plan mới làm mất.
+Chủ kênh chỉnh trong editor (vị trí, cỡ, chữ, hiệu ứng vào, âm thanh, thời điểm, đổi file của cảnh trám hay đồ hoạ, đổi nhạc nền, ẩn một phần tử) và tự thêm phần tử. Những chỉnh này nằm trong `overrides.json` ngoài plan, AI không ghi vào; máy áp chúng lên mọi bản plan mới theo id. Prompt liệt kê chúng ở mục PHẦN TỬ CHỦ KÊNH ĐÃ SỬA TAY: **giữ nguyên id**, không xoá, không viết lại, không thêm lại phần tử chủ kênh đã ẩn. Máy tự chép lại phần tử chủ kênh tự thêm hoặc đã khôi phục nếu plan mới làm mất. Phần tử AI có chỉnh tay mà plan mới bỏ mất thì chỉnh tay đó không còn chỗ áp: editor báo để chủ kênh khôi phục, nên đừng bỏ chúng.
 
 ## Mẫu cơ bản (`style:<id>`)
 

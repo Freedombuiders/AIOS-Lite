@@ -2,18 +2,31 @@ import { execFile } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { loadIntegrationValues } from '../integration-values.js';
 import { STORE_DIR } from '../paths.js';
 import type { DoctorCheck } from './types.js';
 import { defaultAgentProvider } from './turn.js';
 import { childPath, findBin, FFMPEG_HINT, missingToolHint } from '../bin.js';
 import { hasTonemapFilters } from './pipeline/normalize.js';
-import { ffmpegBin, ffprobeBin } from './pipeline/tools.js';
+import { ffmpegBin, ffprobeBin, hyperframesVersion } from './pipeline/tools.js';
 
 export interface DoctorResult {
   checks: DoctorCheck[];
   ok: number;
   total: number;
   requiredOk: boolean;
+}
+
+/** What the checks read from the machine; tests replace parts of it. */
+export interface DoctorDeps {
+  /** stdout of a tool; rejects when the tool is missing or fails. */
+  run: (cmd: string, args: string[]) => Promise<string>;
+  /** The Pexels API key saved in Kết nối › Integrations › Pexels, or null. */
+  pexelsKey: () => string | null;
+  /** hyperframes versions in the npx cache (~/.npm/_npx), newest first. */
+  cachedHyperframes: () => string[];
+  /** Path of npx, or null. */
+  npx: () => string | null;
 }
 
 const CACHE_MS = 30_000;
@@ -49,25 +62,34 @@ function findWhisperModel(): { file: string; size: number } | null {
   return null;
 }
 
-function hyperframesVersion(): string | null {
+function cachedHyperframes(): string[] {
   const npx = path.join(os.homedir(), '.npm', '_npx');
-  let best: { v: string; mtime: number } | null = null;
+  const found: { v: string; mtime: number }[] = [];
   try {
     for (const dir of fs.readdirSync(npx)) {
       const pkg = path.join(npx, dir, 'node_modules', 'hyperframes', 'package.json');
       try {
         const mtime = fs.statSync(pkg).mtimeMs;
         const v = (JSON.parse(fs.readFileSync(pkg, 'utf8')) as { version?: string }).version;
-        if (v && (!best || mtime > best.mtime)) best = { v, mtime };
+        if (v) found.push({ v, mtime });
       } catch { /* not this one */ }
     }
   } catch { /* no npx cache */ }
-  return best?.v ?? null;
+  return [...new Set(found.sort((a, b) => b.mtime - a.mtime).map((f) => f.v))];
 }
+
+/** Same lookup as the Asset Hub (assets/hub.ts): the key the owner saved in Integrations › Pexels. */
+function pexelsKey(): string | null {
+  try { return loadIntegrationValues('pexels')?.api_key?.trim() || null; } catch { return null; }
+}
+
+const DEFAULT_DEPS: DoctorDeps = { run, pexelsKey, cachedHyperframes, npx: () => findBin('npx') };
 
 const mb = (n: number) => `${Math.round(n / 1024 / 1024)} MB`;
 
-async function compute(root: string): Promise<DoctorResult> {
+/** Every check, uncached. runDoctor caches it; tests call it with fake deps. */
+export async function computeDoctor(root: string, deps: Partial<DoctorDeps> = {}): Promise<DoctorResult> {
+  const { run, pexelsKey, cachedHyperframes, npx } = { ...DEFAULT_DEPS, ...deps };
   const checks: DoctorCheck[] = [];
   const add = (c: DoctorCheck) => checks.push(c);
 
@@ -130,12 +152,22 @@ async function compute(root: string): Promise<DoctorResult> {
     ...(model ? {} : { fix: 'Tải ggml-large-v3-turbo-q5_0.bin vào ~/.cache/whisper-cpp hoặc đặt VIDEO_EDIT_WHISPER_MODEL' }),
   });
 
-  let hf = (await safe(() => run('hyperframes', ['--version'])))?.trim() || null;
-  if (!hf) hf = hyperframesVersion();
+  // Every export renders with `npx -y hyperframes@<pin>` (pipeline/render.ts): the pinned version must be cached
+  // or npx downloads it on the first export (needs the network).
+  const pin = hyperframesVersion();
+  const installed = /\d+\.\d+\.\d+\S*/.exec((await safe(() => run('hyperframes', ['--version']))) ?? '')?.[0] ?? null;
+  const cached = cachedHyperframes();
+  const npxPath = npx();
+  const hfReady = Boolean(npxPath) && (cached.includes(pin) || installed === pin);
+  const other = installed ?? cached[0] ?? null;
   add({
-    id: 'hyperframes', label: 'HyperFrames (hiệu ứng, giai đoạn 2)', required: false, ok: Boolean(hf),
-    detail: hf ? `phiên bản ${hf}` : 'chưa cài',
-    ...(hf ? {} : { fix: 'npm i -g hyperframes' }),
+    id: 'hyperframes', label: 'HyperFrames (dựng hiệu ứng và xuất video)', required: false, ok: hfReady,
+    detail: !npxPath
+      ? 'chưa có Node.js (npx): chưa xuất video được'
+      : hfReady
+        ? `phiên bản ${pin}`
+        : `chưa tải bản ${pin}${other ? ` (máy có bản ${other})` : ''}: lần xuất đầu sẽ tự tải, cần mạng`,
+    ...(hfReady ? {} : { fix: npxPath ? `Tải sẵn: npx -y hyperframes@${pin} --version` : missingToolHint('npx') }),
   });
 
   const chrome = fs.existsSync('/Applications/Google Chrome.app') || fs.existsSync(path.join(os.homedir(), '.cache', 'puppeteer'));
@@ -143,6 +175,14 @@ async function compute(root: string): Promise<DoctorResult> {
     id: 'chrome', label: 'Chrome (dựng hiệu ứng HyperFrames)', required: false, ok: chrome,
     detail: chrome ? 'có' : 'chưa thấy Chrome',
     ...(chrome ? {} : { fix: 'Cài Google Chrome' }),
+  });
+
+  // Dựng nhanh searches Pexels for B-roll slots; without a key it uses the owner's footage and library only.
+  const pexels = Boolean(pexelsKey());
+  add({
+    id: 'pexels', label: 'Pexels (tìm cảnh trám cho Dựng nhanh)', required: false, ok: pexels,
+    detail: pexels ? 'đã có API key' : 'chưa có API key: Dựng nhanh chỉ dùng tư liệu của bạn và Kho của tôi',
+    ...(pexels ? {} : { fix: 'Lấy API key miễn phí ở pexels.com/api rồi dán vào Kết nối › Integrations › Pexels' }),
   });
 
   const ytdlp = await safe(() => run('yt-dlp', ['--version']));
@@ -187,7 +227,7 @@ export async function runDoctor(root: string = path.join(STORE_DIR, 'video-edit'
   if (cache && cache.key === root && now - cache.at < CACHE_MS) return cache.result;
   let result: DoctorResult;
   try {
-    result = await compute(root);
+    result = await computeDoctor(root);
   } catch {
     result = { checks: [], ok: 0, total: 0, requiredOk: false };
   }
