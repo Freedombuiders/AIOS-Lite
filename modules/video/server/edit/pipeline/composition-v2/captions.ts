@@ -15,12 +15,18 @@ const CHUNK_MIN_S = 0.35;
 /** A gap this long between two words ends the cue. */
 const CHUNK_PAUSE_S = 0.3;
 const PUNCT_BREAK = /[.,!?;:…]$/u;
+/**
+ * whisper.cpp writes Vietnamese with almost no punctuation but capitalises the first word of a sentence, so a
+ * title-case word ("Đó", "Thì") starts a new cue. Names in caps ("AI", "ChatGPT") have more capitals and do not.
+ */
+const SENTENCE_START = /^\p{Lu}[\p{Ll}\p{M}]*$/u;
 
 /** A filler the transcriber inserted where there is sound but no word (T3): cuttable, never captioned. */
 export const isSynthetic = (w: object) => (w as { synthetic?: boolean }).synthetic === true;
 
 /**
- * Words → caption cues. A cue closes on trailing punctuation or a pause before the next word; otherwise at
+ * Words → caption cues. A cue closes on trailing punctuation, a pause before the next word or a next word that
+ * starts a sentence; otherwise at
  * CHUNK_WORDS words, unless it would be on screen for less than CHUNK_MIN_S, then at `maxWords`.
  */
 export function chunkWords<W extends Pick<TranscriptWord, 'text' | 'start' | 'end'>>(words: W[], maxWords: number): W[][] {
@@ -34,7 +40,8 @@ export function chunkWords<W extends Pick<TranscriptWord, 'text' | 'start' | 'en
     const next = list[i + 1];
     const gap = next ? next.start - w.end : 0;
     const dur = w.end - current[0].start;
-    if (!next || PUNCT_BREAK.test(w.text.trim()) || gap >= CHUNK_PAUSE_S || current.length >= most || (current.length >= target && dur >= CHUNK_MIN_S)) {
+    const sentence = Boolean(next && SENTENCE_START.test(next.text.trim()));
+    if (!next || PUNCT_BREAK.test(w.text.trim()) || gap >= CHUNK_PAUSE_S || sentence || current.length >= most || (current.length >= target && dur >= CHUNK_MIN_S)) {
       chunks.push(current);
       current = [];
     }

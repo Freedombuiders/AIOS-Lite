@@ -27,6 +27,8 @@ describe('buildShortlist', () => {
     const photo = await kit.addAsset('image', 'logo.png');
     const office = await kit.addAsset('video', 'office.mp4', {}, { caption: 'Văn phòng sáng sủa, máy tính trên bàn', quality: 0.9 });
     await kit.addAsset('video', 'beach.mp4', {}, { caption: 'Bãi biển lúc hoàng hôn' });
+    // A sticker that matches the words just as well is a graphic, not a filler shot.
+    await kit.addAsset('image', 'sticker.png', { tags: ['sticker', 'emoji'] }, { caption: 'Văn phòng sáng sủa, máy tính trên bàn' });
     const calm = await kit.addAsset('bgm', 'calm.mp3', { mood: 'Bình yên' });
     const energetic = await kit.addAsset('bgm', 'drive.mp3', { mood: 'Năng lượng' }, { bpm: 128, genre: 'Electronic', vocals: false, beats: [0.5, 1.4], caption: 'Nhạc điện tử nhanh.' });
     const tense = await kit.addAsset('bgm', 'tense.mp3', { mood: 'Hồi hộp' }, { beats: [1] });

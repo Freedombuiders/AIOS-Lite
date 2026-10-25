@@ -159,6 +159,15 @@ describe('th-vang blocks', () => {
     expect(sets).toEqual([...sets].sort((x, y) => x - y));
   });
 
+  it('text-beat keeps punctuation against a highlight: no space where the markup has none', () => {
+    const line = (title: string) => run('text-beat', { ...SAMPLE['text-beat'], title, animIn: 'slide-up' }).doc
+      .querySelector('.tb-line')!.querySelectorAll(':scope > .tb-w, :scope > .tb-sp, :scope > .tb-hl > .tb-hl-a');
+    const shown = (title: string) => Array.from(line(title)).map((n) => n.textContent).join('');
+    expect(shown('Thêm *file*, mô tả')).toBe('Thêm file, mô tả');
+    expect(shown('*Text* to lên')).toBe('Text to lên');
+    expect(shown('Chỉnh sửa *thủ công*')).toBe('Chỉnh sửa thủ công');
+  });
+
   it('scene-steps shows the step label and one row per item (at most five)', () => {
     const { doc } = run('scene-steps', { ...SAMPLE['scene-steps'], items: 'a\nb\nc\nd\ne\nf' });
     expect(doc.querySelector('.ss-kicker')!.textContent).toBe('BƯỚC 2');

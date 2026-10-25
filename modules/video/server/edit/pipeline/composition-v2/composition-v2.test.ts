@@ -279,6 +279,9 @@ describe('captions', () => {
     expect(texts(chunkWords(words([['a', 0, 0.3], ['b', 0.3, 0.6], ['c', 0.6, 0.9], ['d', 0.9, 1.2]]), 3))).toEqual(['a b', 'c d']);
     expect(texts(chunkWords(words([['a', 0, 0.1], ['b', 0.1, 0.2], ['c', 0.2, 0.3], ['d', 0.3, 0.4]]), 3))).toEqual(['a b c', 'd']);
     expect(texts(chunkWords(words([['a', 0, 0.3], ['b', 0.7, 0.9], ['c', 0.9, 1.2]]), 3))).toEqual(['a', 'b c']);
+    // A title-case word starts a sentence (whisper adds no punctuation in Vietnamese); names in caps do not.
+    expect(texts(chunkWords(words([['này', 0, 0.1], ['Đó', 0.1, 0.2], ['là', 0.2, 0.3]]), 3))).toEqual(['này', 'Đó là']);
+    expect(texts(chunkWords(words([['mở', 0, 0.1], ['ChatGPT', 0.1, 0.2], ['AI', 0.2, 0.3]]), 3))).toEqual(['mở ChatGPT AI']);
     expect(texts(chunkWords(words([['a,', 0, 0.1], ['b', 0.1, 0.2], ['c', 0.2, 0.3]]), 3))).toEqual(['a,', 'b c']);
     expect(texts(chunkWords(words([['a', 0, 0.1], ['b', 0.1, 0.2], ['c', 0.2, 0.3]]), 1))).toEqual(['a', 'b', 'c']);
   });

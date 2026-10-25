@@ -97,13 +97,18 @@
     let hl = false;
     return lines.map((line) => {
       const runs = [];
-      line.split('*').forEach((part, i) => {
+      const parts = line.split('*');
+      parts.forEach((part, i) => {
         if (i > 0) hl = !hl;
         const words = part.split(/\s+/).filter(Boolean);
         if (!words.length) return;
+        // No space in the source at a "*" ("*file*, mô") means none on screen either: "FILE, MÔ", not "FILE , MÔ".
+        const glue = i > 0 && !/^\s/.test(part) && !/\s$/.test(parts[i - 1]);
         const last = runs[runs.length - 1];
-        if (last && last.hl === hl) last.words.push(...words);
-        else runs.push({ hl, words });
+        if (last && last.hl === hl) {
+          if (glue) last.words[last.words.length - 1] += words.shift();
+          last.words.push(...words);
+        } else runs.push({ hl, words, glue });
       });
       return runs;
     }).filter((runs) => runs.length);
@@ -124,7 +129,7 @@
     const all = runs.flatMap((r) => r.words);
     longest = Math.max(longest, graphemes(all.join(' ')).length + runs.filter((r) => r.hl).length);
     runs.forEach((run, ri) => {
-      if (ri > 0) line.appendChild(el('span', 'tb-sp', ' '));
+      if (ri > 0 && !run.glue) line.appendChild(el('span', 'tb-sp', ' '));
       const target = run.hl ? el('span', 'tb-hl-a') : line;
       run.words.forEach((w, wi) => {
         if (wi > 0) target.appendChild(el('span', 'tb-sp', ' '));

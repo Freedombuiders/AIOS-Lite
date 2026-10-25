@@ -9,7 +9,7 @@ import type { VideoProject } from '../types.js';
 import { hub } from './hub.js';
 import { enqueueIndex } from './indexer.js';
 import { matchScore, terms } from './match.js';
-import { libraryCandidate, usableAsset } from './providers.js';
+import { isSticker, libraryCandidate, usableAsset } from './providers.js';
 import type { AssetCandidate, AssetShortlist } from './types.js';
 
 const LIBRARY_MAX = 8;
@@ -78,7 +78,7 @@ export async function buildShortlist(projectId: string): Promise<AssetShortlist>
   const spoken = terms(words);
   const library = words
     ? usable
-      .filter((a) => (a.kind === 'video' || a.kind === 'image') && !attached.has(a.id))
+      .filter((a) => (a.kind === 'video' || a.kind === 'image') && !attached.has(a.id) && !isSticker(a))
       .map((a) => ({ a, score: matchScore(spoken, terms([a.caption, a.name, a.description, ...(a.tags ?? [])].filter(Boolean).join(' '))) }))
       .filter((x) => x.score > 0)
       .sort((x, y) => y.score - x.score || (y.a.quality ?? 0.5) - (x.a.quality ?? 0.5))

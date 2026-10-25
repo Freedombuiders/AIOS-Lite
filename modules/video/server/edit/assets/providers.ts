@@ -56,6 +56,11 @@ export function usableAsset(a: LibraryAsset): boolean {
   return Boolean(a.file && a.available && a.enabled !== false && !a.aliasOf);
 }
 
+/** A sticker (emoji PNG of the starter pack, or a file tagged so): a graphic for the Đồ hoạ track, never a filler shot. */
+export function isSticker(a: Pick<LibraryAsset, 'tags'>): boolean {
+  return (a.tags ?? []).some((t) => t === 'sticker' || t === 'nhãn dán');
+}
+
 export function libraryLicense(a: LibraryAsset): AssetLicense {
   return {
     name: a.license || DEFAULT_LICENSE,
@@ -113,7 +118,7 @@ const mineProvider: AssetProvider = {
     const want = terms([q.description, ...q.keywords].filter(Boolean).join(' '));
     const minSec = Math.max(STOCK_MIN_SEC, Math.min(STOCK_MAX_SEC, q.minSec ?? 0));
     return getLibrary(hub().root)
-      .filter((a) => usableAsset(a) && kinds.includes(a.kind as AssetCandidate['kind']) && !attached.has(a.id))
+      .filter((a) => usableAsset(a) && kinds.includes(a.kind as AssetCandidate['kind']) && !attached.has(a.id) && !isSticker(a))
       .filter((a) => a.kind !== 'video' || !a.durationSec || a.durationSec >= minSec)
       .map((a) => ({ a, score: matchScore(want, terms(assetText(a))) }))
       .filter((x) => x.score > 0)
