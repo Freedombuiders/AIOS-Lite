@@ -16,6 +16,8 @@ Giấy phép của chính AIOS-Lite là **MIT**, © 2026 Tony Hoang (file [LICEN
 8. [open-edit (Apache-2.0): module `video`, đo tiếng nói](#8-open-edit-apache-20-module-video-đo-tiếng-nói)
 9. [video-use (MIT): module `video`, HDR sang SDR và phụ đề Dựng nhanh](#9-video-use-mit-module-video-hdr-sang-sdr-và-phụ-đề-dựng-nhanh)
 
+Phụ lục: [toàn văn Apache License 2.0](#phụ-lục-toàn-văn-apache-license-20) (mục 7 và 8).
+
 ---
 
 ## 1. Paperclip (MIT)
@@ -178,15 +180,17 @@ SOFTWARE.
 
 ## 7. FireRed-OpenStoryline (Apache-2.0): module `video`, kho tư liệu Dựng nhanh
 
-Phần đo nhịp nhạc và các prompt mô tả tư liệu, gắn nhãn nhạc của kho tư liệu (Asset Hub) trong tab Dựng nhanh được viết lại bằng TypeScript dựa trên [FireRed-OpenStoryline](https://github.com/FireRedTeam/FireRed-OpenStoryline) (giấy phép Apache 2.0, bản đọc ở commit `c9e9452`). Mỗi file bên dưới có ghi chú nguồn và các thay đổi ở đầu file.
+Phần đo nhịp nhạc và các prompt mô tả tư liệu, gắn nhãn nhạc của kho tư liệu (Asset Hub) trong tab Dựng nhanh được viết lại bằng TypeScript dựa trên [FireRed-OpenStoryline](https://github.com/FireRedTeam/FireRed-OpenStoryline) (giấy phép Apache 2.0, bản đọc ở commit `c9e9452`). `beats.ts` và `prompts.ts` có ghi chú nguồn, bản quyền và các thay đổi ở đầu file; `indexer.ts` chỉ lấy cách chọn số khung, ghi nguồn ngay trên hàm `frameTimes`.
 
 | File nguồn của OpenStoryline | File trong AIOS-Lite | Mức độ lấy |
 |---|---|---|
 | `src/open_storyline/nodes/core_nodes/select_bgm.py` (`analyze_music_metrics`, `_compute_accent_beats`) | `modules/video/server/edit/assets/beats.ts` | Viết lại bằng TypeScript: cùng các bước đo BPM, nhịp và chọn nhịp mạnh (top 70 %, chuẩn hoá cục bộ 8 nhịp, giữ đỉnh cục bộ, cách nhau ít nhất 1 nhịp), năng lượng trung bình và độ chênh. Thay librosa bằng phổ tự tính, không tách phần bộ gõ trước khi chọn nhịp mạnh, thời điểm tính bằng giây |
-| `prompts/tasks/understand_clips/{en,zh}/system_detail.md`, `src/open_storyline/nodes/core_nodes/understand_clips.py`, `src/open_storyline/mcp/sampling_handler.py` (số khung 2–6, 3 khung/giây, cạnh dài 600 px) | `modules/video/server/edit/assets/prompts.ts` (`clipIndexPrompt`), `modules/video/server/edit/assets/indexer.ts` (`frameTimes`) | Dịch và chỉnh prompt sang tiếng Việt, đổi `aes_score` thành `quality`; giữ cách chọn số khung |
+| `prompts/tasks/understand_clips/{en,zh}/system_detail.md`, `src/open_storyline/nodes/core_nodes/understand_clips.py`, `src/open_storyline/mcp/sampling_handler.py` (số khung 2–6, 3 khung/giây, cạnh dài 600 px) | `modules/video/server/edit/assets/prompts.ts` (`clipIndexPrompt`), `modules/video/server/edit/assets/indexer.ts` (`frameTimes`), `modules/video/server/edit/assets/hub.ts` (`frames`, cạnh dài 600 px) | Dịch và chỉnh prompt sang tiếng Việt, đổi `aes_score` thành `quality`; giữ cách chọn số khung và cỡ khung |
 | `prompts/tasks/scripts/{en,zh}/omni_bgm_label.md`, `scripts/omni_bgm_label.py` | `modules/video/server/edit/assets/prompts.ts` (`musicLabelPrompt`) | Chỉnh prompt: agent không nghe được âm thanh nên đọc số đo, tên, mô tả và ảnh phổ; mood theo 6 mood của module |
 
-OpenMontage (AGPL-3.0) chỉ được học ý tưởng cho cách tìm và chấm cảnh trám (mô tả đầy đủ để chấm, từ khoá ngắn để tìm, chấm 1–5, tránh hai cảnh giống nhau liền nhau); không có mã nào của OpenMontage trong AIOS-Lite.
+OpenMontage (AGPL-3.0) chỉ được học ý tưởng cho cách tìm và chấm cảnh trám (mô tả đầy đủ để chấm, từ khoá ngắn để tìm, chấm 1–5, tránh hai cảnh giống nhau liền nhau); không có mã nào của OpenMontage trong AIOS-Lite (`assets/resolve.ts`, `assets/prompts.ts` ghi rõ điều này).
+
+Prompt cắt thô từng câu của đạo diễn (`modules/video/server/edit/agent/director.ts`, `ROUGH_CUT_RULES`) chỉ học ý tưởng từ OpenStoryline (`prompts/tasks/speech_rough_cut`) và luật chọn lần nói tốt nhất của video-use (mục 9); viết lại bằng tiếng Việt, không chép chữ hay mã.
 
 Thông báo bản quyền của FireRed-OpenStoryline:
 
@@ -204,6 +208,9 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+```
+
+Toàn văn giấy phép Apache 2.0: [phụ lục](#phụ-lục-toàn-văn-apache-license-20) cuối file. OpenStoryline không có file NOTICE.
 
 ## 8. open-edit (Apache-2.0): module `video`, đo tiếng nói
 
@@ -214,7 +221,7 @@ Bước chép lời của Dựng nhanh đo tiếng nói từ âm thanh thật, d
 | `cli/src/commands/speech-probe.ts` (`envelopeOf`, `percentile`, `analyse`, `MIN_DYNAMIC_RANGE_DB`) | `modules/video/server/edit/pipeline/speech-probe.ts` | Chép gần nguyên logic đo mức âm theo cửa sổ, nền nhiễu đo theo từng clip và khoảng lặng an toàn để cắt; bỏ phần CLI, đọc PCM từ file WAV 16 kHz. Phần tìm tiếng không thành lời (`voicedRuns`, `unwordedSounds`, `insertSyntheticWords`) do AIOS-Lite viết thêm |
 | `cli/src/transcript/whisper-mapper.ts` (`tokenize`, `timeAll`, `orderWords`) | `modules/video/server/edit/pipeline/transcribe.ts` (`parseWhisperJson`) | Viết lại cho JSON của whisper.cpp: tách token nhiều từ theo độ dài, gán thời gian cho token thiếu mốc từ hai bên, sắp lại từ có mốc chạy ngược |
 
-Giấy phép Apache 2.0 yêu cầu giữ thông báo bản quyền, ghi rõ file đã sửa và kèm nội dung NOTICE liên quan. Toàn văn giấy phép: <http://www.apache.org/licenses/LICENSE-2.0>. NOTICE của open-edit (phần liên quan):
+Giấy phép Apache 2.0 yêu cầu giữ thông báo bản quyền, ghi rõ file đã sửa và kèm nội dung NOTICE liên quan. Toàn văn giấy phép: [phụ lục](#phụ-lục-toàn-văn-apache-license-20) cuối file. NOTICE của open-edit (phần liên quan; phần còn lại nói về font của trang đăng nhập và dịch vụ VEED, AIOS-Lite không dùng):
 
 ```
 open-edit
@@ -225,18 +232,14 @@ This product includes software developed at VEED (https://www.veed.io/).
 Licensed under the Apache License, Version 2.0 (see the LICENSE file).
 ```
 
-Prompt cắt thô từng câu của đạo diễn (`modules/video/server/edit/agent/director.ts`, `ROUGH_CUT_RULES`) chỉ học ý tưởng từ [FireRed-OpenStoryline](https://github.com/FireRedTeam/FireRed-OpenStoryline) (Apache-2.0, `prompts/tasks/speech_rough_cut`) và luật chọn lần nói tốt nhất của video-use; viết lại bằng tiếng Việt, không chép chữ hay mã.
-
 ## 9. video-use (MIT): module `video`, HDR sang SDR và phụ đề Dựng nhanh
 
-Bước chuẩn hoá video chuyển video HDR (HLG của iPhone, PQ) sang SDR bằng chuỗi bộ lọc lấy từ [video-use](https://github.com/browser-use/video-use) (giấy phép MIT, bản đọc ở commit `43cfc56`).
+Bước chuẩn hoá video chuyển video HDR (HLG của iPhone, PQ) sang SDR bằng chuỗi bộ lọc lấy từ [video-use](https://github.com/browser-use/video-use) (giấy phép MIT, bản đọc ở commit `43cfc56`), và composition Dựng nhanh chia phụ đề thành cụm ngắn theo cùng luật của video-use. Mỗi file có ghi chú nguồn và bản quyền: `captions.ts` ở đầu file, `normalize.ts` ngay trên `HDR_TRANSFERS`.
 
 | File nguồn của video-use | File trong AIOS-Lite | Mức độ lấy |
 |---|---|---|
 | `helpers/render.py` (`HDR_TRANSFERS`, `TONEMAP_CHAIN`, `is_hdr_source`) | `modules/video/server/edit/pipeline/normalize.ts` (`HDR_TRANSFERS`, `TONEMAP_CHAIN`, `probeColorTransfer`, `masterVideoFilter`) | Chép chuỗi `zscale` + `tonemap` (Hable) và cách nhận ra nguồn HDR; viết lại bằng TypeScript, chỉ bật khi ffmpeg có zimg |
 | `helpers/render.py` (`chunk_words`, `CHUNK_WORDS`, `CHUNK_MAX_WORDS`, `CHUNK_MIN_S`, `CHUNK_PAUSE_S`, `PUNCT_BREAK`) | `modules/video/server/edit/pipeline/composition-v2/captions.ts` (`chunkWords`) | Viết lại cùng luật: ngắt ở dấu câu hoặc khoảng lặng ≥0,3s, mặc định 2 từ, cụm ngắn hơn 0,35s được thêm từ tới mức tối đa (lấy `maxWordsPerChunk` của mẫu thay cho 3) |
-
-Cách chia phụ đề thành cụm ngắn của composition Dựng nhanh được viết lại bằng TypeScript dựa trên [video-use](https://github.com/browser-use/video-use) (giấy phép MIT, bản đọc ở commit `43cfc56`). File có ghi chú nguồn ở đầu file.
 
 Thông báo bản quyền của video-use:
 
@@ -266,4 +269,187 @@ SOFTWARE.
 
 ---
 
-Nếu bạn thấy một nguồn gốc còn thiếu hoặc ghi sai, hãy sửa file này cùng lúc với việc thêm mã. Mỗi lần chép mã từ Paperclip, hãy thêm dòng vào bảng ở mục 1.
+Nếu bạn thấy một nguồn gốc còn thiếu hoặc ghi sai, hãy sửa file này cùng lúc với việc thêm mã. Mỗi lần chép mã từ một dự án ở trên, hãy thêm dòng vào bảng của mục tương ứng (Paperclip: mục 1) và giữ ghi chú nguồn ở file chép.
+
+## Phụ lục: toàn văn Apache License 2.0
+
+Điều khoản dưới đây áp dụng cho phần mã lấy từ FireRed-OpenStoryline (mục 7) và open-edit (mục 8), chép nguyên từ file `LICENSE` của hai dự án (hai file giống nhau tới hết phần điều khoản).
+
+```
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
+
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
+
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
+
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
+
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
+
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
+
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
+
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
+
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
+
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
+
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
+
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
+
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
+
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
+
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
+
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
+
+      (d) If the Work includes a "NOTICE" text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
+
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
+
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
+
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
+
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
+
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
+
+   END OF TERMS AND CONDITIONS
+```

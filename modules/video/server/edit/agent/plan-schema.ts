@@ -53,7 +53,7 @@ const broll = z.object({
   source: z.enum(['product', 'library', 'ai', 'upload', 'pexels']),
   assetId: z.string().min(1).max(200).optional(),
   prompt: z.string().max(1000).optional(),
-  layout: z.enum(['full', 'card', 'cutout']),
+  layout: z.enum(['full', 'card', 'cutout', 'pip-circle']),
   box: z.object({ x: z.number().min(0).max(100), y: z.number().min(0).max(100), w: z.number().positive().max(100), h: z.number().positive().max(100) }).refine((b) => b.x + b.w <= 100 && b.y + b.h <= 100, 'Vùng ảnh phải nằm trong khung hình.').optional(),
   enabled: z.boolean().default(true),
   // Plan v2
