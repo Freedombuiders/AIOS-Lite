@@ -52,7 +52,9 @@
     display: none; max-width: 100%;
     font-family: var(--th-font-sub, 'Montserrat'), sans-serif; font-style: italic; font-weight: 600;
     font-size: 4cqmin; line-height: 1.3; color: var(--th-text, #FFFFFF);
-    text-shadow: 0 0.08em 0.4em rgba(0, 0, 0, 0.75);
+    /* Same dark outline as the title: white italic vanishes on a bright shot with a soft shadow alone. */
+    -webkit-text-stroke: 0.06em var(--th-dark, #141416); paint-order: stroke fill;
+    text-shadow: 0 0.05em 0 var(--th-dark, #141416), 0 0.08em 0.4em rgba(0, 0, 0, 0.75);
   }
 </style>
 <div id="root" data-composition-id="text-beat">
