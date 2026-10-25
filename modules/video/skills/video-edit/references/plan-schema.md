@@ -25,7 +25,7 @@ Bạn trả JSON trong một khối ```json ở câu trả lời cuối; máy ki
 | `captions` | `{styleId, position, highlight[], maxWordsPerChunk}` | `position`: `bottom` `middle` `behind`. Xem `captions.md` |
 | `overlays[]` | `{id, effect, anchorWord?, at, duration, props}` | `effect` là một trong 6 hiệu ứng dựng sẵn. Xem `effects.md` |
 | `zooms[]` | `{at, duration, scale}` | `scale` 1.0–2.0, thường 1.08–1.2 để nhấn nhẹ |
-| `music` | `{assetId, mood, gainDb, duck}` | `gainDb`: mức nhạc so với giọng (dB, âm là nhỏ hơn). Bắt đầu từ mức của hồ sơ `musicLufs − voiceLufs` (mặc định **-18**), không để 0 (nhạc to ngang giọng). `duck: true` khi có giọng nói. Xem `audio.md` |
+| `music` | `{assetId, mood, gainDb, duck}` | `gainDb`: tinh chỉnh quanh mức nhạc của hồ sơ (mặc định `0`, khoảng -6 đến +3); từ -12 trở xuống là mức tuyệt đối kiểu plan cũ. `duck: true` khi có giọng nói. Xem `audio.md` |
 | `sfx[]` | `{at, assetId, gainDb?}` | mỗi tiếng động một điểm |
 | `covers[]` | `{frameAt, title, subtitle?}` | tối đa 3 phương án, `frameAt` là giây video gốc. Xem `covers.md` |
 | `meta` | `{title, caption, hashtags[], hook?}` | để đăng bài; không bịa, tối đa vài hashtag liên quan |
@@ -101,7 +101,7 @@ Lời chép giả định 160 từ, dài 70 giây. Mã kho (`assetId`) chỉ là
   "zooms": [
     { "at": 9.5, "duration": 1.5, "scale": 1.12 }
   ],
-  "music": { "assetId": "bgm:tap-trung-01", "mood": "Tập trung", "gainDb": -18, "duck": true },
+  "music": { "assetId": "bgm:tap-trung-01", "mood": "Tập trung", "gainDb": 0, "duck": true },
   "sfx": [
     { "at": 9.5, "assetId": "sfx:pop", "gainDb": -8 },
     { "at": 27, "assetId": "sfx:pop", "gainDb": -8 }
@@ -151,7 +151,7 @@ Cùng lời chép giả định. `br1` dùng tư liệu chủ kênh gửi (đún
   ],
   "captions": { "styleId": "bottom-clean", "position": "middle", "highlight": ["50%", "3 bước"], "maxWordsPerChunk": 3 },
   "zooms": [{ "id": "z1", "anchorWord": 30, "duration": 1.5, "scale": 1.1 }],
-  "music": { "assetId": "bgm:tap-trung-01", "mood": "Tập trung", "gainDb": -18, "duck": true },
+  "music": { "assetId": "bgm:tap-trung-01", "mood": "Tập trung", "gainDb": 0, "duck": true },
   "covers": [{ "frameAt": 3.2, "title": "Dựng video nhanh gấp đôi" }],
   "meta": { "title": "Dựng video nhanh gấp đôi với 3 bước", "caption": "3 bước để dựng một video nói chuyện trong vài phút. Bạn đang dựng mất bao lâu?", "hashtags": ["#dungvideo"] }
 }

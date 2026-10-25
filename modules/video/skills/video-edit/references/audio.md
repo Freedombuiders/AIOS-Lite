@@ -11,7 +11,7 @@ Máy trộn và chuẩn hoá. Bạn chọn **nhạc nào, tiếng động ở đ
 | Tổng cuối | **-15.5 LUFS** | `loudnorm` sau khi xuất, hợp TikTok/Reels/Shorts (khoảng -14 đến -16) |
 | Tốc độ nói | ×1.0 | `speechRate` của hồ sơ; chủ kênh nói chậm có thể đặt 1.05 đến 1.1 |
 
-Bạn **không** điền những con số LUFS vào plan. `music.gainDb` là **mức nhạc so với giọng** (dB, âm là nhỏ hơn giọng). Lấy mức của hồ sơ làm gốc: `musicLufs − voiceLufs` (mặc định -34 − (-16) = **-18**). Bài nhạc rất to hoặc rất nhỏ so với bài khác thì bù quanh mức đó, khoảng -6 đến +3 dB (ví dụ -21 hoặc -16). Không để `0`: nhạc sẽ to ngang giọng.
+Bạn **không** điền những con số LUFS vào plan. `music.gainDb` là **tinh chỉnh** quanh mức nhạc của hồ sơ (`musicLufs − voiceLufs`, mặc định -34 − (-16) = -18 dB dưới giọng). Mặc định `0`; bài rất to hoặc rất nhỏ so với bài khác thì bù khoảng -6 đến +3 dB. Giá trị từ -12 trở xuống được hiểu là mức tuyệt đối so với giọng (cách ghi của plan cũ), nên đừng ghi những số đó để tinh chỉnh.
 
 ## Nhạc nền (`music`)
 
