@@ -28,6 +28,17 @@ describe('mergeOverrides', () => {
     expect(doc.elements.br1).toBeUndefined();
   });
 
+  it('keeps the music the owner chose, key by key, until it is cleared', () => {
+    let doc = mergeOverrides(emptyOverrides('T0'), { music: { assetId: 'seed:bgm:chill-lofi', duck: true } }, 'T1');
+    expect(doc.music).toEqual({ assetId: 'seed:bgm:chill-lofi', duck: true });
+    doc = mergeOverrides(doc, { music: { gainDb: -3, duck: null } }, 'T2');
+    expect(doc.music).toEqual({ assetId: 'seed:bgm:chill-lofi', gainDb: -3 });
+    doc = mergeOverrides(doc, { elements: { b1: { animIn: 'pop' } } }, 'T3');
+    expect(doc.music).toEqual({ assetId: 'seed:bgm:chill-lofi', gainDb: -3 });
+    doc = mergeOverrides(doc, { music: null }, 'T4');
+    expect(doc.music).toBeUndefined();
+  });
+
   it('drops no-op values and removes an entry that is back to nothing', () => {
     let doc = mergeOverrides(emptyOverrides('T0'), { elements: { b1: { t: [2, 2], s: 1.5 }, b2: { animIn: 'pop' } } }, 'T1');
     doc = mergeOverrides(doc, { elements: { b1: { t: [0, 0] } } }, 'T2');

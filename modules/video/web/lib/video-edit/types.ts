@@ -301,7 +301,19 @@ export interface OverridesDoc {
   elements: Record<string, ElementOverride>;
   /** Caption style the owner changed (CaptionStyle: see the template contract). */
   captions?: Partial<CaptionStyle>;
+  /** Background music the owner chose in the editor, over plan.music. `off` = no music. */
+  music?: MusicOverride;
   updatedAt: string;
+}
+
+export interface MusicOverride {
+  /** Library asset id of a bgm track. */
+  assetId?: string;
+  /** Fine-tune around the profile level, dB. */
+  gainDb?: number;
+  /** Lower the music while someone speaks. */
+  duck?: boolean;
+  off?: boolean;
 }
 
 /** An AI element with an override that the current plan no longer has; the editor offers to restore it. */

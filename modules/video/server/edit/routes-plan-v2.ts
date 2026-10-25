@@ -64,9 +64,17 @@ const captionsSchema = z.object({
   maxWordsPerChunk: z.number().int().min(1).max(8).nullable(),
 }).partial().strict();
 
+const musicSchema = z.object({
+  assetId: z.string().trim().min(1).max(160).nullable(),
+  gainDb: z.number().finite().min(-30).max(12).nullable(),
+  duck: z.boolean().nullable(),
+  off: z.boolean().nullable(),
+}).partial().strict();
+
 const overridesPutSchema = z.object({
   elements: z.record(elementRef, elementOverrideSchema.nullable()).refine((o) => Object.keys(o).length <= 200),
   captions: captionsSchema.nullable(),
+  music: musicSchema.nullable(),
 }).partial().strict();
 
 export function registerPlanV2Routes(app: Hono, kit: EditorKit, options: PlanV2RouteOptions = {}) {

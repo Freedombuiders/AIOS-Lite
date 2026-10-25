@@ -6,7 +6,7 @@
 // (https://github.com/openfilm/openfilm) studio/ui/src/lib/film-overrides.ts and dropped-overrides.ts,
 // MIT License, Copyright (c) 2026 OpenFilm contributors (full notice: THIRD_PARTY_NOTICES.md).
 import { elementLabel, findElement, planElements } from './pipeline/plan.js';
-import type { CaptionStyle, DroppedElement, EditPlan, ElementOverride, ElementProps, ElementSound, OverridesDoc } from './types.js';
+import type { CaptionStyle, DroppedElement, EditPlan, ElementOverride, ElementProps, ElementSound, MusicOverride, OverridesDoc } from './types.js';
 
 /** What PUT /overrides sends for one element: keys not named are kept, `null` removes a key. */
 export interface ElementOverridePatch {
@@ -27,6 +27,8 @@ export interface OverridesPatch {
   elements?: Record<string, ElementOverridePatch | null>;
   /** `null` = back to the template's caption style. */
   captions?: { [K in keyof CaptionStyle]?: CaptionStyle[K] | null } | null;
+  /** `null` = back to the music the AI chose. */
+  music?: { [K in keyof MusicOverride]?: MusicOverride[K] | null } | null;
 }
 
 export function emptyOverrides(now = new Date().toISOString()): OverridesDoc {
@@ -110,7 +112,10 @@ export function mergeOverrides(doc: OverridesDoc, patch: OverridesPatch, now = n
   const captions = patch.captions === undefined
     ? doc.captions
     : mergeKeys(doc.captions as Record<string, unknown> | undefined, patch.captions as Record<string, unknown> | null) as Partial<CaptionStyle> | undefined;
-  return { version: 1, elements, ...(captions ? { captions } : {}), updatedAt: now };
+  const music = patch.music === undefined
+    ? doc.music
+    : mergeKeys(doc.music as Record<string, unknown> | undefined, patch.music as Record<string, unknown> | null) as MusicOverride | undefined;
+  return { version: 1, elements, ...(captions ? { captions } : {}), ...(music ? { music } : {}), updatedAt: now };
 }
 
 /**
