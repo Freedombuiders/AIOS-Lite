@@ -147,7 +147,7 @@ export function quickPreviewUrl(projectId: string, version: number, overridesUpd
 
 /** Dựng nhanh projects open Editor v2; the others keep the existing editor. */
 export function isQuickProject(p: VideoProject | null | undefined): boolean {
-  return !!p && (!!p.quick || (p as { flow?: string }).flow === 'quick');
+  return !!p && (!!p.quick || p.flow === 'quick');
 }
 
 export function emptyOverrides(): OverridesDoc {
