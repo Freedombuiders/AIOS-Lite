@@ -19,6 +19,7 @@ export interface ElementOverridePatch {
   at?: number | null;
   duration?: number | null;
   hidden?: boolean | null;
+  assetId?: string | null;
 }
 
 export interface OverridesPatch {
@@ -70,6 +71,7 @@ function tidy(o: OverrideBody): OverrideBody | null {
     ...(o.at != null ? { at: round3(o.at) } : {}),
     ...(o.duration != null ? { duration: round3(o.duration) } : {}),
     ...(o.hidden ? { hidden: true } : {}),
+    ...(o.assetId ? { assetId: o.assetId } : {}),
   };
   return Object.keys(out).length ? out : null;
 }
@@ -90,6 +92,7 @@ export function mergeElementOverride(prev: ElementOverride | undefined, patch: E
     at: pick(before.at, patch.at),
     duration: pick(before.duration, patch.duration),
     hidden: pick(before.hidden, patch.hidden),
+    assetId: pick(before.assetId, patch.assetId),
   });
   if (!merged) return null;
   if (prev && JSON.stringify(tidy(before)) === JSON.stringify(merged)) return prev;

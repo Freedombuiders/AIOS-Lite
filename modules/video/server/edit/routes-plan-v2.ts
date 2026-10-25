@@ -42,6 +42,7 @@ const elementOverrideSchema = z.object({
   at: z.number().finite().min(0).max(36_000).nullable(),
   duration: z.number().finite().positive().max(60).nullable(),
   hidden: z.boolean().nullable(),
+  assetId: z.string().trim().min(1).max(160).nullable(),
 }).partial().strict();
 
 const color = z.string().trim().min(1).max(40);

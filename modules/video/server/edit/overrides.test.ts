@@ -19,6 +19,15 @@ describe('mergeOverrides', () => {
     expect(doc.elements.s1.updatedAt).toBe('T2'); // untouched
   });
 
+  it('keeps a swapped file (B-roll or graphic) until the owner clears it', () => {
+    let doc = mergeOverrides(emptyOverrides('T0'), { elements: { br1: { assetId: 'library:clip-1' } } }, 'T1');
+    expect(doc.elements.br1).toEqual({ assetId: 'library:clip-1', updatedAt: 'T1' });
+    doc = mergeOverrides(doc, { elements: { br1: { t: [3, 0] } } }, 'T2');
+    expect(doc.elements.br1).toEqual({ t: [3, 0], assetId: 'library:clip-1', updatedAt: 'T2' });
+    doc = mergeOverrides(doc, { elements: { br1: { assetId: null, t: null } } }, 'T3');
+    expect(doc.elements.br1).toBeUndefined();
+  });
+
   it('drops no-op values and removes an entry that is back to nothing', () => {
     let doc = mergeOverrides(emptyOverrides('T0'), { elements: { b1: { t: [2, 2], s: 1.5 }, b2: { animIn: 'pop' } } }, 'T1');
     doc = mergeOverrides(doc, { elements: { b1: { t: [0, 0] } } }, 'T2');

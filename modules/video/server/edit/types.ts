@@ -290,6 +290,8 @@ export interface ElementOverride {
   duration?: number;
   /** The owner deleted an AI element. */
   hidden?: boolean;
+  /** The owner swapped the file of a B-roll or graphic element (library asset id). */
+  assetId?: string;
   updatedAt: string;
 }
 
