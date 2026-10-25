@@ -43,6 +43,12 @@ Thứ tự ưu tiên: **sản phẩm thật (`product`/`upload`) > kho (`library
 
 Không có `assetId` (hoặc không tìm thấy): máy chỉ hiện thẻ giữ chỗ có chữ; đừng làm vậy trừ khi đã nói với chủ kênh rằng bạn đề xuất cảnh này và họ cần bổ sung hình.
 
+## Dựng nhanh: tư liệu (`hint`) và cảnh cần tìm (`query`)
+
+- Tư liệu chủ kênh gửi kèm mô tả: `source: "upload"`, đúng `assetId`, chép nguyên mô tả vào `hint`. Tư liệu luôn đứng trước kho và cảnh tìm thêm.
+- Chỗ cần cảnh mà không có tư liệu hợp (và chủ kênh cho tìm thêm): `source: "pexels"`, không `assetId`, thêm `query: { "description": "<điều cần thấy, tiếng Việt>", "keywords": ["<2–4 từ khoá tiếng Anh>"] }`. Máy tìm trong kho rồi Pexels, chấm theo câu đang nói, tải về và ghi công tác giả; không có cảnh đạt thì máy bỏ chỗ đó.
+- Mẫu edit có thể có thêm layout riêng cho khung cảnh trám: xem mục MẪU EDIT của prompt.
+
 ## `layout`
 
 - `full`: B-roll phủ toàn khung (video minh hoạ, ảnh sản phẩm rõ). Che người nói; dùng khi hình **là** nội dung.

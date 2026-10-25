@@ -10,11 +10,16 @@ vi.mock('./approval-handler.js', async (importOriginal) => ({
 
 import { bindModuleCtx } from '../../host.js';
 import { fakeCtx } from '../../test-ctx.js';
+import type { AssetShortlist } from '../assets/types.js';
+import { VIDEO_STYLES } from '../catalog/styles.js';
 import { addFile } from '../library/store.js';
 import { createVideoEditStore, type VideoEditStore } from '../store.js';
-import type { EditPlan } from '../types.js';
+import type { EditPlan, QuickSettings } from '../types.js';
 import { requestVideoPlanApproval } from './approval-handler.js';
-import { buildDirectorPrompt, loadDirectorContext, loadDirectorData, runDirectorTurn, stripJsonBlocks, type DirectorData, type LeanRun, type LeanTurn, type SubmitPlanResult } from './director.js';
+import {
+  buildDirectorPrompt, loadDirectorContext, loadDirectorData, loadQuickBrief, ownerEditLines, runDirectorTurn, stripJsonBlocks,
+  type DirectorData, type LeanRun, type LeanTurn, type SubmitPlanResult,
+} from './director.js';
 
 let tmp: string;
 let store: VideoEditStore;
@@ -256,5 +261,113 @@ describe('director prompt', () => {
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, 'plan.v3.json'), JSON.stringify(plan(3)));
     expect(loadDirectorContext(store, projectId)!.plan?.version).toBe(3);
+  });
+});
+
+describe('Dựng nhanh: director prompt with a template', () => {
+  const QUICK: QuickSettings = {
+    mode: 'ai', autoCut: true, cutLevel: 'sat', templateId: 'th-vang', assets: [], stock: true, note: 'Giữ câu chào đầu video',
+    music: { mode: 'ai', duck: true, snapToBeat: false, endOnFinal: true }, startedAt: 'now',
+  };
+  const RULES = '### Luật của mẫu\nChữ vàng theo nhịp nói.\n- text-beat — Nhịp chữ (beat)';
+  const SHORTLIST = '- bgm lib:bgm:vui (Nhạc vui, 120 BPM)';
+  const SHORTLIST_DATA: AssetShortlist = { projectAssets: [], library: [], music: [], sfx: [] };
+
+  async function addImage(name: string) {
+    const tempPath = path.join(tmp, name);
+    fs.writeFileSync(tempPath, Buffer.from('89504e470d0a1a0a', 'hex'));
+    return addFile(store.root, { kind: 'image', tempPath, fileName: name });
+  }
+
+  it('puts the template rules, the footage with its description, the shortlist and the owner note in place of the style notes', async () => {
+    const asset = await addImage('man-hinh.png');
+    store.updateProject(projectId, (p) => { p.quick = { ...QUICK, assets: [{ assetId: asset.id, hint: 'màn hình lúc mở app' }] }; });
+    const ctx = loadDirectorContext(store, projectId)!;
+    const data = loadDirectorData(store, ctx, '/nonexistent');
+    const frameOf = vi.fn(async (_file: string, dest: string) => { fs.mkdirSync(path.dirname(dest), { recursive: true }); fs.writeFileSync(dest, 'jpg'); });
+    const shortlist = vi.fn(async () => SHORTLIST_DATA);
+    const { brief, images } = await loadQuickBrief(store, ctx, { templatePrompt: () => RULES, shortlist, frameOf });
+    expect(shortlist).toHaveBeenCalledWith(projectId);
+    expect(images).toHaveLength(1);
+    expect(brief.assetImages).toEqual([asset.id]);
+    const p = buildDirectorPrompt({ reason: 'plan', ctx, data: { ...data, quick: { ...brief, shortlist: SHORTLIST } } });
+
+    expect(p).toContain('Chữ vàng theo nhịp nói.');
+    expect(p).toContain(`assetId ${asset.id}). Chủ kênh mô tả: màn hình lúc mở app`);
+    expect(p).toContain('KHO GỢI Ý');
+    expect(p).toContain('lib:bgm:vui');
+    expect(p).toContain('Giữ câu chào đầu video');
+    expect(p).toContain('mức sát → gapMs gợi ý 250');
+    expect(p).toContain('LUẬT CẮT THÔ');
+    expect(p).toContain('giữ lần nói tốt nhất');
+    expect(p).toContain('planFormat 2');
+    // the template replaces the style: no style notes, no style list
+    const style = VIDEO_STYLES.find((s) => s.id === 'kienthuc')!;
+    expect(p).not.toContain(style.promptNotes);
+    expect(p).not.toContain('PHONG CÁCH CÓ SẴN');
+    expect(p).toContain('MẪU EDIT: chủ kênh đã chọn mẫu "th-vang"');
+  });
+
+  it('auto-cut off and no music are spelled out; no shortlist says so', () => {
+    store.updateProject(projectId, (p) => { p.quick = { ...QUICK, autoCut: false, music: { ...QUICK.music, mode: 'none' }, stock: false }; });
+    const ctx = loadDirectorContext(store, projectId)!;
+    const quick = { settings: ctx.project.quick!, template: RULES, shortlist: '', assets: [], assetImages: [], ownerEdits: [] };
+    const p = buildDirectorPrompt({ reason: 'plan', ctx, data: { ...loadDirectorData(store, ctx, '/nonexistent'), quick } });
+    expect(p).toContain('Tự cắt: TẮT → autoCut false, cutWords [] và gapMs 5000');
+    expect(p).toContain('không nhạc');
+    expect(p).toContain('Tìm thêm cảnh trám ngoài tư liệu: KHÔNG');
+    expect(p).toContain('KHO GỢI Ý: chưa có');
+  });
+
+  it('lists the owner\'s hand edits and added elements as read-only', () => {
+    const owned: EditPlan = {
+      ...plan(2), planFormat: 2, templateId: 'th-vang',
+      beats: [
+        { id: 'b1', component: 'text-beat', at: 1, duration: 2, title: 'Của *AI*' },
+        { id: 'b2', component: 'text-beat', at: 4, duration: 2, title: 'Chủ kênh thêm', origin: 'owner' },
+      ],
+    };
+    store.savePlan(projectId, owned);
+    store.updateProject(projectId, (p) => { p.planVersion = 2; p.planStatus = 'waiting_approval'; p.quick = QUICK; });
+    store.writeOverrides(projectId, { version: 1, elements: { b1: { text: { title: 'Sửa *tay*' }, updatedAt: 'now' } }, updatedAt: 'now' });
+    const ctx = loadDirectorContext(store, projectId)!;
+    const lines = ownerEditLines(ctx.plan, store.readOverrides(projectId));
+    expect(lines).toEqual(['- b2 (chữ «Chủ kênh thêm»): chủ kênh tự thêm', '- b1 (chữ «Của AI»): sửa chữ']);
+    const quick = { settings: QUICK, template: RULES, shortlist: '', assets: [], assetImages: [], ownerEdits: lines };
+    const p = buildDirectorPrompt({ reason: 'revise', note: 'đổi nhạc', ctx, data: { ...loadDirectorData(store, ctx, '/nonexistent'), quick } });
+    expect(p).toContain('PHẦN TỬ CHỦ KÊNH ĐÃ SỬA TAY');
+    expect(p).toContain('- b1 (chữ «Của AI»): sửa chữ');
+    expect(p).toContain('giữ plan v2');
+  });
+
+  it('shows synthetic filler sounds as (tiếng), never as words', () => {
+    const dir = store.projectDir(projectId);
+    const words = [
+      { i: 0, text: 'Xin', start: 0, end: 0.3 }, { i: 1, text: 'ừm', start: 0.5, end: 0.8, synthetic: true }, { i: 2, text: 'chào', start: 1, end: 1.3 },
+    ];
+    fs.writeFileSync(path.join(dir, 'transcript.json'), JSON.stringify({ language: 'vi', durationSec: 2, words }));
+    const d = loadDirectorData(store, loadDirectorContext(store, projectId)!, '/nonexistent');
+    expect(d.transcript).toContain('Xin[0] (tiếng)[1] chào[2]');
+    expect(d.transcript).toContain('tiếng không thành lời (máy đoán là từ đệm');
+    expect(d.transcript).not.toContain('ừm');
+  });
+
+  it('a quick turn attaches footage stills first, reads the template from the registry seam and asks for no approval card', async () => {
+    const asset = await addImage('anh.png');
+    store.updateProject(projectId, (p) => { p.quick = { ...QUICK, assets: [{ assetId: asset.id }] }; });
+    const submitPlan = okSubmit();
+    const r = await runDirectorTurn({ projectId, reason: 'plan', abortController: abort() }, {
+      store, run: reply(PLAN_REPLY), submitPlan, projectRoot: '/nonexistent',
+      templatePrompt: (id) => `MẪU ${id}: ${RULES}`,
+      shortlist: async () => SHORTLIST_DATA,
+      frameOf: async () => { throw new Error('ffmpeg missing'); },
+    });
+    expect(r.error).toBeUndefined();
+    expect(turns[0].prompt).toContain('MẪU th-vang:');
+    // the still could not be made: an image asset falls back to its own file, ahead of the analysis frames
+    expect(turns[0].images).toHaveLength(2);
+    expect(turns[0].images![1]).toBe(path.join(store.projectDir(projectId), 'frames', 'a.jpg'));
+    expect(submitPlan).toHaveBeenCalled();
+    expect(requestVideoPlanApproval).not.toHaveBeenCalled();
   });
 });

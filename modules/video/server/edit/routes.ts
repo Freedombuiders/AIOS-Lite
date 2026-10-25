@@ -19,9 +19,11 @@ import { formatSize, ingestSummary, makeThumbnail, probeMedia } from './media.js
 import { createPipeline, type PipelineTools } from './pipeline/runner.js';
 import { registerEditorRoutes } from './routes-editor.js';
 import { registerPlanV2Routes } from './routes-plan-v2.js';
+import { registerQuickRoutes } from './routes-quick.js';
 import { registerProductionRoutes, type ProductionKit } from './production/routes.js';
 import { serveFile } from './serve.js';
 import { createVideoEditStore, StoreError, type VideoEditStore } from './store.js';
+import { createTemplateRegistry } from './templates/registry.js';
 import { registerTemplateRoutes } from './templates/routes.js';
 import { listVideoAgents, resolveDefaultAgentId } from './turn.js';
 import {
@@ -88,6 +90,8 @@ const projectCreateSchema = z.object({
   styleId: z.string().max(40).optional(),
   aspect: aspectSchema.optional(),
   agentId: z.string().max(64).optional(),
+  /** Dựng nhanh: the chain stops after analyze until POST /ai-edit. */
+  flow: z.literal('quick').optional(),
 }).strict();
 
 const projectPatchSchema = z.object({
@@ -138,7 +142,10 @@ export function registerVideoEditRoutes(app: Hono, options: VideoEditRouteOption
   const thumbnail = options.thumbnail ?? makeThumbnail;
   const doctor = options.doctor ?? runDoctor;
   const store: VideoEditStore = createVideoEditStore(root);
-  const pipe = createPipeline({ store, root, tools: options.tools, autoStart: options.autoStart, ...(options.lessons ? { lessons: options.lessons } : {}) });
+  // One template registry for the template routes, the plan checks and the director prompt.
+  const templates = createTemplateRegistry({ userDir: () => path.join(root, 'templates') });
+  const getTemplate = (id: string) => templates.get(id);
+  const pipe = createPipeline({ store, root, tools: options.tools, autoStart: options.autoStart, templates, ...(options.lessons ? { lessons: options.lessons } : {}) });
   const creation = createCreationService({ store, pipeline: pipe, rocket: options.creationRocket, downloadRoot: options.creationDownloadRoot });
   bindCreationService(root, creation);
   const uploading = new Set<string>();
@@ -241,7 +248,7 @@ export function registerVideoEditRoutes(app: Hono, options: VideoEditRouteOption
   app.get(`${P}/styles`, (c) => c.json({ groups: STYLE_GROUPS, styles: VIDEO_STYLES }));
   app.get(`${P}/brains`, guard((c) => c.json({ enabled: true, activeVaultId: 'default', vaults: [{ id: 'default', name: 'Kho tri thức' }] })));
   registerVideoLibraryRoutes(app, { root });
-  registerTemplateRoutes(app, { root });
+  registerTemplateRoutes(app, { root, registry: templates });
 
   // ── Profiles ──
   app.get(`${P}/profiles`, guard((c) => c.json({ profiles: store.listProfiles() })));
@@ -307,7 +314,9 @@ export function registerVideoEditRoutes(app: Hono, options: VideoEditRouteOption
     if (body.agentId) {
       if (!listVideoAgents().some((a) => a.id === body.agentId)) return fail(c, 400, 'Agent không tồn tại.');
     }
-    const project = store.createProject({ ...body, agentId: body.agentId ?? resolveDefaultAgentId() });
+    const { flow, ...input } = body;
+    let project = store.createProject({ ...input, agentId: input.agentId ?? resolveDefaultAgentId() });
+    if (flow) project = store.updateProject(project.id, (p) => { p.flow = flow; })!;
     return c.json({ project });
   }));
 
@@ -587,7 +596,8 @@ export function registerVideoEditRoutes(app: Hono, options: VideoEditRouteOption
   }));
 
   registerEditorRoutes(app, { P, root, store, pipeline: pipe, fail, small, guard, parse, idOf, requireProject, emitProject, isLocal: options.isLocal });
-  registerPlanV2Routes(app, { P, root, store, pipeline: pipe, fail, small, guard, parse, idOf, requireProject, emitProject });
+  registerPlanV2Routes(app, { P, root, store, pipeline: pipe, fail, small, guard, parse, idOf, requireProject, emitProject }, { templates: getTemplate });
+  registerQuickRoutes(app, { P, root, store, pipeline: pipe, fail, small, guard, parse, idOf, requireProject, emitProject }, { templates: getTemplate });
   const production = registerProductionRoutes(app, {
     P, root, editStore: store, pipeline: pipe, small, probe, thumbnail, emitProject, doctor, defaultAgentId: resolveDefaultAgentId,
     ...(options.autoStart === false ? { pollMs: 0, agentTurns: false } : {}),

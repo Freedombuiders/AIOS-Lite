@@ -50,12 +50,22 @@ Sau mỗi chặng ghi một dòng bằng chứng: `log direct "đã bỏ 14 ch�
 - **marks**: chủ kênh ghim điểm trên bản xem thử và bấm "Gửi góp ý". Mỗi điểm có mã `[mark:<id>]`. Xử lý từng điểm: sửa, hoặc giữ nguyên **có lý do**. Trong `changes`, mỗi điểm một dòng mở đầu bằng đúng mã đó; máy dựa vào mã để đánh dấu đã xử lý. Thời gian của điểm tính theo bản video đã dựng (bản plan lúc ghim), không phải video gốc.
 - **chat**: hỏi đáp hoặc yêu cầu lẻ. Chỉ đổi plan khi chủ kênh yêu cầu rõ.
 
+## Dựng nhanh (việc có mẫu edit)
+
+Chủ kênh tải video, chọn **mẫu edit**, gửi tư liệu kèm mô tả rồi bấm AI edit. Khác việc thường:
+
+- Mẫu thay cho phong cách: luật, component và hiệu ứng vào nằm ở mục MẪU EDIT của prompt. Trả **plan v2** (`planFormat: 2`, `templateId`, `beats`, `scenes`, `graphics`): xem `references/templates.md` và mục Plan v2 trong `references/plan-schema.md`.
+- Cắt thô từng câu theo LUẬT CẮT THÔ trong prompt: giữ lần nói tốt nhất, không cắt câu có ý. Tự cắt tắt thì không cắt gì.
+- Tư liệu của chủ kênh dùng trước (đúng `assetId`, chép mô tả vào `hint`); thiếu cảnh thì ghi `query` để máy tìm. Chỉ dùng `assetId` có trong prompt.
+- Kế hoạch **không chờ duyệt**: vào thẳng editor, chủ kênh chỉnh tay rồi bấm Xuất. Phần tử chủ kênh đã sửa tay là dữ liệu chỉ đọc: giữ nguyên id.
+
 Góp ý lâu dài (giọng, nhịp, cấm kỵ, "ít hiệu ứng hơn") thì ghi thành luật: xem `references/feedback.md`.
 
 ## Tham chiếu (đọc khi cần, đừng đọc hết mỗi lượt)
 
 - `references/steps.md`: 12 bước, dòng bằng chứng, chấm 3 lượt, trích khung xem lại
-- `references/plan-schema.md`: EditPlan từng trường, một ví dụ đầy đủ, lỗi hay gặp
+- `references/plan-schema.md`: EditPlan từng trường, ví dụ plan cũ và plan v2, lỗi hay gặp
+- `references/templates.md`: mẫu edit của Dựng nhanh: component, props, tư liệu, cảnh trám, chỉnh tay của chủ kênh
 - `references/styles.md`: 21 phong cách tóm tắt
 - `references/quyen-talking-head.md`: công thức Quyên, Pexels tách nền trên đầu
 - `references/hooks.md`: 3 phương án hook, cách chọn đoạn đưa lên đầu

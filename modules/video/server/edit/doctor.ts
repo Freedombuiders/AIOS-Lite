@@ -6,6 +6,7 @@ import { STORE_DIR } from '../paths.js';
 import type { DoctorCheck } from './types.js';
 import { defaultAgentProvider } from './turn.js';
 import { childPath, findBin, FFMPEG_HINT, missingToolHint } from '../bin.js';
+import { hasTonemapFilters } from './pipeline/normalize.js';
 import { ffmpegBin, ffprobeBin } from './pipeline/tools.js';
 
 export interface DoctorResult {
@@ -98,6 +99,14 @@ async function compute(root: string): Promise<DoctorResult> {
     id: 'ffmpeg-audio', label: 'ffmpeg có bộ lọc âm thanh', required: true, ok: missingAudio.length === 0,
     detail: missingAudio.length === 0 ? audioNeeds.join(', ') : `thiếu ${missingAudio.join(', ')}`,
     ...(missingAudio.length === 0 ? {} : { fix: 'brew reinstall ffmpeg' }),
+  });
+
+  // HDR footage (iPhone HLG, PQ) is tone-mapped to SDR at ingest with zscale + tonemap, which need zimg.
+  const zimg = Boolean(filters && hasTonemapFilters(filters));
+  add({
+    id: 'ffmpeg-zimg', label: 'ffmpeg có zimg (video HDR iPhone sang SDR)', required: false, ok: zimg,
+    detail: zimg ? 'có zscale và tonemap' : 'ffmpeg thiếu zimg: video HDR giữ nguyên màu, có thể bị gắt',
+    ...(zimg ? {} : { fix: 'Cài ffmpeg bản có zimg (brew install ffmpeg)' }),
   });
 
   const encoders = ffmpegVersion ? await safe(() => run(ffmpegBin(), ['-hide_banner', '-encoders'])) : null;

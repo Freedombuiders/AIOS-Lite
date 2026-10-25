@@ -3,24 +3,35 @@ import { renderCreation } from '../../create/render.js';
 //   upload → ingest → transcribe → analyze → auto plan v1 → direct (agent) → approve → render → covers → deliver
 // plus the plan state machine (draft → waiting_approval → approved / rejected) and agent turns.
 // Heavy tools are injectable so tests run the whole chain with fakes.
+//
+// Dựng nhanh (project.flow 'quick', settings in project.quick from POST /ai-edit): the chain stops after analyze
+// until the owner presses AI edit; then a machine plan from the settings (cut level, template captions, music)
+// and, in mode ai, the director with the template. The plan never stops for approval: the owner edits it and
+// only "Xuất" (decide approve) renders.
 import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { resolveBrolls } from '../assets/resolve.js';
+import { buildShortlist } from '../assets/shortlist.js';
 import { VIDEO_STYLES } from '../catalog/styles.js';
 import { emitVideoEvent } from '../events.js';
 import { formatSize, ingestSummary } from '../media.js';
-import { StoreError, type VideoEditStore } from '../store.js';
+import { DEFAULT_AUDIO, StoreError, type VideoEditStore } from '../store.js';
+import { getTemplate, templateForPrompt } from '../templates/registry.js';
+import type { TemplateManifest } from '../templates/types.js';
 import type {
-  EditPlan, ProjectStep, StepKey, VideoJob, VideoMark, VideoMessage, VideoProject,
+  EditPlan, ProjectStep, QuickSettings, StepKey, Transcript, VideoJob, VideoMark, VideoMessage, VideoProject,
 } from '../types.js';
 import type { DirectorTurnInput, DirectorTurnResult } from '../agent/director.js';
-import { analyzeSource } from './analyze.js';
+import { analyzeSource, isFiller } from './analyze.js';
 import { makeCovers } from './covers.js';
 import { deliverProject } from './deliver.js';
 import { createJobQueue, setActivePipeline, type JobHandler, type JobQueue } from './jobs.js';
 import { createAssetResolver, type AssetResolver } from './library-resolve.js';
 import { normalizeSource } from './normalize.js';
-import { autoPlan, validateAgentPlan, type PlanContext } from './plan.js';
+import {
+  autoPlan, derivePlan, ELEMENT_LISTS, mintId, planElements, preserveOwnerElements, validateAgentPlan, type PlanContext,
+} from './plan.js';
 import { renderExport } from './render.js';
 import { r1, fmtDur } from './tools.js';
 import { transcribeAudio } from './transcribe.js';
@@ -38,6 +49,16 @@ export interface PipelineTools {
   runDirector: (input: DirectorTurnInput) => Promise<DirectorTurnResult>;
   /** Create the owner's "Cần tôi" card for the current plan (idempotent per plan version). */
   requestApproval: (projectId: string) => void | Promise<void>;
+  /** Dựng nhanh: the Asset Hub shortlist (music of a manual plan, the director prompt). */
+  shortlist: typeof buildShortlist;
+  /** Dựng nhanh: fill B-roll slots the director left as a `query` (after every plan turn). */
+  resolveBrolls: typeof resolveBrolls;
+}
+
+/** The template registry as the pipeline reads it (templates/registry.ts). */
+export interface PipelineTemplates {
+  get: (id: string) => TemplateManifest | null;
+  forPrompt: (id: string) => string;
 }
 
 export interface PipelineOptions {
@@ -49,6 +70,121 @@ export interface PipelineOptions {
   autoStart?: boolean;
   /** Lessons for the director prompt (module brain + bundled lessons). */
   lessons?: (query: string) => string[];
+  /** Template registry: plan checks (components, props, animIn) and the director prompt. Default: the module registry. */
+  templates?: PipelineTemplates;
+}
+
+// ── Dựng nhanh settings → plan ──
+
+/** Mức cắt → longest pause kept (ms): nhẹ keeps breathing room, sát drops almost every pause. */
+export const QUICK_GAP_MS: Record<QuickSettings['cutLevel'], number> = { nhe: 800, vua: 400, sat: 250 };
+/** Auto-cut off keeps the video as it is: no word cut and pauses up to the plan maximum (5 s) kept. */
+export const NO_CUT_GAP_MS = 5000;
+export const CUT_LEVEL_LABEL: Record<QuickSettings['cutLevel'], string> = { nhe: 'nhẹ', vua: 'vừa', sat: 'sát' };
+
+/** What a quick plan reads of a template (templates/types.ts TemplateManifest fits it). */
+export type QuickTemplate = Pick<TemplateManifest, 'name' | 'captions'> & Partial<Pick<TemplateManifest, 'legacy' | 'styleId'>>;
+
+/** Title from the first spoken words: fillers and synthetic sounds are not words of the title. */
+export function spokenTitle(transcript: Pick<Transcript, 'words'>): string {
+  const text = transcript.words.filter((w) => !isFiller(w)).slice(0, 9).map((w) => w.text).join(' ').replace(/[,.;:!?…]+$/u, '');
+  return text || 'Video mới';
+}
+
+export interface QuickPlanExtras {
+  /** Title for meta and covers (the project title, or the first spoken words). */
+  title?: string;
+  /** Music the owner picked (or the machine chose from the shortlist). */
+  music?: { assetId: string; gainDb: number };
+  /** mode manual: the owner edits by hand next; otherwise the director refines this plan. */
+  manual?: boolean;
+}
+
+/** Dựng nhanh settings on a machine plan: template, auto-cut on/off and its level, the template's captions, music. */
+export function applyQuickSettings(
+  plan: EditPlan,
+  quick: Pick<QuickSettings, 'autoCut' | 'cutLevel' | 'templateId' | 'music'>,
+  template: QuickTemplate | null,
+  ctx: PlanContext,
+  extras: QuickPlanExtras = {},
+): EditPlan {
+  const next: EditPlan = {
+    ...structuredClone(plan),
+    planFormat: 2,
+    templateId: quick.templateId,
+    autoCut: quick.autoCut,
+    cutWords: quick.autoCut ? plan.cutWords : [],
+    gapMs: quick.autoCut ? QUICK_GAP_MS[quick.cutLevel] : NO_CUT_GAP_MS,
+  };
+  if (template) {
+    next.captions = { ...next.captions, maxWordsPerChunk: template.captions.maxWordsPerChunk, position: template.captions.pos < 0.6 ? 'middle' : 'bottom' };
+  }
+  delete next.music;
+  if (quick.music.mode !== 'none' && extras.music) next.music = { assetId: extras.music.assetId, mood: '', gainDb: r1(extras.music.gainDb), duck: quick.music.duck };
+  if (extras.title) {
+    next.meta = { ...next.meta, title: extras.title };
+    next.covers = next.covers.map((c) => ({ ...c, title: extras.title! }));
+  }
+  const derived = derivePlan(next, ctx);
+  const name = template?.name ?? quick.templateId;
+  const cut = quick.autoCut
+    ? `Tự cắt mức ${CUT_LEVEL_LABEL[quick.cutLevel]}: bỏ ${derived.cutWords.length} từ đệm và câu nói lại, cắt chỗ lặng dài hơn ${derived.gapMs}ms`
+    : 'Tắt tự cắt: giữ nguyên video';
+  const length = `${r1(derived.sourceDurationSec)}s → ${r1(derived.outputDurationSec)}s`;
+  derived.summary = `Bản máy dựng theo mẫu «${name}». ${cut}. Video ${fmtDur(derived.sourceDurationSec)} → ${fmtDur(derived.outputDurationSec)}. `
+    + (extras.manual ? 'Mở editor để thêm chữ, cảnh minh hoạ và cảnh trám.' : 'Chờ đạo diễn thêm chữ theo nhịp, cảnh minh hoạ và cảnh trám.');
+  derived.changes = [`Mẫu edit: ${name}`, cut, length, ...(derived.music ? ['Có nhạc nền'] : [])];
+  return derived;
+}
+
+/**
+ * Owner elements are read-only for the AI. In a plan the director hands in, an element carrying an owner
+ * element's id is dropped (validateAgentPlan puts the owner's own copy back), and a new element never takes an
+ * owner's id: without this, a freshly minted "b1" would hide the owner's "b1" and the owner's element were lost.
+ */
+export function protectOwnerElements(input: unknown, previous: EditPlan | null | undefined): unknown {
+  if (!previous || !input || typeof input !== 'object' || Array.isArray(input)) return input;
+  const owner = new Map(planElements(previous).filter((e) => e.el.origin === 'owner').map((e) => [e.el.id!, e.key]));
+  if (!owner.size) return input;
+  const p: Record<string, unknown> = { ...(input as Record<string, unknown>) };
+  const idOf = (x: unknown) => (x && typeof x === 'object' && typeof (x as { id?: unknown }).id === 'string' ? (x as { id: string }).id.trim() : '');
+  const taken = new Set<string>(owner.keys());
+  for (const { key } of ELEMENT_LISTS) if (Array.isArray(p[key])) for (const x of p[key] as unknown[]) if (idOf(x)) taken.add(idOf(x));
+  for (const { key, prefix } of ELEMENT_LISTS) {
+    if (!Array.isArray(p[key])) continue;
+    p[key] = (p[key] as unknown[]).flatMap((x) => {
+      if (!x || typeof x !== 'object') return [x];
+      const id = idOf(x);
+      const ownerKey = id ? owner.get(id) : undefined;
+      if (ownerKey === key) return [];
+      // B-roll without an id gets a random one from the schema; the other kinds are minted b1, s1 … like the validator.
+      if (ownerKey || (!id && key !== 'brolls')) {
+        const fresh = mintId(prefix, taken);
+        taken.add(fresh);
+        return [{ ...(x as Record<string, unknown>), id: fresh }];
+      }
+      return [x];
+    });
+  }
+  return p;
+}
+
+/**
+ * The owner's Dựng nhanh choices win over a plan the director hands in: the template, auto-cut off (no cut at
+ * all), no music, or the song the owner picked. Anything that is not a plan object passes through untouched.
+ */
+export function enforceQuickSettings(input: unknown, quick: QuickSettings, musicGainDb: number): unknown {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return input;
+  const p: Record<string, unknown> = { ...(input as Record<string, unknown>) };
+  p.planFormat = 2;
+  p.templateId = quick.templateId;
+  p.autoCut = quick.autoCut;
+  if (!quick.autoCut) { p.cutWords = []; p.gapMs = NO_CUT_GAP_MS; }
+  const music = p.music && typeof p.music === 'object' && !Array.isArray(p.music) ? p.music as Record<string, unknown> : null;
+  if (quick.music.mode === 'none') delete p.music;
+  else if (quick.music.mode === 'pick' && quick.music.assetId) p.music = { mood: '', gainDb: r1(musicGainDb), ...music, assetId: quick.music.assetId, duck: quick.music.duck };
+  else if (music) p.music = { ...music, duck: quick.music.duck };
+  return p;
 }
 
 const LOG_LINES_MAX = 60;
@@ -59,6 +195,7 @@ const MARK_REF = /\[mark:([A-Za-z0-9_-]+)\]/g;
 export function createPipeline(opts: PipelineOptions) {
   const { store, root } = opts;
   const resolver = opts.resolver ?? createAssetResolver(root);
+  const templates: PipelineTemplates = opts.templates ?? { get: getTemplate, forPrompt: templateForPrompt };
   const controllers = new Map<string, AbortController>();
   const stepProgressAt = new Map<string, { at: number; value: number }>();
 
@@ -74,6 +211,8 @@ export function createPipeline(opts: PipelineOptions) {
       const mod = await import('../agent/director.js');
       return mod.runDirectorTurn(input, {
         store,
+        templatePrompt: templates.forPrompt,
+        shortlist: (id) => tools.shortlist(id),
         submitPlan: (id, plan, note) => {
           try {
             const r = submitAgentPlan(id, plan, note);
@@ -87,6 +226,8 @@ export function createPipeline(opts: PipelineOptions) {
       const mod = await import('../agent/approval-handler.js');
       mod.requestVideoPlanApproval(projectId, { store: () => store });
     },
+    shortlist: buildShortlist,
+    resolveBrolls,
     ...(opts.tools ?? {}),
   };
 
@@ -227,14 +368,94 @@ export function createPipeline(opts: PipelineOptions) {
     const ctx = planContext(projectId);
     if (!ctx) throw new StoreError(409, 'Chưa có bản chép lời để lập kế hoạch.', 'no_transcript');
     const previous = project.planVersion > 0 ? store.loadPlan(projectId, project.planVersion) : null;
-    const result = validateAgentPlan(input, ctx, {
-      previous, version: nextVersion(projectId), aspect: project.aspect, styleId: project.styleId, note,
+    const own = protectOwnerElements(input, previous);
+    const plan = project.quick ? enforceQuickSettings(own, project.quick, musicGainDb(project)) : own;
+    const result = validateAgentPlan(plan, ctx, {
+      previous, version: nextVersion(projectId), aspect: project.aspect, styleId: project.styleId, note, templates: templates.get,
     });
     if (!result.plan) return { ok: false as const, errors: result.errors };
     if (validateOnly) return { ok: true as const, validateOnly: true as const, plan: result.plan, errors: [] as string[] };
     const saved = commitPlan(projectId, result.plan, 'waiting_approval');
     resolveMarksFrom(projectId, result.plan.changes ?? []);
     return { ok: true as const, validateOnly: false as const, plan: result.plan, project: saved, errors: [] as string[] };
+  }
+
+  // ── Dựng nhanh ──
+
+  /** Music level against the voice from the profile's mix targets (the composition's default). */
+  function musicGainDb(project: VideoProject): number {
+    const audio = store.getProfile(project.profileId)?.audio ?? DEFAULT_AUDIO;
+    return audio.musicLufs - audio.voiceLufs;
+  }
+
+  /**
+   * After analyze, with project.quick: the machine plan from the owner's settings. mode ai: it is the fallback
+   * the director refines next (returns true: run the turn); mode manual: it is the plan, straight to the editor.
+   */
+  async function quickStart(projectId: string): Promise<boolean> {
+    const project = requireProject(projectId);
+    const quick = project.quick;
+    if (!quick) throw new Error('Chưa có cài đặt Dựng nhanh. Bấm AI edit lại.');
+    const ctx = planContext(projectId);
+    if (!ctx) throw new Error('Chưa có bản chép lời. Chạy bước Chép lời trước.');
+    const profile = store.getProfile(project.profileId);
+    const template = templates.get(quick.templateId);
+    const style = VIDEO_STYLES.find((s) => s.id === (template?.styleId ?? project.styleId)) ?? null;
+    let musicId = quick.music.mode === 'pick' ? quick.music.assetId : undefined;
+    if (quick.mode === 'manual' && quick.music.mode === 'ai') {
+      // No director to choose: the best song of the shortlist for the template's mood.
+      try { musicId = (await tools.shortlist(projectId)).music.find((m) => m.source !== 'pexels' && m.source !== 'pexels-photo')?.ref; }
+      catch { /* no music then; the owner can add one in the editor */ }
+    }
+    const base = autoPlan({
+      transcript: ctx.transcript, analysis: ctx.analysis, project, profile: { keepWords: profile?.keepWords ?? [] }, style, version: nextVersion(projectId),
+    });
+    const title = project.title && project.title !== 'Việc mới' ? project.title : spokenTitle(ctx.transcript);
+    const machine = applyQuickSettings(base, quick, template, ctx, {
+      title, manual: quick.mode === 'manual', ...(musicId ? { music: { assetId: musicId, gainDb: musicGainDb(project) } } : {}),
+    });
+    // Elements the owner added to an earlier version stay.
+    const previous = project.planVersion > 0 ? store.loadPlan(projectId, project.planVersion) : null;
+    const plan = preserveOwnerElements(previous, machine, ctx);
+    logStep(projectId, 'direct', `bản máy dựng v${plan.version} theo mẫu ${quick.templateId}: ${r1(plan.sourceDurationSec)}s → ${r1(plan.outputDurationSec)}s, bỏ ${plan.cutWords.length} từ`);
+    if (quick.mode === 'ai') {
+      commitPlan(projectId, plan, 'draft');
+      setProjectStatus(projectId, 'working');
+      return true;
+    }
+    commitPlan(projectId, plan, 'waiting_approval');
+    setStep(projectId, 'direct', {
+      status: 'done', error: null,
+      summary: `v${plan.version} · ${fmtDur(plan.sourceDurationSec)} → ${fmtDur(plan.outputDurationSec)} · bạn tự chỉnh tay`,
+    });
+    await parkForApproval(projectId);
+    return false;
+  }
+
+  /**
+   * Dựng nhanh, after a plan turn handed in a new version: owner elements it dropped go back in, then the Asset
+   * Hub fills the B-roll slots that only carry a `query`. The result replaces that version in place.
+   */
+  async function finishQuickPlan(projectId: string, versionBefore: number, signal: AbortSignal): Promise<void> {
+    const project = store.loadProject(projectId);
+    if (!project?.quick || project.planVersion === versionBefore || signal.aborted) return;
+    const ctx = planContext(projectId);
+    const current = store.loadPlan(projectId, project.planVersion);
+    if (!ctx || !current) return;
+    const previous = versionBefore > 0 ? store.loadPlan(projectId, versionBefore) : null;
+    let plan = preserveOwnerElements(previous, current, ctx);
+    const open = plan.brolls.filter((b) => b.enabled && b.query && !b.assetId).length;
+    if (open) {
+      logStep(projectId, 'direct', `tìm cảnh trám cho ${open} chỗ`);
+      try {
+        const res = await tools.resolveBrolls(projectId, plan);
+        plan = res.plan;
+        for (const note of res.notes) logStep(projectId, 'direct', note);
+      } catch (err) {
+        logStep(projectId, 'direct', `chưa tìm được cảnh trám: ${String((err as Error)?.message ?? err).slice(0, 200)}`);
+      }
+    }
+    if (plan !== current && !signal.aborted) commitPlan(projectId, plan, project.planStatus ?? 'waiting_approval');
   }
 
   // ── Director turns ──
@@ -273,6 +494,11 @@ export function createPipeline(opts: PipelineOptions) {
       });
     } catch (err) {
       result = { text: '', durationMs: Date.now() - started, activity: [], error: String((err as Error)?.message ?? err) };
+    }
+    // Still busy here, so the owner's plan ops cannot interleave with the B-roll search.
+    if (planTurn) {
+      try { await finishQuickPlan(projectId, versionBefore, abort.signal); }
+      catch { /* project removed while the turn ran */ }
     }
 
     try {
@@ -348,6 +574,11 @@ export function createPipeline(opts: PipelineOptions) {
 
   async function parkForApproval(projectId: string) {
     const project = requireProject(projectId);
+    if (project.quick) {
+      // Dựng nhanh: no approval stop and no card (the profile's auto-approve does not apply); "Xuất" renders.
+      setStep(projectId, 'approve', { status: 'waiting', summary: 'Mở editor để chỉnh, bấm Xuất khi xong' }, (p) => { p.status = 'waiting_approval'; });
+      return;
+    }
     const profile = store.getProfile(project.profileId);
     setStep(projectId, 'approve', { status: 'waiting', summary: profile?.autoApprovePlan ? 'Tự duyệt theo hồ sơ kênh' : 'Chờ bạn duyệt kế hoạch' },
       (p) => { p.status = 'waiting_approval'; });
@@ -451,6 +682,8 @@ export function createPipeline(opts: PipelineOptions) {
         });
         const size = (f: string) => formatSize(fs.statSync(f).size);
         logStep(id, 'ingest', `đã chuẩn hoá: master ${size(out.master)}, bản xem nhẹ ${size(out.proxy)}, âm thanh 16kHz mono`);
+        if (out.hdr === 'tonemapped') logStep(id, 'ingest', 'video HDR: đã chuyển sang màu thường (SDR)');
+        if (out.hdr === 'untouched') logStep(id, 'ingest', 'video HDR nhưng ffmpeg thiếu zimg: giữ nguyên màu, có thể bị gắt. Xem mục Kiểm tra máy.');
         setStep(id, 'ingest', { status: 'done', summary: `${ingestSummary(project.source)} · đã chuẩn hoá` });
       } catch (err) {
         if (!ctx.signal.aborted) stepFail(id, 'ingest', String((err as Error)?.message ?? err).slice(0, 300), 'failed');
@@ -506,6 +739,8 @@ export function createPipeline(opts: PipelineOptions) {
         });
         store.writeAnalysis(id, analysis);
         logStep(id, 'analyze', `${analysis.silences.length} chỗ lặng, ${analysis.fillers.length} từ đệm, ${analysis.retakes.length} câu nói lại, ${analysis.scenes.length} lần đổi cảnh`);
+        const sounds = transcript.words.filter((w) => w.synthetic).length;
+        if (sounds) logStep(id, 'analyze', `${sounds} tiếng không thành lời (máy đoán là từ đệm)`);
         logStep(id, 'analyze', `đã trích ${analysis.frames.length} khung hình${analysis.loudnessLufs !== undefined ? `, âm lượng gốc ${r1(analysis.loudnessLufs)} LUFS` : ''}`);
         setStep(id, 'analyze', {
           status: 'done',
@@ -517,11 +752,22 @@ export function createPipeline(opts: PipelineOptions) {
       }
       if (job.args?.chain === false) return;
 
+      const fresh = requireProject(id);
+      if (fresh.quick) {
+        // Dựng nhanh: the owner already pressed AI edit while the video was being read.
+        queue.enqueue('direct', id, { reason: 'plan', quick: true });
+        return;
+      }
+      if (fresh.flow === 'quick') {
+        // Dựng nhanh uploads while the owner is still setting up: the director starts on POST /ai-edit.
+        setStep(id, 'direct', { status: 'waiting', summary: 'Chờ bạn bấm AI edit', error: null }, (p) => { if (p.status === 'draft') p.status = 'working'; });
+        return;
+      }
+
       // Automatic plan v1 (cut words + gaps from the analysis); the agent refines it next.
       const analysisNow = store.readAnalysis(id);
       const profile = store.getProfile(project.profileId);
       const style = VIDEO_STYLES.find((s) => s.id === project.styleId) ?? null;
-      const fresh = requireProject(id);
       const plan = autoPlan({
         transcript, analysis: analysisNow,
         project: fresh, profile: { keepWords: profile?.keepWords ?? [] }, style, version: nextVersion(id),
@@ -537,6 +783,15 @@ export function createPipeline(opts: PipelineOptions) {
       requireProject(id);
       const reason = (job.args?.reason as TurnReason | undefined) ?? 'plan';
       const note = typeof job.args?.note === 'string' ? job.args.note : undefined;
+      // Dựng nhanh: the machine plan first; mode manual stops there.
+      if (job.args?.quick) {
+        try {
+          if (!(await quickStart(id))) return;
+        } catch (err) {
+          stepFail(id, 'direct', String((err as Error)?.message ?? err).slice(0, 300));
+          throw err;
+        }
+      }
       const { done } = beginTurn(id, reason, note);
       await done;
     },
@@ -654,6 +909,23 @@ export function createPipeline(opts: PipelineOptions) {
     /** Start the automatic chain for a freshly ingested source. */
     startChain(projectId: string): VideoJob {
       return queue.enqueue('ingest', projectId, { chain: true });
+    },
+    /**
+     * Dựng nhanh (POST /ai-edit; project.quick already saved). Analyze done: the quick direct job now. Otherwise
+     * the running chain goes the quick way after analyze, or it restarts from the first step not done.
+     */
+    startQuick(projectId: string): VideoJob {
+      const project = requireProject(projectId);
+      const status = (key: StepKey) => project.steps.find((s) => s.key === key)?.status;
+      if (status('analyze') === 'done' && store.readTranscript(projectId) && store.readAnalysis(projectId)) {
+        if (status('direct') === 'waiting') setStep(projectId, 'direct', { status: 'pending', summary: null });
+        return queue.enqueue('direct', projectId, { reason: 'plan', quick: true });
+      }
+      const live = queue.list(projectId).find((j) => (j.status === 'queued' || j.status === 'running') && (j.kind === 'ingest' || j.kind === 'transcribe' || j.kind === 'analyze'));
+      if (live) return live;
+      if (status('ingest') !== 'done') return queue.enqueue('ingest', projectId, { chain: true });
+      if (status('transcribe') !== 'done') return queue.enqueue('transcribe', projectId, { chain: true });
+      return queue.enqueue('analyze', projectId, { chain: true });
     },
     /** Re-run one step. ingest and transcribe continue down the chain; analyze runs alone. */
     runStep(projectId: string, step: 'ingest' | 'transcribe' | 'analyze' | 'direct' | 'render' | 'cover', note?: string): VideoJob {

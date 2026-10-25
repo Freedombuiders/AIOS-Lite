@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
+import { getTemplate } from '../templates/registry.js';
 import type { Transcript } from '../types.js';
 import { estimateOutputSeconds, validatePlan } from './plan-schema.js';
 
@@ -148,3 +149,57 @@ describe('the documented example plan', () => {
     expect(r.ok).toBe(true);
   });
 });
+
+describe('plan v2 (Dựng nhanh)', () => {
+  const beat = (over: Record<string, unknown> = {}) => ({ id: 'b1', component: 'text-beat', anchorWord: 8, duration: 2, title: 'Dựng *nhanh* hơn', ...over });
+
+  it('the documented v2 example is valid against the th-vang template, and keeps the v2 fields', () => {
+    const md = fs.readFileSync(path.join(SKILL_REFS, 'plan-schema.md'), 'utf8');
+    const blocks = [...md.matchAll(/```json\n([\s\S]*?)\n```/g)].map((m) => JSON.parse(m[1]));
+    const v2 = blocks.find((b) => b.planFormat === 2);
+    expect(v2).toBeDefined();
+    const r = validatePlan(v2, fakeTranscript(), getTemplate);
+    expect(r.errors).toEqual([]);
+    expect(r.warnings.join(' ')).not.toContain('chưa có trên máy');
+    expect(r.plan).toMatchObject({ planFormat: 2, templateId: 'th-vang', autoCut: true });
+    expect(r.plan!.beats![0]).toMatchObject({ component: 'text-beat', kicker: 'MẸO', animIn: 'slide-up' });
+    expect(r.plan!.scenes![0].props).toMatchObject({ items: ['Tải video lên', 'Chọn mẫu edit', 'Bấm AI edit'] });
+    expect(r.plan!.brolls.find((b) => b.id === 'br1')).toMatchObject({ hint: 'quay màn hình lúc mở phần mềm' });
+    expect(r.plan!.brolls.find((b) => b.id === 'br2')!.query!.keywords).toEqual(['laptop', 'night', 'working']);
+    expect(r.plan!.zooms[0]).toMatchObject({ id: 'z1', anchorWord: 30 });
+  });
+
+  it('refuses anchors on cut words, duplicate element ids and cuts with auto-cut off', () => {
+    const t = fakeTranscript();
+    expect(validatePlan(basePlan({ beats: [beat({ anchorWord: 3 })] }), t).errors.join(' ')).toContain('từ đã cắt');
+    expect(validatePlan(basePlan({ beats: [beat(), beat({ anchorWord: 20 })] }), t).errors.join(' ')).toContain('"b1" bị trùng');
+    expect(validatePlan(basePlan({ beats: [beat({ id: 'br1' })], brolls: [{ id: 'br1', anchorWord: 9, duration: 2, title: 't', reason: 'r', source: 'upload', assetId: 'a', layout: 'card' }] }), t).errors.join(' ')).toContain('trùng với một B-roll');
+    expect(validatePlan(basePlan({ autoCut: false }), t).errors.join(' ')).toContain('autoCut false');
+    expect(validatePlan(basePlan({ autoCut: false, cutWords: [] }), t).ok).toBe(true);
+    expect(validatePlan(basePlan({ beats: [{ component: 'text-beat', duration: 2, title: 'Không có mốc' }] }), t).errors.join(' ')).toContain('cần at hoặc anchorWord');
+  });
+
+  it('checks components, props and entrance presets when given the template registry', () => {
+    const t = fakeTranscript();
+    const errs = (over: Record<string, unknown>) => validatePlan(basePlan({ templateId: 'th-vang', ...over }), t, getTemplate).errors.join(' ');
+    expect(errs({ beats: [beat({ component: 'khong-co' })] })).toContain('không có component "khong-co"');
+    expect(errs({ beats: [beat({ animIn: 'xoay' })] })).toContain('hiệu ứng vào "xoay"');
+    expect(errs({ scenes: [{ id: 's1', component: 'scene-steps', anchorWord: 20, duration: 5, props: { title: 'Ba bước' } }] })).toContain('thiếu prop "items"');
+    expect(errs({ scenes: [{ id: 's1', component: 'text-beat', anchorWord: 20, duration: 5, props: {} }] })).toContain('dành cho beat');
+    // without the registry only the shape and the transcript are checked
+    expect(validatePlan(basePlan({ templateId: 'th-vang', beats: [beat({ component: 'khong-co' })] }), t).ok).toBe(true);
+    // a long title only warns
+    const long = validatePlan(basePlan({ templateId: 'th-vang', beats: [beat({ title: 'một hai ba bốn năm sáu bảy tám' })] }), t, getTemplate);
+    expect(long.ok).toBe(true);
+    expect(long.warnings.join(' ')).toContain('2–6 từ');
+  });
+
+  it('a B-roll slot with a query needs no assetId; its keywords should be 2–4', () => {
+    const slot = (keywords: string[]) => ({ id: 'br9', anchorWord: 9, duration: 2, title: 't', reason: 'r', source: 'pexels', layout: 'full', query: { description: 'người chạy bộ', keywords } });
+    const ok = validatePlan(basePlan({ brolls: [slot(['running', 'park'])] }), fakeTranscript());
+    expect(ok.ok).toBe(true);
+    expect(ok.warnings.join(' ')).not.toContain('nên có assetId');
+    expect(validatePlan(basePlan({ brolls: [slot(['running'])] }), fakeTranscript()).warnings.join(' ')).toContain('2–4 từ khoá');
+  });
+});
+

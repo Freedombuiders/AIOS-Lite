@@ -12,6 +12,8 @@ Giấy phép của chính AIOS-Lite là **MIT**, © 2026 Tony Hoang (file [LICEN
 4. [Thư viện npm chính](#4-thư-viện-npm-chính)
 5. [Công cụ dòng lệnh bên ngoài](#5-công-cụ-dòng-lệnh-bên-ngoài)
 6. [OpenFilm (MIT): module `video`, Dựng nhanh](#6-openfilm-mit-module-video-dựng-nhanh)
+7. [open-edit (Apache-2.0): module `video`, đo tiếng nói](#7-open-edit-apache-20-module-video-đo-tiếng-nói)
+8. [video-use (MIT): module `video`, HDR sang SDR](#8-video-use-mit-module-video-hdr-sang-sdr)
 
 ---
 
@@ -153,6 +155,62 @@ Thông báo bản quyền của OpenFilm:
 MIT License
 
 Copyright (c) 2026 OpenFilm contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## 7. open-edit (Apache-2.0): module `video`, đo tiếng nói
+
+Bước chép lời của Dựng nhanh đo tiếng nói từ âm thanh thật, dựa trên [open-edit](https://github.com/veedstudio/open-edit) của VEED (giấy phép Apache License 2.0, bản đọc ở commit `1d3b75b`). Mỗi file bên dưới có ghi chú nguồn và bản quyền ở đầu file.
+
+| File nguồn của open-edit | File trong AIOS-Lite | Mức độ lấy |
+|---|---|---|
+| `cli/src/commands/speech-probe.ts` (`envelopeOf`, `percentile`, `analyse`, `MIN_DYNAMIC_RANGE_DB`) | `modules/video/server/edit/pipeline/speech-probe.ts` | Chép gần nguyên logic đo mức âm theo cửa sổ, nền nhiễu đo theo từng clip và khoảng lặng an toàn để cắt; bỏ phần CLI, đọc PCM từ file WAV 16 kHz. Phần tìm tiếng không thành lời (`voicedRuns`, `unwordedSounds`, `insertSyntheticWords`) do AIOS-Lite viết thêm |
+| `cli/src/transcript/whisper-mapper.ts` (`tokenize`, `timeAll`, `orderWords`) | `modules/video/server/edit/pipeline/transcribe.ts` (`parseWhisperJson`) | Viết lại cho JSON của whisper.cpp: tách token nhiều từ theo độ dài, gán thời gian cho token thiếu mốc từ hai bên, sắp lại từ có mốc chạy ngược |
+
+Giấy phép Apache 2.0 yêu cầu giữ thông báo bản quyền, ghi rõ file đã sửa và kèm nội dung NOTICE liên quan. Toàn văn giấy phép: <http://www.apache.org/licenses/LICENSE-2.0>. NOTICE của open-edit (phần liên quan):
+
+```
+open-edit
+Copyright 2026 VEED LIMITED
+
+This product includes software developed at VEED (https://www.veed.io/).
+
+Licensed under the Apache License, Version 2.0 (see the LICENSE file).
+```
+
+Prompt cắt thô từng câu của đạo diễn (`modules/video/server/edit/agent/director.ts`, `ROUGH_CUT_RULES`) chỉ học ý tưởng từ [FireRed-OpenStoryline](https://github.com/FireRedTeam/FireRed-OpenStoryline) (Apache-2.0, `prompts/tasks/speech_rough_cut`) và luật chọn lần nói tốt nhất của video-use; viết lại bằng tiếng Việt, không chép chữ hay mã.
+
+## 8. video-use (MIT): module `video`, HDR sang SDR
+
+Bước chuẩn hoá video chuyển video HDR (HLG của iPhone, PQ) sang SDR bằng chuỗi bộ lọc lấy từ [video-use](https://github.com/browser-use/video-use) (giấy phép MIT, bản đọc ở commit `43cfc56`).
+
+| File nguồn của video-use | File trong AIOS-Lite | Mức độ lấy |
+|---|---|---|
+| `helpers/render.py` (`HDR_TRANSFERS`, `TONEMAP_CHAIN`, `is_hdr_source`) | `modules/video/server/edit/pipeline/normalize.ts` (`HDR_TRANSFERS`, `TONEMAP_CHAIN`, `probeColorTransfer`, `masterVideoFilter`) | Chép chuỗi `zscale` + `tonemap` (Hable) và cách nhận ra nguồn HDR; viết lại bằng TypeScript, chỉ bật khi ffmpeg có zimg |
+
+Thông báo bản quyền của video-use:
+
+```
+MIT License
+
+Copyright (c) 2026 Browser Use
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
