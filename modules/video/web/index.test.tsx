@@ -47,11 +47,11 @@ describe('video web module', () => {
     expect(mod.agentAccess?.map((a) => a.scope)).toEqual(['studio.read', 'studio.write']);
   });
 
-  it('renders the page with its three tabs', async () => {
+  it('renders the page with its four tabs', async () => {
     await act(async () => { render(<VideoStudio />, host); });
     await flush();
     expect(host.textContent).toContain('AI Video Studio');
-    for (const label of ['Studio', 'Video quay sẵn', 'Kết nối']) expect(tabButton(label), label).toBeTruthy();
+    for (const label of ['Studio', 'Video quay sẵn', 'Dựng nhanh', 'Kết nối']) expect(tabButton(label), label).toBeTruthy();
   });
 
   it('tells the owner how to install ffmpeg when it is missing', async () => {

@@ -1,0 +1,335 @@
+/* Video Studio › Dựng nhanh (Trang đầu, Thiết lập, Đang dựng). Every class is .vs-dn- prefixed (dn = Dựng nhanh; .vs-quick is taken by the chat quick actions);
+   colours come from the theme tokens. Layout follows docs/mockups/{Main,Setup,Progress}.dc.html. */
+
+:root { --vs-on-highlight: #171726; }
+
+.vs-dn {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 13.5px;
+}
+.vs-dn *, .vs-dn *::before, .vs-dn *::after { box-sizing: border-box; }
+.vs-dn :is(button, a, input, select, textarea, [tabindex]):focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.vs-dn :is(h2, h3, p, ol, ul) { margin: 0; }
+.vs-dn :is(ol, ul) { padding: 0; list-style: none; }
+.vs-dn button { font: inherit; }
+.vs-dn-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.vs-dn-pad { padding: 24px; }
+.vs-dn-small { font-size: 12.5px; line-height: 1.5; }
+.vs-dn-title { font-size: 24px; line-height: 1.2; font-weight: 700; }
+.vs-dn-lead { margin-top: 6px; font-size: 14.5px; line-height: 1.5; }
+.vs-dn-file-name { max-width: 100%; overflow-wrap: anywhere; }
+.vs-dn-hint { font-size: 12.5px; }
+.vs-dn .toggle.is-on { background: var(--vs-highlight); }
+
+.vs-dn-primary {
+  margin-left: auto; min-height: 44px; padding: 0 20px; border-radius: 10px; border-color: transparent;
+  background: var(--vs-highlight); color: var(--vs-on-highlight); font-weight: 700; font-size: 14px;
+}
+.vs-dn-primary:hover:not(:disabled) { background: var(--vs-highlight); border-color: transparent; filter: brightness(1.06); }
+.vs-dn-linkbtn {
+  display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 6px; border: 0; background: transparent;
+  color: var(--color-text-muted); text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.vs-dn-linkbtn:hover:not(:disabled) { color: var(--color-text); }
+.vs-dn-linkbtn:disabled { opacity: 0.5; cursor: not-allowed; }
+.vs-dn-state { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12.5px; }
+.vs-dn-state.is-done { color: var(--color-status-done); }
+.vs-dn-state.is-failed { color: var(--color-status-failed); overflow-wrap: anywhere; }
+
+/* ── Trang đầu ───────────────────────────────────────────────────────── */
+.vs-dn-home { display: flex; flex-wrap: wrap; min-height: 100%; }
+.vs-dn-projects {
+  flex: 1 1 240px; max-width: 100%; display: flex; flex-direction: column; gap: 14px; padding: 20px 16px;
+  border-right: 1px solid var(--color-border); background: var(--color-sidebar);
+}
+.vs-dn-channel label { display: flex; align-items: center; gap: 8px; }
+.vs-dn-channel select { flex: 1; min-width: 0; }
+.vs-dn-new {
+  display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 44px; border: 0; border-radius: 10px;
+  background: var(--vs-highlight); color: var(--vs-on-highlight); font-weight: 700; cursor: pointer;
+}
+.vs-dn-new:hover { filter: brightness(1.06); }
+.vs-dn-empty { font-size: 12.5px; line-height: 1.5; }
+.vs-dn-project-list { display: flex; flex-direction: column; gap: 4px; }
+.vs-dn-project {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px; border: 0; border-radius: 10px;
+  background: transparent; color: var(--color-text); text-align: left; cursor: pointer;
+}
+.vs-dn-project:hover, .vs-dn-project.is-active { background: var(--color-elevated); }
+.vs-dn-project-thumb { flex: none; width: 36px; height: 64px; border-radius: 6px; overflow: hidden; background: var(--color-elevated); }
+.vs-dn-project-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.vs-dn-project-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.vs-dn-project-title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vs-dn-project-meta { color: var(--color-text-muted); font-size: 12px; }
+.vs-dn-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+.vs-dn-status > span { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.vs-dn-status.is-done { color: var(--color-status-done); }
+.vs-dn-status.is-running { color: var(--color-status-running); }
+.vs-dn-status.is-waiting { color: var(--vs-highlight); }
+.vs-dn-status.is-failed { color: var(--color-status-failed); }
+.vs-dn-status.is-idle { color: var(--color-text-muted); }
+
+.vs-dn-main {
+  flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 28px;
+  padding: 32px 24px 48px; max-width: 1168px; margin: 0 auto;
+}
+.vs-dn-hero { display: flex; flex-direction: column; gap: 16px; }
+.vs-dn-drop {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 200px; padding: 28px 20px;
+  border: 1.5px dashed var(--color-border-strong); border-radius: 14px; background: var(--color-card); text-align: center;
+  transition: border-color 0.12s, background-color 0.12s;
+}
+.vs-dn-drop.is-over { border-color: var(--vs-highlight); background: var(--color-elevated); }
+.vs-dn-drop strong { font-size: 15.5px; }
+.vs-dn-drop-icon {
+  display: grid; place-items: center; width: 52px; height: 52px; border-radius: 14px;
+  background: var(--vs-highlight); color: var(--vs-on-highlight);
+}
+.vs-dn-field { display: flex; flex-direction: column; gap: 8px; font-weight: 600; }
+.vs-dn-field .vs-muted { font-weight: 400; }
+.vs-dn-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.vs-dn-pill {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 36px; max-width: 100%; padding: 0 12px; border-radius: 999px;
+  background: var(--color-elevated); border: 1px solid var(--color-border-strong); font-weight: 600;
+}
+.vs-dn-swatch { flex: none; width: 12px; height: 12px; border-radius: 3px; background: var(--vs-highlight); }
+
+/* ── Mẫu edit ────────────────────────────────────────────────────────── */
+.vs-dn-library { display: flex; flex-direction: column; gap: 16px; }
+.vs-dn-library-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+.vs-dn-library-head > div { flex: 1 1 320px; min-width: 0; }
+.vs-dn-library-head :is(h2, h3) { margin-bottom: 4px; font-size: 20px; }
+.vs-dn-search {
+  flex: 0 1 280px; min-width: 0; display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px;
+  border-radius: 10px; border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text-muted);
+}
+.vs-dn-search:focus-within { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.vs-dn-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--color-text); font: inherit; }
+.vs-dn-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.vs-dn-chip {
+  min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--color-border);
+  background: var(--color-card); color: var(--color-text-muted); cursor: pointer;
+}
+.vs-dn-chip:hover { color: var(--color-text); }
+.vs-dn-chip[aria-pressed="true"] { border-color: var(--vs-highlight); background: var(--vs-highlight); color: var(--vs-on-highlight); font-weight: 600; }
+.vs-dn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); gap: 16px; }
+.vs-dn-card {
+  display: flex; flex-direction: column; min-width: 0; padding: 0; border-radius: 14px; overflow: hidden; cursor: pointer;
+  border: 1px solid var(--color-border); background: var(--color-card); color: var(--color-text); text-align: left;
+}
+.vs-dn-card:hover { border-color: var(--color-border-strong); }
+.vs-dn-card.is-selected { border-color: var(--vs-highlight); box-shadow: 0 0 0 1px var(--vs-highlight); }
+.vs-dn-card-visual { position: relative; display: block; }
+.vs-dn-card-check {
+  position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--vs-highlight); color: var(--vs-on-highlight);
+}
+.vs-dn-badge { position: absolute; top: 10px; left: 10px; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+.vs-dn-badge.is-installed { background: var(--color-status-done); color: var(--color-bg); }
+.vs-dn-badge.is-free { background: var(--vs-highlight); color: var(--vs-on-highlight); }
+.vs-dn-badge.is-pro { background: var(--color-accent); color: var(--color-bg); }
+.vs-dn-card-body { display: flex; flex-direction: column; gap: 6px; padding: 12px 12px 14px; }
+.vs-dn-card-name { font-weight: 700; font-size: 14px; }
+.vs-dn-card-desc { color: var(--color-text-muted); font-size: 12.5px; line-height: 1.45; }
+.vs-dn-card-tags { color: var(--color-text-faint); font-size: 12px; }
+
+/* The card picture stands for a video frame, so it keeps the template's own colours in both themes. */
+.vs-dn-thumb { position: relative; display: block; width: 100%; aspect-ratio: 11 / 15; overflow: hidden; background: var(--color-elevated); }
+.vs-dn-thumb.is-small { flex: none; width: 72px; aspect-ratio: 9 / 16; border-radius: 8px; }
+.vs-dn-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.vs-dn-thumb-person { position: absolute; left: 10%; bottom: 0; width: 80%; fill: rgba(255, 255, 255, 0.07); }
+.vs-dn-thumb-text {
+  position: absolute; left: 12px; right: 12px; top: 34%; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;
+}
+.vs-dn-thumb.is-small .vs-dn-thumb-text { left: 6px; right: 6px; top: 30%; }
+.vs-dn-thumb-kicker {
+  padding: 2px 8px; border-radius: 4px; background: rgba(0, 0, 0, 0.55); color: #fff;
+  font: 600 10px/1.6 var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase;
+}
+.vs-dn-thumb-title { max-width: 100%; font-size: 26px; line-height: 1.1; overflow-wrap: anywhere; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6); }
+.vs-dn-thumb.is-small .vs-dn-thumb-title { font-size: 14px; }
+.vs-dn-soon {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 220px; padding: 20px;
+  border: 1.5px dashed var(--color-border-strong); border-radius: 14px; text-align: center; color: var(--color-text-muted);
+  font-size: 12.5px; line-height: 1.5;
+}
+.vs-dn-soon strong { color: var(--color-text); font-size: 13.5px; }
+.vs-dn-soon-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: var(--color-elevated); color: var(--vs-highlight); }
+.vs-dn-soon-tag { padding: 3px 8px; border-radius: 999px; background: var(--color-elevated); font-size: 11px; }
+
+/* ── Thiết lập / Đang dựng: shared frame ─────────────────────────────── */
+.vs-dn-page { padding-bottom: 48px; }
+.vs-dn-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 10px 24px;
+  border-bottom: 1px solid var(--color-border); background: var(--color-sidebar);
+}
+.vs-dn-back {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px; border: 0; border-radius: 8px;
+  background: transparent; color: var(--color-text-muted); cursor: pointer;
+}
+.vs-dn-back:hover { background: var(--color-control-hover); color: var(--color-text); }
+.vs-dn-crumb { min-width: 0; color: var(--color-text-muted); overflow-wrap: anywhere; }
+.vs-dn-layout {
+  max-width: 1228px; margin: 0 auto; padding: 32px 24px 0;
+  display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start;
+}
+.vs-dn-form { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.vs-dn-form > .vs-dn-lead { margin-bottom: 20px; }
+.vs-dn-aside {
+  flex: 1 1 300px; min-width: 0; position: sticky; top: 16px; display: flex; flex-direction: column; gap: 14px; padding: 20px;
+  border-radius: 14px; background: var(--color-card); border: 1px solid var(--color-border);
+}
+.vs-dn-aside h3 { font-size: 16px; }
+.vs-dn-actions {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin-top: 16px; padding: 16px;
+  border-radius: 14px; background: var(--color-card); border: 1px solid var(--color-border);
+}
+.vs-dn-summary { flex: 1 1 200px; min-width: 0; text-align: right; }
+.vs-dn-actions .vs-dn-primary { margin-left: 0; }
+.vs-dn-skip { min-height: 44px; }
+.vs-dn-go { min-height: 48px; padding: 0 24px; font-size: 15px; border-radius: 12px; }
+
+/* ── Thiết lập ───────────────────────────────────────────────────────── */
+.vs-dn-steps { display: flex; flex-direction: column; }
+.vs-dn-step { display: flex; gap: 16px; }
+.vs-dn-step-rail { display: flex; flex-direction: column; align-items: center; flex: none; }
+.vs-dn-step-icon {
+  display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px;
+  background: var(--color-elevated); border: 1px solid var(--color-border-strong); color: var(--vs-highlight);
+}
+.vs-dn-step-line { flex: 1; width: 2px; margin: 6px 0; background: var(--color-border); }
+.vs-dn-step-body { flex: 1; min-width: 0; padding-bottom: 24px; }
+.vs-dn-step-title { margin: 6px 0 10px; font-size: 15.5px; font-weight: 650; }
+.vs-dn-optional { font-size: 13px; font-weight: 400; }
+.vs-dn-box { padding: 12px; border-radius: 12px; background: var(--color-card); border: 1px solid var(--color-border); }
+.vs-dn-stack { display: flex; flex-direction: column; gap: 12px; }
+.vs-dn-video { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 14px; }
+.vs-dn-video-thumb {
+  flex: none; display: grid; place-items: center; width: 54px; height: 96px; border-radius: 8px;
+  background: var(--color-elevated); color: var(--color-text-faint);
+}
+.vs-dn-video-text { flex: 1 1 160px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.vs-dn-video-text .vs-bar { margin-top: 4px; }
+.vs-dn-switch { display: flex; align-items: center; gap: 12px; }
+.vs-dn-switch > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.vs-dn-switch-top { padding-top: 12px; border-top: 1px solid var(--color-border); }
+.vs-dn-levels { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.vs-dn-seg { display: inline-flex; }
+.vs-dn-seg > button { flex: none; min-height: 34px; padding: 0 14px; }
+.vs-dn-seg > button.is-active { background: var(--vs-highlight); color: var(--vs-on-highlight); font-weight: 600; box-shadow: none; }
+.vs-dn-template { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 14px; }
+.vs-dn-template-text { flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.vs-dn-template-text strong { font-size: 15.5px; }
+.vs-dn-template-text p { line-height: 1.5; }
+.vs-dn-asset { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px 12px; padding: 10px; border-radius: 10px; background: var(--color-bg); }
+.vs-dn-asset-thumb {
+  flex: none; display: grid; place-items: center; width: 48px; height: 64px; border-radius: 6px; overflow: hidden;
+  background: var(--color-elevated); color: var(--color-text-muted);
+}
+.vs-dn-asset-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.vs-dn-asset-name { flex: 1 1 140px; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.vs-dn-asset-name strong { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vs-dn-tag { padding: 2px 8px; border-radius: 999px; background: var(--color-elevated); color: var(--color-text-muted); font-size: 11px; }
+.vs-dn-asset-hint { flex: 999 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--color-text-muted); }
+.vs-dn-asset-hint .vs-input.has-text { border-color: var(--vs-highlight); }
+.vs-dn-remove { color: var(--color-status-failed); }
+.vs-dn-add {
+  display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 8px 12px; border-radius: 10px;
+  border: 1.5px dashed var(--color-border-strong); background: transparent; color: var(--color-text-muted); text-align: center; cursor: pointer;
+}
+.vs-dn-add:hover, .vs-dn-add.is-over { border-color: var(--vs-highlight); color: var(--color-text); }
+.vs-dn-radio {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 8px 12px; border-radius: 10px;
+  border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text); text-align: left; cursor: pointer;
+}
+.vs-dn-radio.is-active { border-color: var(--vs-highlight); box-shadow: 0 0 0 0.5px var(--vs-highlight); background: var(--color-elevated); }
+.vs-dn-radio-dot { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--color-text-faint); }
+.vs-dn-radio.is-active .vs-dn-radio-dot { border: 5px solid var(--vs-highlight); background: var(--color-bg); }
+.vs-dn-radio-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.vs-dn-tracks { display: flex; flex-direction: column; gap: 8px; }
+.vs-dn-track-list { display: flex; flex-direction: column; gap: 4px; max-height: 240px; overflow: auto; }
+.vs-dn-track {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 12px; border-radius: 8px;
+  border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text); text-align: left; cursor: pointer;
+}
+.vs-dn-track.is-active { border-color: var(--vs-highlight); background: var(--color-elevated); }
+.vs-dn-track-name { font-weight: 600; overflow-wrap: anywhere; }
+.vs-dn-audio { width: 100%; }
+.vs-dn-check { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; cursor: pointer; }
+.vs-dn-check input { width: 16px; height: 16px; accent-color: var(--vs-highlight); }
+.vs-dn-note { min-height: 84px; padding: 12px 14px; border-radius: 12px; }
+.vs-dn-plan { display: flex; flex-direction: column; gap: 12px; }
+.vs-dn-plan li { display: flex; align-items: flex-start; gap: 10px; }
+.vs-dn-plan-icon { flex: none; display: grid; place-items: center; width: 22px; height: 22px; margin-top: 1px; border-radius: 6px; }
+.vs-dn-plan .is-on .vs-dn-plan-icon { background: var(--vs-highlight); color: var(--vs-on-highlight); }
+.vs-dn-plan .is-off .vs-dn-plan-icon { background: var(--color-elevated); color: var(--color-text-faint); }
+.vs-dn-plan-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.vs-dn-plan-label { font-weight: 600; }
+.vs-dn-plan .is-off .vs-dn-plan-label { color: var(--color-text-faint); text-decoration: line-through; }
+.vs-dn-aside-note { margin-top: 4px; padding: 12px; border-radius: 10px; background: var(--color-bg); color: var(--color-text-muted); font-size: 12.5px; line-height: 1.5; }
+
+/* ── Đang dựng ───────────────────────────────────────────────────────── */
+.vs-dn-progress { max-width: 1148px; gap: 40px; }
+.vs-dn-progress .vs-dn-form { flex-basis: 480px; gap: 20px; }
+.vs-dn-preview { flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+.vs-dn-preview-frame {
+  position: relative; width: 100%; max-width: 330px; aspect-ratio: 9 / 16; border-radius: 16px; overflow: hidden;
+  background: var(--color-card); border: 1px solid var(--color-border);
+}
+.vs-dn-preview-frame.is-wide { max-width: 100%; aspect-ratio: 16 / 9; }
+.vs-dn-preview-frame.is-square { aspect-ratio: 1 / 1; }
+.vs-dn-preview-frame svg { position: absolute; left: 10%; bottom: 0; width: 80%; fill: var(--color-elevated); }
+.vs-dn-preview-lines { position: absolute; left: 14%; right: 14%; top: 30%; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.vs-dn-preview-lines span { display: block; height: 30px; border-radius: 6px; background: var(--color-border); animation: vs-pulse 1.6s ease-in-out infinite; }
+.vs-dn-preview-lines span:nth-child(1) { width: 40%; height: 12px; border-radius: 4px; }
+.vs-dn-preview-lines span:nth-child(2) { width: 90%; }
+.vs-dn-preview-lines span:nth-child(3) { width: 70%; }
+.vs-dn-preview .vs-pp { max-width: 360px; }
+.vs-dn-rows { display: flex; flex-direction: column; gap: 4px; }
+.vs-dn-row { display: flex; align-items: flex-start; gap: 14px; padding: 12px 14px; border-radius: 12px; border: 1px solid transparent; }
+.vs-dn-row.is-running { background: var(--color-card); border-color: var(--color-border-strong); }
+.vs-dn-row.is-pending strong, .vs-dn-row.is-skipped strong { color: var(--color-text-muted); }
+.vs-dn-row-icon {
+  flex: none; display: grid; place-items: center; width: 28px; height: 28px; margin-top: 1px; border-radius: 50%;
+  border: 2px solid var(--color-border-strong); color: var(--color-text-faint);
+}
+.vs-dn-row-icon.is-done { background: var(--color-status-done); border-color: var(--color-status-done); color: var(--color-bg); }
+.vs-dn-row-icon.is-running { border-color: var(--vs-highlight); }
+.vs-dn-row-icon.is-waiting { border-color: var(--vs-highlight); border-style: dashed; }
+.vs-dn-row-icon.is-failed { background: var(--color-status-failed); border-color: var(--color-status-failed); color: var(--color-bg); }
+.vs-dn-row-icon.is-skipped { border-style: dashed; }
+.vs-dn-row-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--vs-highlight); animation: vs-pulse 1.4s ease-in-out infinite; }
+.vs-dn-row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; line-height: 1.45; }
+.vs-dn-row-top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.vs-dn-row-top > span { margin-left: auto; }
+.vs-dn-row .vs-bar { height: 6px; margin-top: 6px; }
+.vs-dn-row .vs-bar > span { background: var(--vs-highlight); }
+.vs-dn-stop { min-height: 44px; padding: 0 18px; border-radius: 10px; }
+.vs-dn-progress .vs-dn-actions { margin-top: 0; padding: 4px 0 0; border: 0; background: transparent; }
+.vs-dn-progress .vs-dn-actions .vs-dn-primary { margin-left: auto; }
+.vs-dn-progress .vs-dn-summary { text-align: left; }
+
+@media (prefers-reduced-motion: reduce) {
+  .vs-dn-preview-lines span, .vs-dn-row-dot { animation: none; }
+}
+
+/* Phone: one column, the video list under the drop zone, tighter gutters. */
+@media (max-width: 720px) {
+  .vs-dn-projects { order: 2; flex-basis: 100%; border-right: 0; border-top: 1px solid var(--color-border); }
+  .vs-dn-main { padding: 20px 16px 32px; gap: 24px; }
+  .vs-dn-bar { padding: 8px 12px; }
+  .vs-dn-layout { padding: 20px 16px 0; gap: 24px; }
+  .vs-dn-title { font-size: 21px; }
+  .vs-dn-grid { grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr)); gap: 12px; }
+  .vs-dn-thumb-title { font-size: 20px; }
+  .vs-dn-step { gap: 12px; }
+  .vs-dn-step-icon { width: 32px; height: 32px; }
+  .vs-dn-aside { position: static; }
+  .vs-dn-cta .vs-dn-primary, .vs-dn-go { flex: 1 1 100%; margin-left: 0; }
+  .vs-dn-summary { text-align: left; }
+}
