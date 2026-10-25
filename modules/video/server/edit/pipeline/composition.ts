@@ -12,7 +12,7 @@ import type { TemplateManifest } from '../templates/types.js';
 import { normWord } from './analyze.js';
 import { makeMapper, computeKeep, type Segment } from './plan.js';
 import type { AssetResolver, ResolvedAsset } from './library-resolve.js';
-import { GSAP_URL, r3 } from './tools.js';
+import { GSAP_URL, musicRelDb, r3 } from './tools.js';
 import { buildTemplateComposition } from './composition-v2/build.js';
 import { isSynthetic } from './composition-v2/captions.js';
 import { cssFont, dbToGain, esc, mediaName, pngHasAlpha, safeColor } from './composition-v2/util.js';
@@ -312,8 +312,8 @@ function buildLegacy(input: BuildInput, size: { w: number; h: number }): BuiltCo
   if (plan.music) {
     const a = resolver.byId(plan.music.assetId);
     if (a && ['mp3', 'wav', 'm4a', 'ogg', 'aac'].includes(a.ext)) {
-      // gainDb is the music level relative to the voice; the profile's LUFS targets are the default.
-      const rel = Number.isFinite(plan.music.gainDb) ? plan.music.gainDb : audio.musicLufs - audio.voiceLufs;
+      // gainDb fine-tunes around the profile's music level (musicRelDb keeps old absolute values).
+      const rel = musicRelDb(plan.music.gainDb, audio.musicLufs - audio.voiceLufs);
       const dur = a.durationSec ? Math.min(total, a.durationSec) : total;
       clips.push(`<audio id="music" class="clip" src="${useAsset(a)}" data-start="0" data-duration="${r3(dur)}" data-media-start="0" data-volume="${r3(dbToGain(rel))}" data-fade-in="0.6" data-fade-out="${r3(Math.min(2, dur / 3))}" data-track-index="10"></audio>`);
       stats.music = true;

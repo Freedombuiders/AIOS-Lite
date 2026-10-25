@@ -29,7 +29,10 @@
     font-family: var(--th-font-title, 'Anton'), sans-serif; font-weight: 400;
     font-size: min(var(--tb-max), calc(var(--tb-span) / (var(--chars, 12) * 0.5)));
     line-height: 1.1; text-transform: uppercase; color: var(--th-accent, #FFD23F);
-    text-shadow: 0 0.06em 0.22em rgba(0, 0, 0, 0.55);
+    /* Dark outline outside the glyphs (paint-order keeps the fill whole) and a tight drop under it, so the
+       yellow still reads on a bright shot. */
+    -webkit-text-stroke: 0.05em var(--th-dark, #141416); paint-order: stroke fill;
+    text-shadow: 0 0.035em 0 var(--th-dark, #141416), 0 0.06em 0.22em rgba(0, 0, 0, 0.55);
   }
   .tb-line { display: block; }
   .tb-w { display: inline-block; white-space: nowrap; }
@@ -37,7 +40,7 @@
   .tb-hl-a { display: inline-block; padding: 0 0.12em; }
   .tb-hl-b {
     position: absolute; inset: 0; padding: 0 0.12em; border-radius: 0.06em;
-    background: var(--th-accent, #FFD23F); color: var(--th-dark, #141416); text-shadow: none;
+    background: var(--th-accent, #FFD23F); color: var(--th-dark, #141416); text-shadow: none; -webkit-text-stroke: 0;
     clip-path: inset(0 100% 0 0);
   }
   .tb-caret {
@@ -49,7 +52,9 @@
     display: none; max-width: 100%;
     font-family: var(--th-font-sub, 'Montserrat'), sans-serif; font-style: italic; font-weight: 600;
     font-size: 4cqmin; line-height: 1.3; color: var(--th-text, #FFFFFF);
-    text-shadow: 0 0.08em 0.4em rgba(0, 0, 0, 0.75);
+    /* Same dark outline as the title: white italic vanishes on a bright shot with a soft shadow alone. */
+    -webkit-text-stroke: 0.06em var(--th-dark, #141416); paint-order: stroke fill;
+    text-shadow: 0 0.05em 0 var(--th-dark, #141416), 0 0.08em 0.4em rgba(0, 0, 0, 0.75);
   }
 </style>
 <div id="root" data-composition-id="text-beat">

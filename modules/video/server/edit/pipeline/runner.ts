@@ -173,7 +173,7 @@ export function protectOwnerElements(input: unknown, previous: EditPlan | null |
  * The owner's Dựng nhanh choices win over a plan the director hands in: the template, auto-cut off (no cut at
  * all), no music, or the song the owner picked. Anything that is not a plan object passes through untouched.
  */
-export function enforceQuickSettings(input: unknown, quick: QuickSettings, musicGainDb: number): unknown {
+export function enforceQuickSettings(input: unknown, quick: QuickSettings): unknown {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return input;
   const p: Record<string, unknown> = { ...(input as Record<string, unknown>) };
   p.planFormat = 2;
@@ -182,7 +182,7 @@ export function enforceQuickSettings(input: unknown, quick: QuickSettings, music
   if (!quick.autoCut) { p.cutWords = []; p.gapMs = NO_CUT_GAP_MS; }
   const music = p.music && typeof p.music === 'object' && !Array.isArray(p.music) ? p.music as Record<string, unknown> : null;
   if (quick.music.mode === 'none') delete p.music;
-  else if (quick.music.mode === 'pick' && quick.music.assetId) p.music = { mood: '', gainDb: r1(musicGainDb), ...music, assetId: quick.music.assetId, duck: quick.music.duck };
+  else if (quick.music.mode === 'pick' && quick.music.assetId) p.music = { mood: '', gainDb: 0, ...music, assetId: quick.music.assetId, duck: quick.music.duck };
   else if (music) p.music = { ...music, duck: quick.music.duck };
   return p;
 }
@@ -369,7 +369,7 @@ export function createPipeline(opts: PipelineOptions) {
     if (!ctx) throw new StoreError(409, 'Chưa có bản chép lời để lập kế hoạch.', 'no_transcript');
     const previous = project.planVersion > 0 ? store.loadPlan(projectId, project.planVersion) : null;
     const own = protectOwnerElements(input, previous);
-    const plan = project.quick ? enforceQuickSettings(own, project.quick, musicGainDb(project)) : own;
+    const plan = project.quick ? enforceQuickSettings(own, project.quick) : own;
     const result = validateAgentPlan(plan, ctx, {
       previous, version: nextVersion(projectId), aspect: project.aspect, styleId: project.styleId, note, templates: templates.get,
     });
@@ -383,10 +383,6 @@ export function createPipeline(opts: PipelineOptions) {
   // ── Dựng nhanh ──
 
   /** Music level against the voice from the profile's mix targets (the composition's default). */
-  function musicGainDb(project: VideoProject): number {
-    const audio = store.getProfile(project.profileId)?.audio ?? DEFAULT_AUDIO;
-    return audio.musicLufs - audio.voiceLufs;
-  }
 
   /**
    * After analyze, with project.quick: the machine plan from the owner's settings. mode ai: it is the fallback
@@ -412,7 +408,7 @@ export function createPipeline(opts: PipelineOptions) {
     });
     const title = project.title && project.title !== 'Việc mới' ? project.title : spokenTitle(ctx.transcript);
     const machine = applyQuickSettings(base, quick, template, ctx, {
-      title, manual: quick.mode === 'manual', ...(musicId ? { music: { assetId: musicId, gainDb: musicGainDb(project) } } : {}),
+      title, manual: quick.mode === 'manual', ...(musicId ? { music: { assetId: musicId, gainDb: 0 } } : {}),
     });
     // Elements the owner added to an earlier version stay.
     const previous = project.planVersion > 0 ? store.loadPlan(projectId, project.planVersion) : null;

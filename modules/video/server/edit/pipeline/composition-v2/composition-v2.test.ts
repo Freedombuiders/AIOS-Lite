@@ -23,6 +23,7 @@ const T: Transcript = {
 
 const LIB: Record<string, ResolvedAsset> = {
   'bgm:x': { id: 'bgm:x', kind: 'bgm', name: 'Nhạc', file: '/lib/x.mp3', ext: 'mp3', durationSec: 30, beats: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 29] },
+  'bgm:y': { id: 'bgm:y', kind: 'bgm', name: 'Nhạc khác', file: '/lib/y.mp3', ext: 'mp3', durationSec: 20 },
   'sfx:whoosh': { id: 'sfx:whoosh', kind: 'sfx', name: 'whoosh', file: '/lib/whoosh.mp3', ext: 'mp3', durationSec: 0.6 },
   'sfx:pop': { id: 'sfx:pop', kind: 'sfx', name: 'pop', file: '/lib/pop.mp3', ext: 'mp3', durationSec: 0.3 },
   'sfx:typing': { id: 'sfx:typing', kind: 'sfx', name: 'typing', file: '/lib/typing.mp3', ext: 'mp3', durationSec: 0.8 },
@@ -68,22 +69,25 @@ const build = (p: EditPlan, o: Partial<BuildInput> = {}) => buildComposition({
   mode: 'preview', resolver: resolver(), ...o,
 });
 
-/** The host slot of one element: its attributes and decoded variable values. */
+/** The host slot of one element (or of the hook): its attributes and decoded variable values. */
 function slot(html: string, id: string) {
-  const tag = new RegExp(`<div id="el-${id}"[^>]*>`).exec(html)?.[0];
+  const tag = new RegExp(`<div id="(?:el-)?${id}"[^>]*>`).exec(html)?.[0];
   if (!tag) return null;
   const attr = (name: string) => new RegExp(`\\s${name}="([^"]*)"`).exec(tag)?.[1];
   const values = JSON.parse((attr('data-variable-values') ?? '{}').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&#39;/g, "'"));
   return { tag, attr, values, start: Number(attr('data-start')), duration: Number(attr('data-duration')) };
 }
 
-const overrides = (elements: OverridesDoc['elements'], captions?: OverridesDoc['captions']): OverridesDoc =>
-  ({ version: 1, elements, ...(captions ? { captions } : {}), updatedAt: 'x' });
+const overrides = (elements: OverridesDoc['elements'], captions?: OverridesDoc['captions'], music?: OverridesDoc['music']): OverridesDoc =>
+  ({ version: 1, elements, ...(captions ? { captions } : {}), ...(music ? { music } : {}), updatedAt: 'x' });
 
 describe('template plans (plan v2) build from the template blocks', () => {
   it('every element gets a host slot with data-el-id, mounting the right component with its props', () => {
     const b = build(plan({ hook: { options: [{ id: 'h', kind: 'number', text: 'Mười phút', mode: 'overlay' }], chosen: 'h' } }));
-    for (const id of ['hook', 'b1', 'b2', 's1', 'g1', 'br1', 'br2']) expect(b.html).toContain(`data-el-id="${id}"`);
+    for (const id of ['b1', 'b2', 's1', 'g1', 'br1', 'br2']) expect(b.html).toContain(`data-el-id="${id}"`);
+    // The hook is plan.hook's chosen option, not a plan element: no data-el-id, so the editor never offers an override.
+    expect(slot(b.html, 'hook')!.tag).toMatch(/^<div id="hook" class="clip" data-composition-id="text-beat"/);
+    expect(b.html).not.toContain('data-el-id="hook"');
     const expected: Record<string, string> = { hook: 'text-beat', b1: 'text-beat', b2: 'text-beat', s1: 'scene-steps', g1: 'logo-end', br1: 'broll-frame', br2: 'broll-frame' };
     for (const [id, component] of Object.entries(expected)) {
       const s = slot(b.html, id)!;
@@ -184,6 +188,40 @@ describe('template plans (plan v2) build from the template blocks', () => {
     expect(slot(ex.html, 'br9')).toBeNull();
     expect(ex.warnings.join(' ')).toContain('Chưa có');
     expect(ex.html).toContain('src="assets/master.mp4"');
+  });
+
+  it('the owner can swap the file of a B-roll; a file gone from the library leaves the frame empty with a warning', () => {
+    const b = build(plan(), { overrides: overrides({ br1: { assetId: 'video:c', updatedAt: 'x' }, br2: { assetId: 'image:a', updatedAt: 'x' } }) });
+    const br1 = slot(b.html, 'br1')!;
+    expect(br1.values).toMatchObject({ layout: 'card', video: expect.stringMatching(/^assets\/video-c-/) });
+    expect(br1.values.image).toBeUndefined();
+    // A swapped-in clip gets its own block copy with the authored src, like a planned one.
+    expect(b.assets.find((a) => `assets/${a.name}` === br1.attr('data-composition-src'))!.content).toMatch(/data-var-src="video" src="assets\/video-c-/);
+    expect(slot(b.html, 'br2')!.values).toMatchObject({ layout: 'full', image: expect.stringMatching(/^assets\/image-a-/) });
+    expect(slot(b.html, 'br2')!.values.video).toBeUndefined();
+    expect(b.warnings).toEqual([]);
+
+    const gone = overrides({ br1: { assetId: 'image:gone', updatedAt: 'x' } });
+    const p = build(plan(), { overrides: gone });
+    expect(slot(p.html, 'br1')!.values).toEqual({ layout: 'card', duration: 1.2 });
+    expect(p.warnings).toEqual(['B-roll "Ảnh": tư liệu "image:gone" không có trong kho — để trống.']);
+    const ex = build(plan(), { overrides: gone, mode: 'export' });
+    expect(slot(ex.html, 'br1')).toBeNull();
+    expect(ex.warnings).toEqual(['B-roll "Ảnh" chưa có file — bỏ qua khi xuất.']);
+  });
+
+  it('the owner can swap the file of a graphic, over the channel logo or a file set in its props', () => {
+    const logo = (o: OverridesDoc | null, p = plan()) => slot(build(p, { overrides: o }).html, 'g1')!.values.logo;
+    expect(logo(null)).toMatch(/^assets\/image-logo-/);
+    expect(logo(overrides({ g1: { assetId: 'image:a', updatedAt: 'x' } }))).toMatch(/^assets\/image-a-/);
+    const withProp = plan({ graphics: [{ id: 'g1', at: 5.6, duration: 0.6, component: 'logo-end', props: { name: 'K', logo: 'image:logo' } }] });
+    expect(logo(null, withProp)).toMatch(/^assets\/image-logo-/);
+    expect(logo(overrides({ g1: { assetId: 'image:a', updatedAt: 'x' } }), withProp)).toMatch(/^assets\/image-a-/);
+    const own = plan({ graphics: [{ id: 'g1', at: 5.6, duration: 0.6, component: 'logo-end', assetId: 'image:a', props: { name: 'K' } }] });
+    expect(logo(overrides({ g1: { assetId: 'image:logo', updatedAt: 'x' } }), own)).toMatch(/^assets\/image-logo-/);
+    const gone = build(plan(), { overrides: overrides({ g1: { assetId: 'image:gone', updatedAt: 'x' } }) });
+    expect(slot(gone.html, 'g1')!.values.logo).toBe('');
+    expect(gone.warnings).toEqual(['Đồ hoạ "g1": tư liệu "image:gone" không có trong kho — để trống.']);
   });
 
   it('is deterministic', () => {
@@ -287,8 +325,13 @@ describe('music, beats and sounds', () => {
     };
     const speech = at(1);
     const pause = at(3);
+    // The profile level (-18 dB) under the voice, 12 dB more in the long pause.
     expect(speech).toBeCloseTo(0.126, 2);
-    expect(pause).toBeCloseTo(0.251, 2);
+    expect(pause).toBeCloseTo(0.501, 2);
+    expect(20 * Math.log10(pause / speech)).toBeCloseTo(12, 0);
+    // The bed is already down when the second phrase starts (3.95 on the output timeline): it goes down 0.2 s before.
+    expect(at(3.75)).toBeCloseTo(0.501, 2);
+    expect(at(3.95)).toBeCloseTo(0.126, 2);
     expect(lanes[0].points[0]).toEqual({ t: 0, v: 0 });
     expect(lanes[0].points[lanes[0].points.length - 1].v).toBe(0);
     expect(lanes[1].points.some((p) => p.v === -6)).toBe(true);
@@ -299,6 +342,40 @@ describe('music, beats and sounds', () => {
     const b = build(plan(), { project: { code: 'V', title: 't', aspect: '9:16', quick: { music: { ...MUSIC, duck: false } } } });
     expect(/<audio id="music"[^>]*>/.exec(b.html)![0]).toMatch(/data-volume="0\.126" data-fade-in="[\d.]+" data-fade-out="[\d.]+"/);
     expect(b.html).not.toContain('data-automation');
+  });
+
+  it('the owner music override wins over the Dựng nhanh settings and the plan: track, off, level, ducking', () => {
+    const tag = (b: { html: string }) => /<audio id="music"[^>]*>/.exec(b.html)?.[0] ?? null;
+    const music = (m: OverridesDoc['music'], o: Partial<BuildInput> = {}, p = plan()) => build(p, { overrides: overrides({}, undefined, m), ...o });
+    const quick = (q: Partial<typeof MUSIC>) => ({ project: { code: 'V', title: 't', aspect: '9:16' as const, quick: { music: { ...MUSIC, ...q } } } });
+
+    // Another track, with the plan's level and the settings' ducking.
+    const swapped = music({ assetId: 'bgm:y' });
+    expect(tag(swapped)).toMatch(/src="assets\/bgm-y-[0-9a-f]+\.mp3" data-start="0"/);
+    expect(tag(swapped)).toContain('data-automation');
+    // A track for a plan that had none.
+    expect(tag(music({ assetId: 'bgm:y' }, {}, plan({ music: undefined })))).toContain('src="assets/bgm-y-');
+    expect(music({ assetId: 'bgm:gone' }).warnings).toEqual(['Nhạc "bgm:gone" không có trong kho — bỏ qua.']);
+
+    // Off: no bed, even with a track named; snapToBeat has no beat to snap to.
+    const off = music({ off: true, assetId: 'bgm:y' }, quick({ snapToBeat: true }), plan({ beats: [{ id: 'b1', at: 0.8, duration: 1, component: 'text-beat', title: 'Hai từ' }] }));
+    expect(tag(off)).toBeNull();
+    expect(off.stats.music).toBe(false);
+    expect(slot(off.html, 'b1')!.start).toBe(0.8);
+
+    // gainDb fine-tunes around the profile level (-18 dB) instead of the plan's level.
+    // The plan's gainDb too: -3 fine-tunes to -21 dB; an old absolute level (≤ -12, here -20) is kept as is.
+    expect(tag(build(plan({ music: { assetId: 'bgm:x', mood: 'vui', gainDb: -3, duck: true } }), quick({ duck: false })))).toContain('data-volume="0.089"');
+    expect(tag(build(plan({ music: { assetId: 'bgm:x', mood: 'vui', gainDb: -20, duck: true } }), quick({ duck: false })))).toContain('data-volume="0.1"');
+    const p10 = plan({ music: { assetId: 'bgm:x', mood: 'vui', gainDb: -10, duck: true } });
+    expect(tag(music({ gainDb: 0 }, quick({ duck: false }), p10))).toContain('data-volume="0.126"');
+    expect(tag(music({ gainDb: -3 }, quick({ duck: false }), p10))).toContain('data-volume="0.089"');
+
+    // duck: the owner's flag over the settings' flag over the plan's.
+    expect(tag(music({ duck: false }))).toMatch(/data-volume="0\.126" data-fade-in/);
+    expect(tag(music({ duck: true }, quick({ duck: false })))).toContain('data-automation');
+    expect(tag(build(plan(), quick({ duck: false })))).not.toContain('data-automation');
+    expect(tag(build(plan(), { project: { code: 'V', title: 't', aspect: '9:16' } }))).toContain('data-automation');
   });
 
   it('speechRanges merges short pauses and keeps the long one', () => {

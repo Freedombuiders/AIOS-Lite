@@ -251,7 +251,7 @@ describe('mode manual and the owner settings', () => {
     const song = await addFile(root, { kind: 'bgm', tempPath: temp, fileName: 'song.mp3' });
     await aiEdit(project.id, { mode: 'manual', music: { mode: 'pick', assetId: song.id, duck: true, snapToBeat: false, endOnFinal: true } });
     await runAll();
-    expect((await getPlan(project.id)).music).toMatchObject({ assetId: song.id, duck: true, gainDb: -18 });
+    expect((await getPlan(project.id)).music).toMatchObject({ assetId: song.id, duck: true, gainDb: 0 });
 
     agentPlan = () => ({ summary: 'Thêm nhạc nền vui.', cutWords: [2], gapMs: 300, music: { assetId: song.id, mood: 'vui', gainDb: -3, duck: true } });
     await aiEdit(project.id, { mode: 'ai' });
