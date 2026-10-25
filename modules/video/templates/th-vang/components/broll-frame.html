@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="vi" data-composition-variables='[
+  {"id":"layout","type":"enum","label":"Kiểu khung","default":"card","options":[
+    {"value":"full","label":"Toàn khung"},{"value":"card","label":"Thẻ"},{"value":"pip-circle","label":"Hình tròn"}]},
+  {"id":"image","type":"string","label":"Ảnh","default":""},
+  {"id":"video","type":"string","label":"Video","default":""},
+  {"id":"caption","type":"string","label":"Chú thích","default":"","maxLength":80},
+  {"id":"animIn","type":"enum","label":"Hiệu ứng vào","default":"pop","options":[
+    {"value":"pop","label":"Bật lên"},{"value":"slide-up","label":"Trượt lên"},{"value":"fade","label":"Hiện mờ"}]},
+  {"id":"duration","type":"number","label":"Thời lượng","default":2.5,"min":0.5,"max":30,"step":0.1,"unit":"s"}
+]'>
+<head><meta charset="utf-8"><title>Talking head vàng · Khung cảnh trám</title></head>
+<body>
+<template id="broll-frame">
+<style>
+  #root { position: absolute; inset: 0; container-type: size; overflow: hidden; pointer-events: none; }
+  .bf-frame { position: absolute; overflow: hidden; background: #1A1A1A; }
+  .bf-media { position: absolute; inset: 0; }
+  .bf-media img, .bf-media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .bf-empty {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 4cqmin; text-align: center;
+    background: linear-gradient(135deg, #2D2A26, #141416); color: rgba(255, 255, 255, 0.7);
+    font-family: var(--th-font-sub, 'Montserrat'), sans-serif; font-weight: 700; font-size: 3.6cqmin;
+  }
+  .full { inset: 0; }
+  .card {
+    left: 7cqw; right: 7cqw; top: 9cqh; height: 40cqh; border-radius: 3.4cqmin;
+    border: 0.6cqmin solid var(--th-accent, #FFD23F); box-shadow: 0 2cqmin 6cqmin rgba(0, 0, 0, 0.55);
+  }
+  .pip {
+    left: 27cqw; width: 46cqmin; height: 46cqmin; top: 8cqh; border-radius: 50%;
+    border: 1cqmin solid var(--th-accent, #FFD23F); box-shadow: 0 2cqmin 6cqmin rgba(0, 0, 0, 0.5);
+  }
+  .bf-ring {
+    display: none; position: absolute; left: 27cqw; top: 8cqh; width: 46cqmin; height: 46cqmin; border-radius: 50%;
+    border: 0.8cqmin solid var(--th-accent, #FFD23F); opacity: 0;
+  }
+  .bf-cap {
+    display: none; position: absolute; left: 7cqw; right: 7cqw; top: 51cqh; text-align: center;
+  }
+  .bf-cap span {
+    display: inline-block; padding: 1cqmin 2.4cqmin; border-radius: 1.4cqmin; background: rgba(0, 0, 0, 0.62);
+    color: var(--th-text, #FFFFFF); font-family: var(--th-font-sub, 'Montserrat'), sans-serif; font-weight: 700;
+    font-size: 3.6cqmin; line-height: 1.3;
+  }
+  .with-full .bf-cap { top: auto; bottom: 30cqh; }
+  .with-pip .bf-cap { top: calc(10cqh + 46cqmin); }
+  @container (orientation: landscape) {
+    .card { left: 18cqw; right: 18cqw; top: 8cqh; height: 64cqh; }
+    .pip, .bf-ring { left: auto; right: 6cqw; top: 10cqh; width: 40cqmin; height: 40cqmin; }
+    .bf-cap { top: 75cqh; }
+    .with-pip .bf-cap { left: auto; right: 6cqw; width: 40cqmin; top: calc(12cqh + 40cqmin); }
+    .with-full .bf-cap { bottom: 12cqh; }
+  }
+</style>
+<div id="root" data-composition-id="broll-frame">
+  <div class="bf-scene">
+    <div class="bf-ring"></div>
+    <div class="bf-frame card">
+      <div class="bf-media" data-layout-allow-overflow>
+        <img class="bf-img" alt="" data-var-src="image">
+        <video id="broll-frame-video" class="bf-vid" data-var-src="video" muted playsinline data-start="0" data-track-index="0"></video>
+      </div>
+      <div class="bf-empty">Chưa có tư liệu</div>
+    </div>
+    <div class="bf-cap"><span></span></div>
+  </div>
+</div>
+<script>
+  // Talking head vàng · Khung cảnh trám: full (toàn khung, zoom chậm), card (thẻ viền vàng phía trên),
+  // pip-circle (hình tròn viền vàng phía trên đầu). Composition truyền `image` hoặc `video` (đường dẫn tệp).
+  const vars = (window.__hyperframes && window.__hyperframes.getVariables && window.__hyperframes.getVariables()) || {};
+  const text = (v) => (v === undefined || v === null ? '' : String(v)).trim();
+  const D = Math.max(0.5, Number(vars.duration) || 2.5);
+  const layout = ['full', 'card', 'pip-circle'].indexOf(vars.layout) >= 0 ? vars.layout : 'card';
+  const anim = ['pop', 'slide-up', 'fade'].indexOf(vars.animIn) >= 0 ? vars.animIn : (layout === 'full' ? 'fade' : 'pop');
+
+  const scene = document.querySelector('.bf-scene');
+  const frame = document.querySelector('.bf-frame');
+  const media = document.querySelector('.bf-media');
+  const ring = document.querySelector('.bf-ring');
+  const capBox = document.querySelector('.bf-cap');
+  const img = document.querySelector('.bf-img');
+  const vid = document.querySelector('.bf-vid');
+  const empty = document.querySelector('.bf-empty');
+
+  const cls = layout === 'pip-circle' ? 'pip' : layout;
+  frame.className = 'bf-frame ' + cls;
+  scene.className = 'bf-scene with-' + cls;
+  const hasVideo = Boolean(text(vars.video));
+  const hasImage = !hasVideo && Boolean(text(vars.image));
+  // Only one media element stays; the empty placeholder shows when the composition passed no file.
+  if (!hasVideo) vid.remove();
+  if (!hasImage) img.remove();
+  if (hasVideo || hasImage) empty.remove();
+  const caption = text(vars.caption);
+  if (caption) { capBox.querySelector('span').textContent = caption; capBox.style.display = 'block'; }
+  if (cls === 'pip') ring.style.display = 'block';
+
+  const IN = {
+    pop: [{ opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.36, ease: 'back.out(1.9)' }],
+    'slide-up': [{ opacity: 0, yPercent: 12 }, { opacity: 1, yPercent: 0, duration: 0.36, ease: 'power3.out' }],
+    fade: [{ opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'sine.out' }],
+  };
+  const tl = gsap.timeline({ paused: true });
+  tl.fromTo(frame, IN[anim][0], IN[anim][1], 0);
+  // Slow push-in on the media wrapper (never on the timed <video> itself).
+  tl.fromTo(media, { scale: 1 }, { scale: layout === 'full' ? 1.08 : 1.05, duration: D, ease: 'none' }, 0);
+  if (cls === 'pip') tl.fromTo(ring, { opacity: 0.9, scale: 1 }, { opacity: 0, scale: 1.3, duration: 0.6, ease: 'power2.out' }, 0.22);
+  if (caption) tl.fromTo(capBox, { opacity: 0, yPercent: 40 }, { opacity: 1, yPercent: 0, duration: 0.28, ease: 'power2.out' }, 0.25);
+
+  const out = Math.max(0.6, D - 0.22);
+  if (out < D - 0.05) tl.to(scene, { opacity: 0, duration: Math.min(0.2, D - out), ease: 'power1.in' }, out);
+
+  window.__timelines["broll-frame"] = tl;
+</script>
+</template>
+</body>
+</html>
