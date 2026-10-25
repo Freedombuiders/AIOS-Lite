@@ -152,6 +152,22 @@ describe('derivePlan / diffPlans with v2 elements', () => {
   });
 });
 
+describe('validateAgentPlan: owner ids', () => {
+  it('never gives a new AI element the id of an owner element of the previous version', () => {
+    const prev = v2({ beats: [beat({ id: 'b1' })] }).plan!;
+    const owned: EditPlan = { ...prev, beats: [{ ...prev.beats![0], origin: 'owner' }] };
+    // The AI drops the owner beat, writes one beat without an id and one that reuses 'b1'.
+    const res = validateAgentPlan({ templateId: 'th-vang', beats: [beat({ title: 'Một *mới*' }), beat({ id: 'b1', at: 2, title: 'Hai *mới*' })] }, ctx, { ...base, previous: owned, version: 3, templates });
+    expect(res.errors).toEqual([]);
+    const beats = res.plan!.beats!;
+    const ownerBeat = beats.find((b) => b.origin === 'owner');
+    expect(ownerBeat?.id).toBe('b1');
+    expect(ownerBeat?.title).toBe(owned.beats![0].title);
+    expect(new Set(beats.map((b) => b.id)).size).toBe(beats.length);
+    expect(beats.filter((b) => b.origin !== 'owner').map((b) => b.title).sort()).toEqual(['Hai *mới*', 'Một *mới*']);
+  });
+});
+
 describe('preserveOwnerElements', () => {
   const prev = (): EditPlan => {
     const plan = v2({ beats: [beat(), beat({ at: 1.2 })], zooms: [{ id: 'z4', at: 0.5, duration: 0.5, scale: 1.2 }] }).plan!;

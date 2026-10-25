@@ -9,7 +9,7 @@
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import type {
-  AnalysisResult, BrollItem, EditPlan, ElementProps, GraphicItem, HookOption, PlanElementKind, RemovedKind, SceneItem,
+  AnalysisResult, BrollItem, EditPlan, ElementOrigin, ElementProps, GraphicItem, HookOption, PlanElementKind, RemovedKind, SceneItem,
   TextBeat, Transcript, VideoAspect, VideoProfile, VideoProject, VideoStyle, ZoomItem,
 } from '../types.js';
 import { findFillers, findRetakes, isFillerWord, normWord } from './analyze.js';
@@ -293,7 +293,7 @@ function pickCovers(plan: Pick<EditPlan, 'keep'>, analysis: AnalysisResult | nul
 }
 
 function titleFromTranscript(transcript: Transcript): string {
-  const text = transcript.words.slice(0, 9).map((w) => w.text).join(' ').replace(/[,.;:!?…]+$/u, '');
+  const text = transcript.words.filter((w) => !w.synthetic).slice(0, 9).map((w) => w.text).join(' ').replace(/[,.;:!?…]+$/u, '');
   return text || 'Video mới';
 }
 
@@ -562,7 +562,7 @@ const brollSchema = z.object({
   source: z.enum(['product', 'library', 'ai', 'upload', 'pexels']).default('library'),
   assetId: z.string().max(200).optional(),
   prompt: z.string().max(1000).optional(),
-  layout: z.enum(['full', 'card', 'cutout']).default('card'),
+  layout: z.enum(['full', 'card', 'cutout', 'pip-circle']).default('card'),
   box: z.object({ x: z.number().min(0).max(100), y: z.number().min(0).max(100), w: z.number().positive().max(100), h: z.number().positive().max(100) }).optional(),
   enabled: z.boolean().default(true),
   hint: z.string().trim().max(500).optional(),
@@ -824,10 +824,14 @@ export function validateAgentPlan(
   // ── Plan v2 ──
   const v2 = p.planFormat === 2 || p.templateId !== undefined || p.autoCut !== undefined || Boolean(p.beats || p.scenes || p.graphics);
   const prev = base.previous ?? null;
+  // Ids of the owner's elements in the previous version stay theirs: a new AI element never takes one, or
+  // preserveOwnerElements would think the owner's element was kept.
+  const ownerIds = new Set(prev ? planElements(prev).filter((e) => e.el.origin === 'owner').flatMap((e) => (e.el.id ? [e.el.id] : [])) : []);
   const taken = new Set<string>([...(p.beats ?? []), ...(p.scenes ?? []), ...(p.graphics ?? []), ...p.brolls, ...p.zooms].flatMap((x) => (x.id ? [x.id] : [])));
+  for (const id of ownerIds) taken.add(id);
   // Missing ids are minted per kind: b1.., s1.., g1.., and z1.. for the zooms of a v2 plan.
-  const fill = <T extends { id?: string }>(list: T[], prefix: string): (T & { id: string })[] => list.map((x) => {
-    if (x.id) return x as T & { id: string };
+  const fill = <T extends { id?: string; origin?: ElementOrigin }>(list: T[], prefix: string): (T & { id: string })[] => list.map((x) => {
+    if (x.id && !(ownerIds.has(x.id) && x.origin !== 'owner')) return x as T & { id: string };
     const fresh = mintId(prefix, taken);
     taken.add(fresh);
     return { ...x, id: fresh };
@@ -859,8 +863,7 @@ export function validateAgentPlan(
   }
   if (errors.length) return { errors, warnings };
 
-  // An agent cannot make its own elements the owner's: origin 'owner' stays only on the owner's elements.
-  const ownerIds = new Set(prev ? planElements(prev).filter((e) => e.el.origin === 'owner').map((e) => e.el.id!) : []);
+  // An agent cannot make its own elements the owner's: origin 'owner' stays only on the owner's elements (ownerIds above).
   const own = <T extends { id?: string; origin?: 'ai' | 'owner' }>(x: T): T => {
     if (x.origin !== 'owner' || (x.id && ownerIds.has(x.id))) return x;
     const { origin: _drop, ...rest } = x;

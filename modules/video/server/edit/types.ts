@@ -196,7 +196,8 @@ export interface BrollItem {
   assetId?: string;
   /** Prompt for an AI-generated clip (source ai). */
   prompt?: string;
-  layout: 'full' | 'card' | 'cutout';
+  /** pip-circle: the speaker shrinks to a circle in a corner while the shot fills the frame. */
+  layout: 'full' | 'card' | 'cutout' | 'pip-circle';
   /** Percent of the video frame, used to keep a cutout above the speaker. */
   box?: { x: number; y: number; w: number; h: number };
   enabled: boolean;

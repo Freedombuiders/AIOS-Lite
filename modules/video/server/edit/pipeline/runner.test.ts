@@ -80,8 +80,9 @@ describe('protectOwnerElements', () => {
 
   it('a new director element never takes an owner id, so the owner element is not lost', () => {
     const input = { summary: 'Bản của đạo diễn.', cutWords: [2], beats: [{ component: 'text-beat', anchorWord: 5, duration: 2, title: 'Hôm nay *mình nói*' }] };
+    // The validator itself no longer mints an owner id, so the owner element survives even without the runner guard.
     const naive = validateAgentPlan(input, ctx, { previous, version: 4, aspect: '9:16' }).plan!;
-    expect(naive.beats!.filter((b) => b.origin === 'owner')).toHaveLength(0);
+    expect(naive.beats!.map((b) => [b.id, b.origin ?? 'ai'])).toEqual([['b2', 'ai'], ['b1', 'owner']]);
     const plan = validateAgentPlan(protectOwnerElements(input, previous), ctx, { previous, version: 4, aspect: '9:16' }).plan!;
     expect(plan.beats!.map((b) => [b.id, b.origin ?? 'ai'])).toEqual([['b2', 'ai'], ['b1', 'owner']]);
   });
