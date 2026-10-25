@@ -1,11 +1,13 @@
-// Video Studio › Dựng nhanh: Trang đầu → Thiết lập → Đang dựng. The screen and project live in the URL
-// (?tab=quick&project=<id>&view=setup|progress); project state and SSE come from lib/video-edit/studio.
+// Video Studio › Dựng nhanh: Trang đầu → Thiết lập → Đang dựng → Editor v2. The screen and project live in the
+// URL (?tab=quick&project=<id>&view=setup|progress|editor); project state and SSE come from lib/video-edit/studio.
 import { useEffect, useState } from 'preact/hooks';
 import { ChevronLeft } from 'lucide-preact';
 import {
   bootstrap, openProjectStream, profilesLoaded, project, projectLoading, selectedProjectId, selectProject,
 } from '@modules/video/web/lib/video-edit/studio';
+import { isQuickProject } from '@modules/video/web/lib/video-edit/editor2';
 import { quickRoute, type QuickView } from '@modules/video/web/lib/video-edit/studio-tabs';
+import { QuickEditor } from '../editor2/QuickEditor';
 import { ProfileModal } from '../ProfileModal';
 import { QuickHome } from './QuickHome';
 import { QuickProgress } from './QuickProgress';
@@ -18,6 +20,7 @@ export function QuickStudio({ search, onNavigate, onOpenEditor }: {
   /** window.location.search as the page knows it. */
   search: string;
   onNavigate: (view: QuickView, projectId?: string) => void;
+  /** The old editor (Video quay sẵn), for a project that is not a Dựng nhanh one. */
   onOpenEditor: (projectId: string) => void;
 }) {
   const route = quickRoute(search);
@@ -54,8 +57,11 @@ export function QuickStudio({ search, onNavigate, onOpenEditor }: {
       : <p class="vs-muted vs-dn-pad" role="status">Đang mở video…</p>;
   } else if (route.view === 'setup') {
     screen = <QuickSetup key={p.id} onHome={() => onNavigate('home')} onStarted={() => onNavigate('progress', p.id)} />;
+  } else if (route.view === 'editor') {
+    screen = <QuickEditor key={p.id} onBack={() => onNavigate('progress', p.id)} />;
   } else {
-    screen = <QuickProgress onSetup={() => onNavigate('setup', p.id)} onOpenEditor={() => onOpenEditor(p.id)} />;
+    // Dựng nhanh projects open Editor v2; any other project keeps the existing editor.
+    screen = <QuickProgress onSetup={() => onNavigate('setup', p.id)} onOpenEditor={() => (isQuickProject(p) ? onNavigate('editor', p.id) : onOpenEditor(p.id))} />;
   }
 
   return <div class="vs-dn">

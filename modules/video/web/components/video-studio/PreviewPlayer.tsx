@@ -23,13 +23,18 @@ function ensurePlayerLoaded() {
   return registered;
 }
 
-export function PreviewPlayer({ projectId, version, aspect, total, readOnly }: {
+export function PreviewPlayer({ projectId, version, aspect, total, readOnly, src: srcProp, onMark, markLabel }: {
   projectId: string;
   version: number;
   aspect: VideoAspect;
   /** Output duration the plan model expects (shown until the player reports its own). */
   total: number;
   readOnly?: boolean;
+  /** Composition URL when the caller builds it (Editor v2 adds the overrides cache key); default previewUrl. */
+  src?: string;
+  /** Replaces the mark button's action (default: start a mark in the old editor's Góp ý tab). */
+  onMark?: () => void;
+  markLabel?: string;
 }) {
   const elRef = useRef<HFPlayer | null>(null);
   const lastT = useRef(0);
@@ -39,7 +44,7 @@ export function PreviewPlayer({ projectId, version, aspect, total, readOnly }: {
   const [slow, setSlow] = useState(false);
   const [duration, setDuration] = useState(0);
   const [loaded, setLoaded] = useState(false);
-  const src = previewUrl(projectId, version, nonce);
+  const src = srcProp ? (nonce ? `${srcProp}&r=${nonce}` : srcProp) : previewUrl(projectId, version, nonce);
   const { w, h } = aspectSize(aspect);
 
   useEffect(() => { void ensurePlayerLoaded().then(() => setLoaded(true)).catch(() => setSlow(true)); }, []);
@@ -119,8 +124,8 @@ export function PreviewPlayer({ projectId, version, aspect, total, readOnly }: {
         <button type="button" class="vs-btn vs-pp-btn" aria-label="Tới 1 giây" onClick={() => seekBy(1)}>+1s</button>
         <span class="vs-pp-time" aria-label="Thời điểm hiện tại">{formatTimeDec(t)} <span class="vs-faint">/ {formatTimeDec(len)}</span></span>
       </div>
-      <button type="button" class="vs-btn vs-pp-mark" disabled={readOnly} onClick={() => startMark({ start: playerTime.value, end: undefined })}>
-        <MapPin size={15} aria-hidden="true" /> Đánh dấu chỗ này
+      <button type="button" class="vs-btn vs-pp-mark" disabled={readOnly} onClick={() => (onMark ? onMark() : startMark({ start: playerTime.value, end: undefined }))}>
+        <MapPin size={15} aria-hidden="true" /> {markLabel ?? 'Đánh dấu chỗ này'}
       </button>
       <p class="vs-faint vs-pp-hint">Bản nháp v{version}: xem nhanh, chưa xuất. Sửa xong bản xem cập nhật ngay.</p>
     </div>

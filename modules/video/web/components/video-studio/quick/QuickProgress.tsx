@@ -1,5 +1,5 @@
 // Dựng nhanh › Đang dựng: the AI edit steps with their evidence lines (project.steps + SSE step/job
-// events), Dừng (POST /abort) and "Mở editor" (the existing editor until Editor v2 lands).
+// events), Dừng (POST /abort) and "Mở editor" (Editor v2 for a Dựng nhanh project; QuickStudio decides).
 import { useState } from 'preact/hooks';
 import { ArrowRight, Check, ChevronLeft, Minus, X } from 'lucide-preact';
 import { errorMessage, videoEditApi } from '@modules/video/web/lib/video-edit/api';
