@@ -18,6 +18,7 @@ import { registerVideoLibraryRoutes } from './library/routes.js';
 import { formatSize, ingestSummary, makeThumbnail, probeMedia } from './media.js';
 import { createPipeline, type PipelineTools } from './pipeline/runner.js';
 import { registerEditorRoutes } from './routes-editor.js';
+import { registerPlanV2Routes } from './routes-plan-v2.js';
 import { registerProductionRoutes, type ProductionKit } from './production/routes.js';
 import { serveFile } from './serve.js';
 import { createVideoEditStore, StoreError, type VideoEditStore } from './store.js';
@@ -584,6 +585,7 @@ export function registerVideoEditRoutes(app: Hono, options: VideoEditRouteOption
   }));
 
   registerEditorRoutes(app, { P, root, store, pipeline: pipe, fail, small, guard, parse, idOf, requireProject, emitProject, isLocal: options.isLocal });
+  registerPlanV2Routes(app, { P, root, store, pipeline: pipe, fail, small, guard, parse, idOf, requireProject, emitProject });
   const production = registerProductionRoutes(app, {
     P, root, editStore: store, pipeline: pipe, small, probe, thumbnail, emitProject, doctor, defaultAgentId: resolveDefaultAgentId,
     ...(options.autoStart === false ? { pollMs: 0, agentTurns: false } : {}),

@@ -6,6 +6,7 @@ import {
   STEP_DEFS,
   type AnalysisResult,
   type EditPlan,
+  type OverridesDoc,
   type Transcript,
   type VideoAspect,
   type VideoMark,
@@ -409,6 +410,13 @@ export function createVideoEditStore(rootDir?: string) {
     }
   }
 
+  // ── Owner overrides (Dựng nhanh): hand edits by element id, never written by the AI ──
+  const readOverrides = (id: string): OverridesDoc | null => {
+    const raw = readJson<OverridesDoc>(jsonIn(id, 'overrides.json'));
+    return raw?.version === 1 && raw.elements && typeof raw.elements === 'object' ? raw : null;
+  };
+  const writeOverrides = (id: string, doc: OverridesDoc) => writeJson(jsonIn(id, 'overrides.json'), doc);
+
   // ── Marks, brief, feedback ──
   const readMarks = (id: string): VideoMark[] => {
     const raw = readJson<VideoMark[]>(jsonIn(id, 'marks.json'));
@@ -428,7 +436,7 @@ export function createVideoEditStore(rootDir?: string) {
   /** Remove everything derived from the source video (new upload): keeps chat, marks and the raw file. */
   function clearDerived(id: string) {
     const dir = projectDir(id);
-    for (const name of ['transcript.json', 'analysis.json', 'brief.json', 'marks.json']) fs.rmSync(path.join(dir, name), { force: true });
+    for (const name of ['transcript.json', 'analysis.json', 'brief.json', 'marks.json', 'overrides.json']) fs.rmSync(path.join(dir, name), { force: true });
     for (const name of ['plans', 'frames', 'composition', 'renders', 'qa', 'covers']) fs.rmSync(path.join(dir, name), { recursive: true, force: true });
     for (const name of ['master.mp4', 'proxy.mp4', 'audio.wav']) fs.rmSync(path.join(sourceDir(id), name), { force: true });
   }
@@ -442,6 +450,7 @@ export function createVideoEditStore(rootDir?: string) {
     proxyFile, masterFile, audioFile, framesDir, qaDir, rendersDir, coversDir, compositionDir,
     readTranscript, writeTranscript, readAnalysis, writeAnalysis,
     savePlan, loadPlan, listPlanVersions,
+    readOverrides, writeOverrides,
     readMarks, writeMarks, readBrief, writeBrief, appendFeedback, clearDerived,
     writeJson, readJson,
   };
