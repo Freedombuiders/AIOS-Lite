@@ -12,6 +12,7 @@ Giấy phép của chính AIOS-Lite là **MIT**, © 2026 Tony Hoang (file [LICEN
 4. [Thư viện npm chính](#4-thư-viện-npm-chính)
 5. [Công cụ dòng lệnh bên ngoài](#5-công-cụ-dòng-lệnh-bên-ngoài)
 6. [OpenFilm (MIT): module `video`, Dựng nhanh](#6-openfilm-mit-module-video-dựng-nhanh)
+7. [FireRed-OpenStoryline (Apache-2.0): module `video`, kho tư liệu Dựng nhanh](#7-firered-openstoryline-apache-20-module-video-kho-tư-liệu-dựng-nhanh)
 
 ---
 
@@ -171,6 +172,36 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+```
+
+## 7. FireRed-OpenStoryline (Apache-2.0): module `video`, kho tư liệu Dựng nhanh
+
+Phần đo nhịp nhạc và các prompt mô tả tư liệu, gắn nhãn nhạc của kho tư liệu (Asset Hub) trong tab Dựng nhanh được viết lại bằng TypeScript dựa trên [FireRed-OpenStoryline](https://github.com/FireRedTeam/FireRed-OpenStoryline) (giấy phép Apache 2.0, bản đọc ở commit `c9e9452`). Mỗi file bên dưới có ghi chú nguồn và các thay đổi ở đầu file.
+
+| File nguồn của OpenStoryline | File trong AIOS-Lite | Mức độ lấy |
+|---|---|---|
+| `src/open_storyline/nodes/core_nodes/select_bgm.py` (`analyze_music_metrics`, `_compute_accent_beats`) | `modules/video/server/edit/assets/beats.ts` | Viết lại bằng TypeScript: cùng các bước đo BPM, nhịp và chọn nhịp mạnh (top 70 %, chuẩn hoá cục bộ 8 nhịp, giữ đỉnh cục bộ, cách nhau ít nhất 1 nhịp), năng lượng trung bình và độ chênh. Thay librosa bằng phổ tự tính, không tách phần bộ gõ trước khi chọn nhịp mạnh, thời điểm tính bằng giây |
+| `prompts/tasks/understand_clips/{en,zh}/system_detail.md`, `src/open_storyline/nodes/core_nodes/understand_clips.py`, `src/open_storyline/mcp/sampling_handler.py` (số khung 2–6, 3 khung/giây, cạnh dài 600 px) | `modules/video/server/edit/assets/prompts.ts` (`clipIndexPrompt`), `modules/video/server/edit/assets/indexer.ts` (`frameTimes`) | Dịch và chỉnh prompt sang tiếng Việt, đổi `aes_score` thành `quality`; giữ cách chọn số khung |
+| `prompts/tasks/scripts/{en,zh}/omni_bgm_label.md`, `scripts/omni_bgm_label.py` | `modules/video/server/edit/assets/prompts.ts` (`musicLabelPrompt`) | Chỉnh prompt: agent không nghe được âm thanh nên đọc số đo, tên, mô tả và ảnh phổ; mood theo 6 mood của module |
+
+OpenMontage (AGPL-3.0) chỉ được học ý tưởng cho cách tìm và chấm cảnh trám (mô tả đầy đủ để chấm, từ khoá ngắn để tìm, chấm 1–5, tránh hai cảnh giống nhau liền nhau); không có mã nào của OpenMontage trong AIOS-Lite.
+
+Thông báo bản quyền của FireRed-OpenStoryline:
+
+```
+Copyright 2026 FireRed-OpenStoryline Authors. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 ```
 
 ---

@@ -11,6 +11,7 @@ import { bodyLimit } from 'hono/body-limit';
 import { streamSSE } from 'hono/streaming';
 import { z } from 'zod';
 import { STORE_DIR } from '../paths.js';
+import { registerAssetHubRoutes } from './assets/routes.js';
 import { VIDEO_STYLES } from './catalog/styles.js';
 import { runDoctor } from './doctor.js';
 import { emitVideoEvent, subscribeVideoEvents } from './events.js';
@@ -240,6 +241,7 @@ export function registerVideoEditRoutes(app: Hono, options: VideoEditRouteOption
   app.get(`${P}/agents`, guard((c) => c.json({ agents: listVideoAgents(), defaultAgentId: resolveDefaultAgentId() })));
   app.get(`${P}/styles`, (c) => c.json({ groups: STYLE_GROUPS, styles: VIDEO_STYLES }));
   app.get(`${P}/brains`, guard((c) => c.json({ enabled: true, activeVaultId: 'default', vaults: [{ id: 'default', name: 'Kho tri thức' }] })));
+  registerAssetHubRoutes(app, { P, root, store, fail, small, guard, parse });
   registerVideoLibraryRoutes(app, { root });
   registerTemplateRoutes(app, { root });
 

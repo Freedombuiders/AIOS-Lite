@@ -101,6 +101,24 @@ export function setLibraryDeps(next: Partial<LibraryDeps> | null): void {
 }
 export const probeAudioDuration = (file: string) => deps.probeDuration(file);
 
+// ── New-file listeners (the Asset Hub index queue) ──────────────────────────
+
+export type LibraryAddedListener = (root: string, assets: LibraryAsset[]) => void;
+const addedListeners = new Set<LibraryAddedListener>();
+
+/** Called after files are added (upload, add from path, dropped into the folders). Returns the unsubscribe. */
+export function onLibraryAdded(fn: LibraryAddedListener): () => void {
+  addedListeners.add(fn);
+  return () => { addedListeners.delete(fn); };
+}
+
+function notifyAdded(root: string, assets: LibraryAsset[]): void {
+  if (assets.length === 0) return;
+  for (const fn of addedListeners) {
+    try { fn(root, assets); } catch { /* a listener never breaks adding a file */ }
+  }
+}
+
 // ── Manifest I/O ─────────────────────────────────────────────────────────────
 
 const cache = new Map<string, { mtimeMs: number; size: number; data: Manifest }>();
@@ -230,6 +248,7 @@ function discover(root: string, force = false): { added: number; removed: number
   }
   if (fresh.length === 0 && gone.length === 0) return { added: 0, removed: 0 };
 
+  const added: StoredEntry[] = [];
   mutate(root, (m) => {
     for (const id of gone) delete m.entries[id];
     const builtinIds = new Set(builtins().map((b) => b.id));
@@ -249,8 +268,10 @@ function discover(root: string, force = false): { added: number; removed: number
       };
       if (kind === 'font') applyFontInfo(entry, abs, rel);
       m.entries[id] = definedOnly(entry) as StoredEntry;
+      added.push(m.entries[id]);
     }
   });
+  notifyAdded(root, added.map((e) => toAsset(root, e)));
   return { added: fresh.length, removed: gone.length };
 }
 
@@ -416,6 +437,34 @@ export interface AssetMeta {
   attribution?: string;
   sourceUrl?: string;
   enabled?: boolean;
+  /** Dựng nhanh: footage added for one project. */
+  projectId?: string;
+}
+
+/** What the Asset Hub index writes: the AI's Vietnamese caption and quality, measured tempo, music labels. */
+export interface AssetIndexPatch {
+  caption?: string;
+  /** 0..1. */
+  quality?: number;
+  bpm?: number;
+  /** Strong-beat times, seconds. */
+  beats?: number[];
+  vocals?: boolean;
+  genre?: string;
+  mood?: string;
+  indexedAt?: string;
+}
+
+/** Stores index results on an entry (a builtin entry gets its own manifest record, as with updateAsset). */
+export function recordAssetIndex(root: string, id: string, patch: AssetIndexPatch): LibraryAsset {
+  const current = findAsset(root, id);
+  if (!current) throw new LibraryError(404, 'Không tìm thấy mục này.', 'not_found');
+  return mutate(root, (m) => {
+    const entry: StoredEntry = m.entries[id] ?? { id, kind: current.kind, source: 'builtin' };
+    Object.assign(entry, definedOnly(patch), { updatedAt: new Date().toISOString() });
+    m.entries[id] = entry;
+    return toAsset(root, entry, builtins().find((b) => b.id === id));
+  });
 }
 
 function relocate(from: string, to: string): void {
@@ -449,7 +498,7 @@ export async function addFile(root: string, opts: { kind: AssetKind; tempPath: s
 
   const now = new Date().toISOString();
   const slug = slugOf(baseName(fileName)) || 'tep';
-  return mutate(root, (m) => {
+  const asset = mutate(root, (m) => {
     const id = uniqueId(m, `lib:${kind}:${slug}`);
     const entry: StoredEntry = {
       id, kind, name: baseName(fileName), source: 'library', license: DEFAULT_LICENSE, tags: [],
@@ -460,10 +509,13 @@ export async function addFile(root: string, opts: { kind: AssetKind; tempPath: s
       ...(opts.meta?.name ? { name: opts.meta.name } : {}),
       description: opts.meta?.description, tags: opts.meta?.tags ?? entry.tags, mood: opts.meta?.mood, bpm: opts.meta?.bpm,
       license: opts.meta?.license ?? entry.license, attribution: opts.meta?.attribution, sourceUrl: opts.meta?.sourceUrl, enabled: opts.meta?.enabled,
+      projectId: opts.meta?.projectId,
     }));
     m.entries[id] = entry;
     return toAsset(root, entry);
   });
+  notifyAdded(root, [asset]);
+  return asset;
 }
 
 export interface SeedFileSpec {
