@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>AI tự soát bản nháp</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Anton&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115}
+a{color:#8aa3ff}a:hover{color:#b3c3ff}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid #6d8dff;outline-offset:2px}
+</style>
+</helmet>
+<div style="min-height: 1000px; background: #0f1115; color: #e6e8ee; font-family: Inter, system-ui, sans-serif; font-size: 13.5px; display: flex; flex-direction: column">
+
+  <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid #272c37; background: #12151a">
+    <a href="Editor.dc.html" style="display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px; border-radius: 8px; color: #c9ced9; text-decoration: none">
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+      Về editor
+    </a>
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <strong style="font-size: 15px">Bản nháp v3 · AI tự soát</strong>
+      <span style="color: #9aa3b2; font-size: 12px">10-5-tiktok-2 · nháp 540p · vòng soát {{round}}/3</span>
+    </div>
+    <div style="margin-left: auto; display: flex; flex-wrap: wrap; gap: 8px">
+      <button type="button" style="min-height: 38px; padding: 0 14px; border-radius: 8px; border: 1px solid #2d3340; background: #1b1f27; cursor: pointer">Xuất luôn, bỏ qua lỗi</button>
+      <button type="button" onClick="{{fixAll}}" style="display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 0 16px; border-radius: 8px; border: 0; background: #ffd23f; color: #171726; font-weight: 700; cursor: pointer">
+        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"></path></svg>
+        {{fixAllLabel}}
+      </button>
+    </div>
+  </header>
+
+  <div style="flex: 1; padding: 20px 20px 40px">
+    <div style="max-width: 1360px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+
+      <section aria-label="Bản nháp" style="flex: 1 1 240px; max-width: 300px; display: flex; flex-direction: column; gap: 10px">
+        <div style="position: relative; width: 100%; aspect-ratio: 9 / 16; border-radius: 14px; overflow: hidden; background: #2d2a26">
+          <div aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 0; height: 48%; background: #3a463d"></div>
+          <svg aria-hidden="true" viewBox="0 0 100 100" style="position: absolute; left: 14%; bottom: 0; width: 72%; fill: #4a423b"><circle cx="50" cy="40" r="17"></circle><path d="M14 100c0-22 16-38 36-38s36 16 36 38z"></path></svg>
+          <div style="position: absolute; left: 8%; right: 8%; top: 26%; text-align: center; font-family: Anton, Inter, sans-serif; font-size: 26px; line-height: 1.05; color: #ffd23f; text-transform: uppercase">Có gì trong đầu<br><span style="background: #ffd23f; color: #171726; padding: 0 6px">nói luôn</span></div>
+          <button type="button" aria-label="Phát bản nháp" style="position: absolute; left: 50%; top: 58%; transform: translate(-50%, -50%); display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; border: 0; background: rgba(0,0,0,0.6); color: #ffffff; cursor: pointer">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"></path></svg>
+          </button>
+        </div>
+        <span style="color: #9aa3b2; font-size: 12.5px; text-align: center">Nháp để xem nhanh trên điện thoại. Bản xuất thật là 1080p.</span>
+      </section>
+
+      <section aria-labelledby="m-title" style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 14px; background: #171a21; border: 1px solid #272c37">
+        <h2 id="m-title" style="margin: 0; font-size: 15px">Máy đo</h2>
+        <p style="margin: 0 0 4px; color: #9aa3b2; line-height: 1.5">Đo trên file nháp vừa dựng, không cần AI.</p>
+        <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px">
+          <sc-for list="{{checks}}" as="c" hint-placeholder-count="8">
+            <li style="display: flex; gap: 10px; align-items: flex-start; padding: 8px 4px; border-bottom: 1px solid #1e222b">
+              <span aria-hidden="true" style="flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; font-weight: 800; font-size: 12px; {{c.iconStyle}}">{{c.icon}}</span>
+              <span style="display: flex; flex-direction: column; gap: 2px">
+                <span style="font-weight: 600">{{c.label}}</span>
+                <span style="color: #9aa3b2; font-size: 12.5px">{{c.detail}}</span>
+              </span>
+            </li>
+          </sc-for>
+        </ul>
+      </section>
+
+      <section aria-labelledby="c-title" style="flex: 999 1 460px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 14px 16px; border-radius: 14px; background: #171a21; border: 1px solid #272c37">
+          <h2 id="c-title" style="margin: 0; font-size: 15px">Giám khảo AI</h2>
+          <span style="padding: 3px 10px; border-radius: 999px; font-weight: 800; font-size: 12px; {{verdictStyle}}">{{verdict}}</span>
+          <span style="flex: 1 1 260px; color: #9aa3b2; line-height: 1.5">Một agent khác với đạo diễn, chỉ xem bản nháp và yêu cầu của bạn. {{verdictText}}</span>
+        </div>
+
+        <sc-for list="{{issues}}" as="is" hint-placeholder-count="3">
+          <article style="display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 14px; background: #171a21; {{is.border}}">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+              <span style="padding: 2px 8px; border-radius: 6px; background: #1e222b; font-variant-numeric: tabular-nums; font-weight: 600">{{is.at}}</span>
+              <strong style="flex: 1 1 200px">{{is.title}}</strong>
+              <span style="padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 700; {{is.tagStyle}}">{{is.tag}}</span>
+            </div>
+            <div aria-hidden="true" style="display: flex; gap: 6px">
+              <span style="flex: 1; height: 72px; border-radius: 6px; background: #2d2a26"></span>
+              <span style="flex: 1; height: 72px; border-radius: 6px; background: #3a463d; box-shadow: inset 0 0 0 2px {{is.mark}}"></span>
+              <span style="flex: 1; height: 72px; border-radius: 6px; background: #2d2a26"></span>
+              <span style="flex: 2; height: 72px; border-radius: 6px; background: #12151b; position: relative; overflow: hidden">
+                <span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #272c37"></span>
+                <span style="position: absolute; left: 48%; top: 14px; bottom: 14px; width: 3px; border-radius: 2px; background: {{is.mark}}"></span>
+                <span style="position: absolute; left: 8%; right: 56%; top: 28px; bottom: 28px; border-radius: 2px; background: #353c4a"></span>
+                <span style="position: absolute; left: 52%; right: 8%; top: 24px; bottom: 24px; border-radius: 2px; background: #353c4a"></span>
+              </span>
+            </div>
+            <p style="margin: 0; color: #c9ced9; line-height: 1.5">{{is.desc}}</p>
+            <sc-if value="{{is.fixable}}" hint-placeholder-val="{{true}}">
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+                <span style="flex: 1 1 260px; color: #9aa3b2; font-size: 12.5px">Đề xuất: {{is.fix}}</span>
+                <button type="button" style="min-height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid #2d3340; background: #1b1f27; cursor: pointer">Xem ở editor</button>
+                <button type="button" style="min-height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid #2d3340; background: #1b1f27; cursor: pointer">Bỏ qua</button>
+                <button type="button" onClick="{{is.toggle}}" style="min-height: 34px; padding: 0 14px; border-radius: 8px; font-weight: 700; cursor: pointer; {{is.btnStyle}}">{{is.btnLabel}}</button>
+              </div>
+            </sc-if>
+          </article>
+        </sc-for>
+        <p style="margin: 0; color: #9aa3b2; font-size: 12.5px; line-height: 1.5">Sau khi sửa, máy dựng lại nháp và soát thêm, tối đa 3 vòng. Lỗi còn lại sau đó sẽ báo cho bạn quyết.</p>
+      </section>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { fixed: {} };
+  }
+  renderVals() {
+    const fixed = this.state.fixed;
+    const checks = [
+      { ok: true, label: 'Độ dài khớp kế hoạch', detail: '24,3 giây' },
+      { ok: true, label: 'Âm lượng', detail: '−14,1 LUFS · đỉnh −1,4 dB' },
+      { ok: !fixed.pop, label: 'Tiếng bụp ở điểm cắt', detail: fixed.pop ? 'Đã sửa, chờ dựng lại' : '00:09,7 · âm thanh nhảy đột ngột' },
+      { ok: true, label: 'Không có khung nháy', detail: 'Soát cả 5 điểm cắt' },
+      { ok: true, label: 'Font đủ dấu tiếng Việt', detail: 'Anton, Montserrat đã nạp đúng' },
+      { ok: !fixed.face, label: 'Phụ đề không che mặt', detail: fixed.face ? 'Đã sửa, chờ dựng lại' : '00:15,2 – 00:16,0 · đè lên cằm' },
+      { ok: true, label: 'Đồ hoạ không đứng yên quá lâu', detail: 'Lâu nhất 0,4 giây' },
+      { ok: true, label: 'Chữ trong vùng an toàn TikTok, Reels', detail: 'Không bị nút bấm của app che' }
+    ];
+    const issues = [
+      { id: 'pop', at: '00:09,7', title: 'Tiếng bụp khi vào cảnh trám', desc: 'Điểm cắt rơi giữa một hơi thở nên âm thanh bị giật. Người xem đeo tai nghe sẽ nghe rõ.', fix: 'lùi điểm cắt 60 ms về chỗ lặng gần nhất.', fixable: true },
+      { id: 'face', at: '00:15,2', title: 'Phụ đề đè lên cằm người nói', desc: 'Lúc cảnh minh hoạ chuyển về người nói, khuôn mặt thấp hơn bình thường nên phụ đề che cằm.', fix: 'đẩy phụ đề lên vùng ngực trong 0,8 giây này.', fixable: true },
+      { id: 'hook', at: '00:00,0', title: 'Hook 3 giây đầu', desc: 'Câu mở “Đây là cách mình edit video bằng AI” rõ, chữ hiện đúng lúc nói. Giữ nguyên.', fix: '', fixable: false }
+    ];
+    const open = issues.filter((x) => x.fixable && !fixed[x.id]).length;
+    return {
+      round: 1,
+      checks: checks.map((c) => ({
+        ...c,
+        icon: c.ok ? '✓' : '!',
+        iconStyle: c.ok ? 'background:#46c28a;color:#0f1115' : 'background:#f0b24a;color:#171726'
+      })),
+      verdict: open > 0 ? 'SỬA' : 'ĐẠT',
+      verdictStyle: open > 0 ? 'background:#f0b24a;color:#171726' : 'background:#46c28a;color:#0f1115',
+      verdictText: open > 0 ? 'Video đúng ý, nhịp tốt. Còn ' + open + ' lỗi nên sửa trước khi đăng.' : 'Không còn lỗi cần sửa. Có thể xuất video.',
+      fixAllLabel: open > 0 ? 'Tự sửa ' + open + ' lỗi' : 'Xuất video',
+      fixAll: () => this.setState({ fixed: { pop: true, face: true } }),
+      issues: issues.map((x) => {
+        const done = !!fixed[x.id];
+        return {
+          ...x,
+          tag: !x.fixable ? 'GIỮ' : done ? 'ĐÃ SỬA' : 'SỬA',
+          tagStyle: !x.fixable || done ? 'background:#1f3a2c;color:#8ee6b8' : 'background:#f0b24a;color:#171726',
+          border: x.fixable && !done ? 'border:1px solid #f0b24a' : 'border:1px solid #272c37',
+          mark: x.fixable && !done ? '#f0b24a' : '#46c28a',
+          toggle: () => this.setState({ fixed: { ...fixed, [x.id]: !done } }),
+          btnLabel: done ? 'Hoàn tác' : 'Tự sửa',
+          btnStyle: done ? 'border:1px solid #2d3340;background:#1b1f27;color:#e6e8ee' : 'border:0;background:#ffd23f;color:#171726'
+        };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

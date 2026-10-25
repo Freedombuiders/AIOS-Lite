@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Dựng nhanh – Trang đầu</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Anton&amp;family=Montserrat:ital,wght@0,800;1,500&amp;family=Be+Vietnam+Pro:wght@700;800&amp;family=Saira+Condensed:wght@700&amp;family=Playfair+Display:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115}
+a{color:#8aa3ff}a:hover{color:#b3c3ff}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid #6d8dff;outline-offset:2px}
+textarea::placeholder,input::placeholder{color:#8b93a5}
+</style>
+</helmet>
+<div style="min-height: 1240px; background: #0f1115; color: #e6e8ee; font-family: Inter, system-ui, sans-serif; font-size: 14px; display: flex; flex-direction: column">
+
+  <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 12px 24px; border-bottom: 1px solid #272c37; background: #12151a">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <span style="display: grid; place-items: center; width: 32px; height: 32px; border-radius: 8px; background: #ffd23f; color: #171726">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"></rect><path d="M7 2v20M17 2v20M2 12h20"></path></svg>
+      </span>
+      <strong style="font-size: 15px">AI Video Studio</strong>
+    </div>
+    <nav aria-label="Các tab Video Studio" style="display: flex; flex-wrap: wrap; gap: 4px">
+      <button type="button" style="min-height: 36px; padding: 0 14px; border-radius: 8px; border: 0; background: transparent; color: #9aa3b2; cursor: pointer">Studio</button>
+      <button type="button" style="min-height: 36px; padding: 0 14px; border-radius: 8px; border: 0; background: transparent; color: #9aa3b2; cursor: pointer">Video quay sẵn</button>
+      <a href="Main.dc.html" aria-current="page" style="display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border-radius: 8px; background: #1e222b; color: #e6e8ee; text-decoration: none; font-weight: 600">Dựng nhanh</a>
+      <button type="button" style="min-height: 36px; padding: 0 14px; border-radius: 8px; border: 0; background: transparent; color: #9aa3b2; cursor: pointer">Kết nối</button>
+    </nav>
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 8px; color: #9aa3b2">
+      <span>Kênh:</span>
+      <button type="button" style="min-height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid #2d3340; background: #1b1f27; color: #e6e8ee; cursor: pointer">[Tên kênh của bạn]</button>
+    </div>
+  </header>
+
+  <div style="display: flex; flex-wrap: wrap; flex: 1; min-height: 0">
+
+    <aside aria-label="Dự án" style="flex: 1 1 240px; max-width: 100%; padding: 20px 16px; border-right: 1px solid #272c37; background: #12151a; display: flex; flex-direction: column; gap: 16px">
+      <a href="Main.dc.html" style="display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; border-radius: 10px; background: #ffd23f; color: #171726; font-weight: 700; text-decoration: none">
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+        Video mới
+      </a>
+      <div style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #9aa3b2; font-weight: 600">Gần đây</div>
+      <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px">
+        <li>
+          <a href="Editor.dc.html" style="display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: 10px; background: #1e222b; color: #e6e8ee; text-decoration: none">
+            <span aria-hidden="true" style="width: 36px; height: 64px; border-radius: 6px; background: #2d2a26; flex: none"></span>
+            <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+              <span style="font-weight: 600">10-5-tiktok-2</span>
+              <span style="color: #9aa3b2; font-size: 12px">0:24 · Talking head vàng</span>
+              <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #46c28a"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 50%; background: #46c28a"></span>Đã xuất</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a href="Progress.dc.html" style="display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: 10px; color: #e6e8ee; text-decoration: none">
+            <span aria-hidden="true" style="width: 36px; height: 64px; border-radius: 6px; background: #1b2433; flex: none"></span>
+            <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+              <span style="font-weight: 600">Review máy lọc nước</span>
+              <span style="color: #9aa3b2; font-size: 12px">0:41 · Giới thiệu sản phẩm</span>
+              <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #5fa8ff"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 50%; background: #5fa8ff"></span>AI đang dựng</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a href="Setup.dc.html" style="display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: 10px; color: #e6e8ee; text-decoration: none">
+            <span aria-hidden="true" style="width: 36px; height: 64px; border-radius: 6px; background: #24202e; flex: none"></span>
+            <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+              <span style="font-weight: 600">Chia sẻ buổi sáng</span>
+              <span style="color: #9aa3b2; font-size: 12px">1:12 · chưa chọn mẫu</span>
+              <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #9aa3b2"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 50%; background: #8b93a5"></span>Nháp</span>
+            </span>
+          </a>
+        </li>
+      </ul>
+    </aside>
+
+    <main style="flex: 999 1 560px; min-width: 0; padding: 32px 24px 48px">
+      <div style="max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px">
+
+        <section aria-labelledby="hero-title" style="display: flex; flex-direction: column; gap: 16px">
+          <div>
+            <h1 id="hero-title" style="margin: 0 0 6px; font-size: 28px; line-height: 1.2; font-weight: 700">Dựng video từ footage thô</h1>
+            <p style="margin: 0; color: #9aa3b2; font-size: 15px">Thêm video quay thô và chọn một mẫu edit. AI dựng xong, bạn chỉnh tay.</p>
+          </div>
+
+          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 200px; padding: 28px; border: 1.5px dashed #353c4a; border-radius: 14px; background: #171a21; text-align: center">
+            <span style="display: grid; place-items: center; width: 52px; height: 52px; border-radius: 14px; background: #ffd23f; color: #171726">
+              <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"></path><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"></path></svg>
+            </span>
+            <strong style="font-size: 16px">Kéo thả video quay thô vào đây</strong>
+            <span style="color: #9aa3b2">MP4, MOV hoặc WebM. Video không rời máy của bạn.</span>
+            <button type="button" style="min-height: 40px; padding: 0 18px; border-radius: 10px; border: 1px solid #2d3340; background: #1b1f27; cursor: pointer">Chọn video</button>
+          </div>
+
+          <label style="display: flex; flex-direction: column; gap: 8px">
+            <span style="font-weight: 600">Bạn muốn edit thế nào? <span style="color: #9aa3b2; font-weight: 400">(không bắt buộc)</span></span>
+            <textarea rows="2" placeholder="Ví dụ: giữ đoạn mở đầu, nhấn mạnh 3 bước, thêm logo cuối video…" style="resize: vertical; padding: 12px 14px; border-radius: 10px; border: 1px solid #2d3340; background: #12151b; line-height: 1.5"></textarea>
+          </label>
+
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+            <span style="color: #9aa3b2">Mẫu đang chọn:</span>
+            <span style="display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 12px; border-radius: 999px; background: #1e222b; border: 1px solid #353c4a; font-weight: 600">
+              <span aria-hidden="true" style="width: 12px; height: 12px; border-radius: 3px; background: {{selectedColor}}"></span>{{selectedName}}
+            </span>
+            <a href="Setup.dc.html" style="margin-left: auto; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px; border-radius: 10px; background: #ffd23f; color: #171726; font-weight: 700; text-decoration: none">
+              Tiếp tục thiết lập
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+            </a>
+          </div>
+        </section>
+
+        <section aria-labelledby="tpl-title" style="display: flex; flex-direction: column; gap: 16px">
+          <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px">
+            <div style="flex: 1 1 360px">
+              <h2 id="tpl-title" style="margin: 0 0 4px; font-size: 20px">Mẫu edit</h2>
+              <p style="margin: 0; color: #9aa3b2">Mẫu quyết định font, màu, phụ đề, hiệu ứng, chuyển cảnh và âm thanh. AI dựng theo luật của mẫu.</p>
+            </div>
+            <label style="flex: 0 1 280px; display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #2d3340; background: #12151b">
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9aa3b2" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+              <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Tìm mẫu</span>
+              <input type="search" placeholder="Tìm mẫu…" style="flex: 1; min-width: 0; border: 0; background: transparent; outline-offset: 4px">
+            </label>
+          </div>
+
+          <div role="group" aria-label="Lọc mẫu" style="display: flex; flex-wrap: wrap; gap: 8px">
+            <sc-for list="{{filters}}" as="f" hint-placeholder-count="8">
+              <button type="button" aria-pressed="{{f.active}}" onClick="{{f.pick}}" style="box-sizing: border-box; {{f.style}}">{{f.label}}</button>
+            </sc-for>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px">
+            <sc-for list="{{templates}}" as="t" hint-placeholder-count="7">
+              <button type="button" aria-pressed="{{t.selected}}" onClick="{{t.pick}}" style="box-sizing: border-box; {{t.cardStyle}}">
+                <span style="box-sizing: border-box; {{t.thumbStyle}}">
+                  <svg aria-hidden="true" viewBox="0 0 100 100" style="position: absolute; left: 10%; bottom: 0; width: 80%; fill: rgba(255,255,255,0.07)"><circle cx="50" cy="40" r="17"></circle><path d="M14 100c0-22 16-38 36-38s36 16 36 38z"></path></svg>
+                  <span style="box-sizing: border-box; {{t.badgeStyle}}">{{t.badge}}</span>
+                  <sc-if value="{{t.selected}}" hint-placeholder-val="{{false}}">
+                    <span aria-hidden="true" style="position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #ffd23f; color: #171726">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                    </span>
+                  </sc-if>
+                  <span style="position: absolute; left: 12px; right: 12px; top: 34%; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center">
+                    <span style="box-sizing: border-box; {{t.kickerStyle}}">{{t.kicker}}</span>
+                    <span style="box-sizing: border-box; {{t.bigStyle}}">{{t.big}}</span>
+                  </span>
+                </span>
+                <span style="display: flex; flex-direction: column; gap: 6px; padding: 12px 12px 14px; text-align: left">
+                  <span style="font-weight: 700; font-size: 14px">{{t.name}}</span>
+                  <span style="color: #9aa3b2; font-size: 12.5px; line-height: 1.45">{{t.desc}}</span>
+                  <span style="color: #9aa3b2; font-size: 12px">{{t.tagLine}}</span>
+                </span>
+              </button>
+            </sc-for>
+            <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; min-height: 420px; padding: 20px; border: 1.5px dashed #353c4a; border-radius: 14px; text-align: center; color: #9aa3b2">
+              <span style="display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: #1e222b; color: #ffd23f">
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"></path></svg>
+              </span>
+              <strong style="color: #e6e8ee">Tạo mẫu từ video tham khảo</strong>
+              <span style="font-size: 12.5px; line-height: 1.5">Dán link Reel hoặc TikTok bạn thích. AI đo nhịp cắt, kiểu chữ, màu rồi tạo một mẫu mới.</span>
+              <span style="font-size: 11px; padding: 3px 8px; border-radius: 999px; background: #1e222b; color: #9aa3b2">Sắp có</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { filter: 'all', selected: 'th-vang' };
+  }
+  renderVals() {
+    const filters = [
+      { id: 'all', label: 'Tất cả' },
+      { id: 'installed', label: 'Đã cài' },
+      { id: 'Talking head', label: 'Talking head' },
+      { id: 'Kiến thức', label: 'Kiến thức' },
+      { id: 'Bán hàng', label: 'Bán hàng' },
+      { id: 'Bất động sản', label: 'Bất động sản' },
+      { id: 'Đời sống', label: 'Đời sống' },
+      { id: 'Thương hiệu cá nhân', label: 'Thương hiệu cá nhân' }
+    ];
+    const all = [
+      { id: 'th-vang', name: 'Talking head vàng', desc: 'Chữ Anton vàng căn giữa theo nhịp nói, cảnh minh hoạ nền đen, zoom nhấn ý, SFX nhẹ.', tags: ['Talking head', 'Thương hiệu cá nhân'], badge: 'Đã cài', installed: true, font: 'Anton, sans-serif', weight: 400, color: '#ffd23f', marker: null, upper: true, size: 30, kicker: 'BƯỚC 1', big: 'GIÁ TRỊ CỐT LÕI', tone: '#2d2a26', swatch: '#ffd23f' },
+      { id: 'kienthuc', name: 'Kiến thức nhanh', desc: 'Một ý trong 30–60 giây, chữ to dễ đọc, thanh vàng tô từ khoá, mỗi câu một nhịp.', tags: ['Kiến thức', 'Talking head'], badge: 'Đã cài', installed: true, font: '"Be Vietnam Pro", sans-serif', weight: 800, color: '#171726', marker: '#FACC15', upper: false, size: 24, kicker: 'MẸO NHỎ', big: 'Bạn có biết?', tone: '#1b2433', swatch: '#FACC15' },
+      { id: 'congnghe', name: 'Công nghệ & AI', desc: 'Tông tối, chữ neon, nhịp cắt nhanh cho review công cụ AI và demo phần mềm.', tags: ['Kiến thức', 'Talking head'], badge: 'Đã cài', installed: true, font: '"Saira Condensed", sans-serif', weight: 700, color: '#22D3EE', marker: null, upper: true, size: 32, kicker: 'REVIEW', big: 'TOOL AI MỚI', tone: '#0b0d1a', swatch: '#22D3EE' },
+      { id: 'sanpham', name: 'Giới thiệu sản phẩm', desc: 'Chốt đơn trong 30–45 giây: lợi ích, giá, nơi mua. Nhãn dán màu nổi, tiếng pop.', tags: ['Bán hàng'], badge: 'Miễn phí', installed: false, font: 'Montserrat, sans-serif', weight: 800, color: '#ffffff', marker: '#C2410C', upper: true, size: 22, kicker: 'ƯU ĐÃI', big: 'CHỐT ĐƠN NGAY', tone: '#3a2a1f', swatch: '#EA580C' },
+      { id: 'bds', name: 'Chữ động bất động sản', desc: 'Thông tin căn nhà hiện thành danh sách xếp tầng, chữ vàng nhạt, nhịp chậm, nhạc êm.', tags: ['Bất động sản'], badge: 'PRO', installed: false, font: '"Playfair Display", serif', weight: 700, color: '#F5E6B8', marker: null, upper: false, size: 24, kicker: 'CĂN HỘ', big: 'Căn góc hai mặt thoáng', tone: '#23302a', swatch: '#F5E6B8' },
+      { id: 'tamsu', name: 'Tâm sự nhẹ', desc: 'Phụ đề từng câu mờ dần, câu đắt giá tô tím nhạt, không tiếng động.', tags: ['Đời sống', 'Thương hiệu cá nhân'], badge: 'Miễn phí', installed: false, font: '"Be Vietnam Pro", sans-serif', weight: 700, color: '#E9D5FF', marker: null, upper: false, size: 21, kicker: 'CÂU CHUYỆN', big: 'Điều mình ước biết sớm hơn', tone: '#24202e', swatch: '#C4B5FD' },
+      { id: 'vlog', name: 'Vlog đời thường', desc: 'Chữ nghiêng cho giờ và địa điểm, nhạc nhẹ, ít hiệu ứng, giữ chất đời thường.', tags: ['Đời sống'], badge: 'Miễn phí', installed: false, font: 'Montserrat, sans-serif', weight: 500, italic: true, color: '#FEF3C7', marker: null, upper: false, size: 22, kicker: 'MỘT NGÀY', big: '7:00 sáng · Đà Lạt', tone: '#2b2a1e', swatch: '#FDE68A' }
+    ];
+    const f = this.state.filter;
+    const shown = all.filter((t) => f === 'all' ? true : f === 'installed' ? t.installed : t.tags.includes(f));
+    const badgeTone = { 'Đã cài': 'background:#1f3a2c;color:#8ee6b8', 'Miễn phí': 'background:#ffd23f;color:#171726', 'PRO': 'background:#2a2140;color:#d6b8ff' };
+    const sel = all.find((t) => t.id === this.state.selected) || all[0];
+    return {
+      selectedName: sel.name,
+      selectedColor: sel.swatch,
+      filters: filters.map((x) => ({
+        ...x,
+        active: x.id === f,
+        pick: () => this.setState({ filter: x.id }),
+        style: x.id === f
+          ? 'min-height:36px;padding:0 14px;border-radius:999px;border:1px solid #ffd23f;background:#ffd23f;color:#171726;font-weight:600;cursor:pointer'
+          : 'min-height:36px;padding:0 14px;border-radius:999px;border:1px solid #2d3340;background:#1b1f27;color:#c9ced9;cursor:pointer'
+      })),
+      templates: shown.map((t) => {
+        const selected = t.id === this.state.selected;
+        return {
+          ...t,
+          selected,
+          tagLine: t.tags.join(' · '),
+          pick: () => this.setState({ selected: t.id }),
+          cardStyle: 'display:flex;flex-direction:column;padding:0;border-radius:14px;overflow:hidden;cursor:pointer;background:#171a21;text-align:left;border:' + (selected ? '2px solid #ffd23f' : '1px solid #272c37'),
+          thumbStyle: 'position:relative;display:block;height:300px;background:' + t.tone + ';overflow:hidden',
+          badgeStyle: 'position:absolute;top:10px;left:10px;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;' + badgeTone[t.badge],
+          kickerStyle: 'padding:2px 8px;border-radius:4px;background:rgba(0,0,0,0.55);color:#fff;font:600 10px/1.6 Inter,sans-serif;letter-spacing:0.08em',
+          bigStyle: 'font-family:' + t.font + ';font-weight:' + t.weight + ';font-style:' + (t.italic ? 'italic' : 'normal') + ';font-size:' + t.size + 'px;line-height:1.1;color:' + t.color + ';' + (t.upper ? 'text-transform:uppercase;' : '') + (t.marker ? 'background:' + t.marker + ';padding:4px 10px;border-radius:4px;' : 'text-shadow:0 2px 8px rgba(0,0,0,0.6);')
+        };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

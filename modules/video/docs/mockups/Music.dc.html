@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Thư viện – nhạc nền</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115}
+a{color:#8aa3ff}a:hover{color:#b3c3ff}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid #6d8dff;outline-offset:2px}
+input::placeholder{color:#8b93a5}
+</style>
+</helmet>
+<div style="min-height: 1040px; background: #0f1115; color: #e6e8ee; font-family: Inter, system-ui, sans-serif; font-size: 13.5px; display: flex; flex-direction: column">
+
+  <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid #272c37; background: #12151a">
+    <a href="Editor.dc.html" style="display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px; border-radius: 8px; color: #c9ced9; text-decoration: none">
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+      Về editor
+    </a>
+    <strong style="font-size: 15px">Thư viện</strong>
+    <nav aria-label="Loại tài nguyên" style="display: flex; flex-wrap: wrap; gap: 4px; margin-left: 12px">
+      <a href="Library.dc.html" style="display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border-radius: 8px; color: #c9ced9; text-decoration: none">Cảnh trám &amp; ảnh</a>
+      <a href="Music.dc.html" aria-current="page" style="display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border-radius: 8px; background: #1e222b; color: #ffd23f; font-weight: 600; text-decoration: none">Nhạc</a>
+      <button type="button" style="min-height: 36px; padding: 0 14px; border-radius: 8px; border: 0; background: transparent; color: #c9ced9; cursor: pointer">Tiếng động</button>
+      <button type="button" style="min-height: 36px; padding: 0 14px; border-radius: 8px; border: 0; background: transparent; color: #c9ced9; cursor: pointer">Đồ hoạ &amp; logo</button>
+      <a href="Main.dc.html" style="display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border-radius: 8px; color: #c9ced9; text-decoration: none">Mẫu</a>
+    </nav>
+  </header>
+
+  <div style="flex: 1; padding: 20px 20px 40px">
+    <div style="max-width: 1360px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+
+      <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px">
+          <div style="flex: 1 1 300px">
+            <h1 style="margin: 0 0 4px; font-size: 20px">Nhạc nền</h1>
+            <p style="margin: 0; color: #9aa3b2">Nhạc của bạn và nhạc CC0 có sẵn. Bài nào cũng đã được AI nghe để gắn mood và dò nhịp mạnh.</p>
+          </div>
+          <label style="flex: 0 1 300px; display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #2d3340; background: #12151b">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9aa3b2" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+            <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Tìm nhạc</span>
+            <input type="search" placeholder="Ví dụ: lofi nhẹ, không lời, hợp kiến thức" style="flex: 1; min-width: 0; border: 0; background: transparent">
+          </label>
+        </div>
+
+        <div role="group" aria-label="Lọc theo mood" style="display: flex; flex-wrap: wrap; gap: 8px">
+          <sc-for list="{{moods}}" as="m" hint-placeholder-count="7">
+            <button type="button" aria-pressed="{{m.active}}" onClick="{{m.pick}}" style="min-height: 36px; padding: 0 14px; border-radius: 999px; cursor: pointer; {{m.style}}">{{m.label}}</button>
+          </sc-for>
+        </div>
+
+        <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px">
+          <sc-for list="{{tracks}}" as="t" hint-placeholder-count="8">
+            <li style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 10px 12px; border-radius: 12px; background: #171a21; {{t.border}}">
+              <button type="button" aria-label="{{t.playLabel}}" style="flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 0; background: #1e222b; color: #ffd23f; cursor: pointer">
+                <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"></path></svg>
+              </button>
+              <div style="flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+                <span style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px"><strong>{{t.title}}</strong><span style="color: #9aa3b2; font-size: 12px">{{t.author}}</span></span>
+                <span style="color: #9aa3b2; font-size: 12.5px; line-height: 1.4">{{t.desc}}</span>
+              </div>
+              <span style="flex: none; padding: 3px 9px; border-radius: 999px; background: #1e222b; color: #e6e8ee; font-size: 12px">{{t.mood}}</span>
+              <span aria-hidden="true" style="flex: 0 1 180px; position: relative; height: 26px; border-radius: 6px; background: #12151b; overflow: hidden">
+                <sc-for list="{{t.beats}}" as="b" hint-placeholder-count="12">
+                  <span style="position: absolute; bottom: 4px; width: 2px; border-radius: 1px; background: #f0b24a; {{b.style}}"></span>
+                </sc-for>
+              </span>
+              <span style="flex: none; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; {{t.srcStyle}}">{{t.src}}</span>
+              <button type="button" onClick="{{t.pick}}" style="flex: none; min-height: 36px; min-width: 96px; padding: 0 12px; border-radius: 8px; cursor: pointer; font-weight: 600; {{t.btnStyle}}">{{t.btnLabel}}</button>
+            </li>
+          </sc-for>
+        </ul>
+        <p style="margin: 0; color: #9aa3b2; font-size: 12.5px">Vạch cam là nhịp mạnh máy dò sẵn. Khi bật “Hít theo nhịp”, điểm cắt và chữ được kéo vào vạch gần nhất trong 0,5 giây.</p>
+      </main>
+
+      <aside aria-label="Cách trộn âm" style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+        <section aria-labelledby="mix-title" style="display: flex; flex-direction: column; gap: 14px; padding: 16px; border-radius: 14px; background: #171a21; border: 1px solid #272c37">
+          <h2 id="mix-title" style="margin: 0; font-size: 15px">Cách trộn cho video này</h2>
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="display: flex; justify-content: space-between"><span>Nhạc nhỏ hơn giọng</span><strong>{{duckLabel}}</strong></span>
+            <input type="range" min="6" max="24" step="1" value="{{duck}}" onChange="{{onDuck}}" style="accent-color: #ffd23f">
+          </label>
+          <sc-for list="{{toggles}}" as="g" hint-placeholder-count="3">
+            <div style="display: flex; align-items: center; gap: 12px">
+              <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+                <span id="{{g.id}}">{{g.label}}</span>
+                <span style="color: #9aa3b2; font-size: 12px; line-height: 1.4">{{g.hint}}</span>
+              </span>
+              <button type="button" role="switch" aria-checked="{{g.on}}" aria-labelledby="{{g.id}}" onClick="{{g.flip}}" style="flex: none; position: relative; width: 44px; height: 26px; border-radius: 999px; border: 0; cursor: pointer; background: {{g.track}}">
+                <span aria-hidden="true" style="position: absolute; top: 3px; left: {{g.knob}}; width: 20px; height: 20px; border-radius: 50%; background: #0f1115"></span>
+              </button>
+            </div>
+          </sc-for>
+          <div style="display: flex; justify-content: space-between; gap: 8px; padding: 10px; border-radius: 10px; background: #12151b">
+            <span style="color: #9aa3b2">Âm lượng cả video</span>
+            <strong>−14 LUFS · chuẩn mạng xã hội</strong>
+          </div>
+        </section>
+
+        <section aria-labelledby="sfx-title" style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 14px; background: #171a21; border: 1px solid #272c37">
+          <h2 id="sfx-title" style="margin: 0; font-size: 15px">Tiếng động theo mẫu</h2>
+          <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px">
+            <li style="display: flex; justify-content: space-between; gap: 8px"><span>Chữ trượt hoặc bật vào</span><span style="color: #9aa3b2">pop nhẹ</span></li>
+            <li style="display: flex; justify-content: space-between; gap: 8px"><span>Hiệu ứng gõ chữ</span><span style="color: #9aa3b2">tiếng gõ phím</span></li>
+            <li style="display: flex; justify-content: space-between; gap: 8px"><span>Vào và ra cảnh trám</span><span style="color: #9aa3b2">whoosh mềm</span></li>
+            <li style="display: flex; justify-content: space-between; gap: 8px"><span>Cảnh minh hoạ hiện từng bước</span><span style="color: #9aa3b2">click nhỏ</span></li>
+          </ul>
+          <p style="margin: 0; color: #9aa3b2; font-size: 12.5px; line-height: 1.5">Chỉ phát tiếng khi có chuyển động thật, không dồn quá dày. Nguồn: gói Kenney CC0 có sẵn và file bạn thêm.</p>
+        </section>
+
+        <section aria-labelledby="add-title" style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 14px; border: 1.5px dashed #353c4a">
+          <h2 id="add-title" style="margin: 0; font-size: 15px">Thêm nhạc của bạn</h2>
+          <p style="margin: 0; color: #9aa3b2; line-height: 1.5">Thả file MP3, WAV vào đây. AI nghe để gắn mood, thể loại, có lời hay không, rồi máy dò nhịp. Chỉ thêm bài bạn có quyền dùng.</p>
+          <button type="button" style="min-height: 40px; border-radius: 8px; border: 1px solid #2d3340; background: #1b1f27; cursor: pointer">Chọn file nhạc</button>
+        </section>
+      </aside>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { mood: 'all', using: 'chill-lofi', duck: 12, auto: true, snap: true, end: true };
+  }
+  renderVals() {
+    const s = this.state;
+    const all = [
+      { id: 'mine-1', title: '[Bài nhạc bạn có bản quyền].mp3', author: 'Kho của tôi', mood: 'Tập trung', desc: 'AI nghe: không lời, piano và trống nhẹ, hợp lời nói dài.', src: 'Kho của tôi', mine: true, gap: 6.2 },
+      { id: 'chill-lofi', title: 'Chill Lofi', author: 'omfgdude', mood: 'Tập trung', desc: 'Lofi piano và trống nhẹ. Hợp kiến thức, hướng dẫn.', src: 'CC0 có sẵn', gap: 6.8 },
+      { id: 'mocha-frapp', title: 'Mocha Frapp', author: 'Alex McCulloch', mood: 'Tập trung', desc: 'Jazz chill đều nhịp, ít gây chú ý. Hợp lời nói dài.', src: 'CC0 có sẵn', gap: 7.6 },
+      { id: 'midnight-cruiser', title: 'Midnight Cruiser', author: 'Zane Little Music', mood: 'Tập trung', desc: 'Jazz funk fusion mượt, nhịp đều. Hợp tài chính, công nghệ.', src: 'CC0 có sẵn', gap: 6.4 },
+      { id: 'sunflower-valley', title: 'Sunflower Valley', author: 'isaiah658', mood: 'Tươi sáng', desc: 'Giai điệu tươi vui, nhẹ. Hợp vlog, du lịch.', src: 'CC0 có sẵn', gap: 5.8 },
+      { id: 'shortcuts', title: 'Shortcuts', author: 'Zane Little Music', mood: 'Năng lượng', desc: 'Điện tử breakbeat nhanh, dồn dập. Hợp bán hàng, công nghệ.', src: 'CC0 có sẵn', gap: 4.4 },
+      { id: 'energetic-electro', title: 'Energetic Electro Tune', author: 'TinyWorlds', mood: 'Hồi hộp', desc: 'Điện tử căng, có kịch tính. Hợp tiết lộ kết quả.', src: 'CC0 có sẵn', gap: 5.2 },
+      { id: 'end-of-hope', title: 'At the End of Hope', author: 'Emma_MA', mood: 'Suy tư', desc: 'Piano điện buồn, chậm. Hợp tâm sự, bài học.', src: 'CC0 có sẵn', gap: 9.5 },
+      { id: 'etirwer', title: 'Etirwer', author: 'Kistol', mood: 'Bình yên', desc: 'Guitar nylon mộc, lặp liền mạch. Rất êm.', src: 'CC0 có sẵn', gap: 8.8 }
+    ];
+    const moods = ['all', 'Năng lượng', 'Tươi sáng', 'Tập trung', 'Hồi hộp', 'Suy tư', 'Bình yên'];
+    const shown = all.filter((t) => s.mood === 'all' || t.mood === s.mood);
+    const beatsFor = (gap) => {
+      const out = [];
+      let i = 0;
+      for (let x = 3; x < 100; x += gap) {
+        out.push({ style: 'left:' + x.toFixed(1) + '%;height:' + (i % 4 === 0 ? 16 : 9) + 'px' });
+        i++;
+      }
+      return out;
+    };
+    const tg = (id, key, label, hint) => ({
+      id, label, hint, on: s[key],
+      flip: () => this.setState({ [key]: !s[key] }),
+      track: s[key] ? '#ffd23f' : '#353c4a',
+      knob: s[key] ? '21px' : '3px'
+    });
+    return {
+      moods: moods.map((m) => ({
+        label: m === 'all' ? 'Tất cả' : m,
+        active: m === s.mood,
+        pick: () => this.setState({ mood: m }),
+        style: m === s.mood ? 'border:1px solid #ffd23f;background:#ffd23f;color:#171726;font-weight:600' : 'border:1px solid #2d3340;background:#1b1f27;color:#c9ced9'
+      })),
+      tracks: shown.map((t) => {
+        const using = t.id === s.using;
+        return {
+          ...t,
+          beats: beatsFor(t.gap),
+          playLabel: 'Nghe thử ' + t.title,
+          pick: () => this.setState({ using: t.id }),
+          border: using ? 'border:1.5px solid #ffd23f' : 'border:1px solid #272c37',
+          srcStyle: t.mine ? 'background:#ffd23f;color:#171726' : 'background:#1f3a2c;color:#8ee6b8',
+          btnLabel: using ? 'Đang dùng' : 'Dùng',
+          btnStyle: using ? 'border:0;background:#ffd23f;color:#171726' : 'border:1px solid #2d3340;background:#1b1f27;color:#e6e8ee'
+        };
+      }),
+      duck: s.duck,
+      duckLabel: s.duck + ' dB',
+      onDuck: (e) => this.setState({ duck: Number(e.target.value) }),
+      toggles: [
+        tg('tg-auto', 'auto', 'Tự giảm nhạc khi đang nói', 'Nhạc hạ xuống khi có giọng, lên lại ở khoảng nghỉ'),
+        tg('tg-snap', 'snap', 'Hít theo nhịp', 'Điểm cắt và chữ rơi đúng nhịp mạnh của bài'),
+        tg('tg-end', 'end', 'Kết bài trùng kết video', 'Canh để nốt cuối của bài rơi đúng lúc video kết thúc')
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

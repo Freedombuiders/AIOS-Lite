@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Editor – chỉnh tay</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Anton&amp;family=Montserrat:ital,wght@0,800;1,500;1,600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115}
+a{color:#8aa3ff}a:hover{color:#b3c3ff}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid #6d8dff;outline-offset:2px}
+textarea::placeholder,input::placeholder{color:#8b93a5}
+</style>
+</helmet>
+<div style="min-height: 1100px; background: #0f1115; color: #e6e8ee; font-family: Inter, system-ui, sans-serif; font-size: 13px; display: flex; flex-direction: column">
+
+  <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid #272c37; background: #12151a">
+    <a href="Main.dc.html" aria-label="Về danh sách dự án" style="display: grid; place-items: center; width: 36px; height: 36px; border-radius: 8px; color: #c9ced9">
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+    </a>
+    <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+      <strong style="font-size: 15px">10-5-tiktok-2</strong>
+      <span style="color: #9aa3b2; font-size: 12px">Đã lưu · 0:24,3 sau khi cắt · 6 nhịp chữ · 1 cảnh minh hoạ · 2 cảnh trám</span>
+    </div>
+    <div style="margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+      <a href="Library.dc.html" style="display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 8px; border: 1.5px solid #ffd23f; color: #ffd23f; text-decoration: none; font-weight: 600">
+        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 19.5V4.5A1.5 1.5 0 0 1 5.5 3H20v18H5.5A1.5 1.5 0 0 1 4 19.5z"></path><path d="M4 19.5A1.5 1.5 0 0 1 5.5 18H20"></path></svg>
+        Thư viện
+      </a>
+      <button type="button" style="display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid #2d3340; background: #1b1f27; cursor: pointer">
+        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"></path></svg>
+        Nhờ AI sửa
+      </button>
+      <button type="button" aria-label="Hoàn tác" style="display: grid; place-items: center; width: 36px; height: 36px; border-radius: 8px; border: 0; background: transparent; color: #c9ced9; cursor: pointer">
+        <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"></path><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"></path></svg>
+      </button>
+      <button type="button" aria-label="Làm lại" style="display: grid; place-items: center; width: 36px; height: 36px; border-radius: 8px; border: 0; background: transparent; color: #697386; cursor: pointer">
+        <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"></path><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"></path></svg>
+      </button>
+      <a href="QA.dc.html" style="display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border-radius: 8px; border: 1px solid #2d3340; background: #1b1f27; color: #e6e8ee; text-decoration: none">Dựng nháp</a>
+      <button type="button" style="display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 16px; border-radius: 8px; border: 0; background: #ffd23f; color: #171726; font-weight: 700; cursor: pointer">
+        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>
+        Xuất video
+      </button>
+    </div>
+  </header>
+
+  <div style="display: flex; flex-wrap: wrap; flex: 1; min-height: 0">
+
+    <nav aria-label="Công cụ" style="flex: none; width: 72px; display: flex; flex-direction: column; gap: 4px; padding: 10px 6px; border-right: 1px solid #272c37; background: #12151a">
+      <button type="button" aria-current="true" style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 56px; justify-content: center; border-radius: 10px; border: 0; background: #1e222b; color: #ffd23f; font-size: 10.5px; font-weight: 600; cursor: pointer">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7V4h16v3M9 20h6M12 4v16"></path></svg>Chữ
+      </button>
+      <button type="button" style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 56px; justify-content: center; border-radius: 10px; border: 0; background: transparent; color: #c9ced9; font-size: 10.5px; cursor: pointer">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M7 15h4M15 15h2M7 11h2M13 11h4"></path></svg>Phụ đề
+      </button>
+      <button type="button" style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 56px; justify-content: center; border-radius: 10px; border: 0; background: transparent; color: #c9ced9; font-size: 10.5px; cursor: pointer">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M7 8h10M7 12h6M7 16h8"></path></svg>Minh hoạ
+      </button>
+      <a href="Library.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 56px; justify-content: center; border-radius: 10px; color: #c9ced9; font-size: 10.5px; text-decoration: none">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-5-5L5 21"></path></svg>Cảnh trám
+      </a>
+      <button type="button" style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 56px; justify-content: center; border-radius: 10px; border: 0; background: transparent; color: #c9ced9; font-size: 10.5px; cursor: pointer">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><circle cx="7.5" cy="7.5" r="4.5"></circle><rect x="13" y="13" width="8" height="8" rx="1"></rect></svg>Đồ hoạ
+      </button>
+      <a href="Music.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 56px; justify-content: center; border-radius: 10px; color: #c9ced9; font-size: 10.5px; text-decoration: none">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>Âm thanh
+      </a>
+      <button type="button" style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 56px; justify-content: center; border-radius: 10px; border: 0; background: transparent; color: #c9ced9; font-size: 10.5px; cursor: pointer">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3M11 8v6M8 11h6"></path></svg>Zoom
+      </button>
+      <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 56px; justify-content: center; border-radius: 10px; color: #c9ced9; font-size: 10.5px; text-decoration: none">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18M9 21V9"></path></svg>Mẫu
+      </a>
+    </nav>
+
+    <section aria-labelledby="insp-title" style="flex: 1 1 300px; max-width: 400px; min-width: 0; display: flex; flex-direction: column; gap: 14px; padding: 16px; border-right: 1px solid #272c37; background: #141820">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <h2 id="insp-title" style="margin: 0; font-size: 12px; letter-spacing: 0.1em; color: #ffd23f">CHỮ</h2>
+        <span style="color: #9aa3b2">Nhịp 3/6 · 00:09,7 · 2,4 giây</span>
+      </div>
+
+      <div style="display: flex; align-items: flex-start; gap: 8px; padding: 10px; border-radius: 10px; background: rgba(109,141,255,0.12); border: 1px solid rgba(109,141,255,0.35)">
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8aa3ff" stroke-width="2" stroke-linecap="round" style="flex: none; margin-top: 1px"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="color: #d0dbff; line-height: 1.45">Bạn đã sửa tay phần này. Khi nhờ AI sửa lại, AI không ghi đè.</span>
+          <button type="button" style="align-self: flex-start; padding: 0; min-height: 24px; border: 0; background: transparent; color: #8aa3ff; text-decoration: underline; cursor: pointer">Trả về như AI dựng</button>
+        </div>
+      </div>
+
+      <label style="display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 11px; letter-spacing: 0.06em; color: #9aa3b2; font-weight: 600">NHÃN NHỎ</span>
+        <input value="{{kicker}}" onChange="{{onKicker}}" style="min-height: 38px; padding: 0 10px; border-radius: 8px; border: 1px solid #2d3340; background: #0f1115">
+      </label>
+
+      <label style="display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 11px; letter-spacing: 0.06em; color: #9aa3b2; font-weight: 600">TIÊU ĐỀ · ANTON, VÀNG</span>
+        <textarea rows="2" value="{{title}}" onChange="{{onTitle}}" style="resize: vertical; padding: 8px 10px; border-radius: 8px; border: 1.5px solid #ffd23f; background: #0f1115; line-height: 1.5"></textarea>
+        <span style="color: #9aa3b2; font-size: 12px; line-height: 1.45">Bọc *từ* để tô nổi bật · dùng | để xuống dòng · 2–6 từ, tối đa 2 dòng</span>
+        <span style="font-size: 12px; font-weight: 600; {{countStyle}}">{{countLabel}}</span>
+      </label>
+
+      <label style="display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 11px; letter-spacing: 0.06em; color: #9aa3b2; font-weight: 600">CHỮ PHỤ · MONTSERRAT NGHIÊNG</span>
+        <input value="{{sub}}" onChange="{{onSub}}" style="min-height: 38px; padding: 0 10px; border-radius: 8px; border: 1px solid #2d3340; background: #0f1115">
+      </label>
+
+      <label style="display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 11px; letter-spacing: 0.06em; color: #9aa3b2; font-weight: 600">HIỆU ỨNG VÀO</span>
+        <select value="{{anim}}" onChange="{{onAnim}}" style="min-height: 38px; padding: 0 8px; border-radius: 8px; border: 1px solid #2d3340; background: #0f1115">
+          <option value="type">Gõ chữ</option>
+          <option value="slide-short">Trượt ngắn</option>
+          <option value="slide-up">Trượt lên</option>
+          <option value="pop">Bật lên</option>
+          <option value="fade">Hiện mờ</option>
+        </select>
+      </label>
+
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="snd" style="font-size: 11px; letter-spacing: 0.06em; color: #9aa3b2; font-weight: 600">ÂM THANH</label>
+        <div style="display: flex; gap: 8px">
+          <select id="snd" style="flex: 1; min-width: 0; min-height: 38px; padding: 0 8px; border-radius: 8px; border: 1px solid #2d3340; background: #0f1115">
+            <option>Tự động (pop / gõ phím)</option>
+            <option>Không có tiếng</option>
+            <option>Chọn trong thư viện…</option>
+          </select>
+          <button type="button" style="display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 0 12px; border-radius: 8px; border: 1px solid #2d3340; background: #1b1f27; cursor: pointer">
+            <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"></path></svg>Nghe thử
+          </button>
+        </div>
+      </div>
+
+      <label style="display: flex; flex-direction: column; gap: 6px">
+        <span style="display: flex; justify-content: space-between; font-size: 11px; letter-spacing: 0.06em; color: #9aa3b2; font-weight: 600"><span>CỠ CHỮ (KÉO GÓC TRÊN PREVIEW CŨNG ĐƯỢC)</span><span style="color: #e6e8ee">{{scaleLabel}}</span></span>
+        <input type="range" min="80" max="140" step="2" value="{{scale}}" onChange="{{onScale}}" style="accent-color: #ffd23f">
+      </label>
+    </section>
+
+    <main aria-label="Xem trước" style="flex: 999 1 420px; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px 16px">
+      <div style="position: relative; width: 100%; max-width: 330px; aspect-ratio: 9 / 16; border-radius: 14px; overflow: hidden; background: #2d2a26">
+        <div aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 0; height: 50%; background: #3a463d; display: grid; place-items: center">
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-5-5L5 21"></path></svg>
+        </div>
+        <span style="position: absolute; left: 8px; top: 8px; padding: 2px 8px; border-radius: 4px; background: rgba(0,0,0,0.6); color: #b5f0d3; font-size: 10.5px">Cảnh trám · canh-lam-viec.jpg</span>
+        <svg aria-hidden="true" viewBox="0 0 100 100" style="position: absolute; left: 14%; bottom: 0; width: 72%; fill: #4a423b"><circle cx="50" cy="40" r="17"></circle><path d="M14 100c0-22 16-38 36-38s36 16 36 38z"></path></svg>
+
+        <div style="position: absolute; left: 7%; right: 7%; top: 24%; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; transform-origin: center; transform: scale({{scaleFactor}})">
+          <span aria-hidden="true" style="position: absolute; inset: -10px -8px; border: 1.5px solid #6d8dff; border-radius: 4px"></span>
+          <span aria-hidden="true" style="position: absolute; left: -12px; top: -14px; width: 9px; height: 9px; background: #ffffff; border: 1.5px solid #6d8dff"></span>
+          <span aria-hidden="true" style="position: absolute; right: -12px; top: -14px; width: 9px; height: 9px; background: #ffffff; border: 1.5px solid #6d8dff"></span>
+          <span aria-hidden="true" style="position: absolute; left: -12px; bottom: -14px; width: 9px; height: 9px; background: #ffffff; border: 1.5px solid #6d8dff"></span>
+          <span aria-hidden="true" style="position: absolute; right: -12px; bottom: -14px; width: 9px; height: 9px; background: #ffffff; border: 1.5px solid #6d8dff"></span>
+          <span aria-hidden="true" style="position: absolute; left: -9px; top: -36px; padding: 2px 8px; border-radius: 4px; background: #6d8dff; color: #0b1020; font-size: 10.5px; font-weight: 600; white-space: nowrap">Chữ · {{animLabel}}</span>
+          <span style="padding: 2px 8px; border-radius: 4px; background: #ffd23f; color: #171726; font: 700 10px/1.6 Inter, sans-serif; letter-spacing: 0.08em">{{kicker}}</span>
+          <span style="display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: Anton, sans-serif; font-size: 34px; line-height: 1.05; text-transform: uppercase; color: #ffd23f; text-shadow: 0 2px 10px rgba(0,0,0,0.55)">
+            <sc-for list="{{titleLines}}" as="ln" hint-placeholder-count="2">
+              <span style="display: block">
+                <sc-for list="{{ln.segs}}" as="sg" hint-placeholder-count="1"><span style="display: inline; {{sg.style}}">{{sg.text}}</span></sc-for>
+              </span>
+            </sc-for>
+          </span>
+          <span style="font-family: Montserrat, sans-serif; font-style: italic; font-weight: 600; font-size: 13px; color: #ffffff; text-shadow: 0 1px 6px rgba(0,0,0,0.7)">{{sub}}</span>
+        </div>
+
+        <div style="position: absolute; left: 8%; right: 8%; bottom: 9%; text-align: center; font-family: Montserrat, sans-serif; font-weight: 800; font-size: 17px; line-height: 1.2; color: #ffffff; text-shadow: 0 0 3px #000, 0 0 3px #000, 0 2px 6px #000">có gì trong đầu là <span style="color: #ffd23f">nói luôn</span></div>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px">
+        <button type="button" aria-label="Lùi 1 giây" style="min-height: 36px; padding: 0 10px; border-radius: 8px; border: 1px solid #2d3340; background: #1b1f27; cursor: pointer">−1s</button>
+        <button type="button" aria-label="Phát" style="display: grid; place-items: center; width: 64px; height: 36px; border-radius: 8px; border: 0; background: #ffd23f; color: #171726; cursor: pointer">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"></path></svg>
+        </button>
+        <button type="button" aria-label="Tới 1 giây" style="min-height: 36px; padding: 0 10px; border-radius: 8px; border: 1px solid #2d3340; background: #1b1f27; cursor: pointer">+1s</button>
+        <span style="font-variant-numeric: tabular-nums; color: #c9ced9; padding: 0 6px">00:09,7 <span style="color: #9aa3b2">/ 00:24,3</span></span>
+        <button type="button" style="display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px; border-radius: 8px; border: 1px solid #2d3340; background: #1b1f27; cursor: pointer">
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e0569a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"></path><circle cx="12" cy="10" r="2"></circle></svg>
+          Ghim góp ý
+        </button>
+      </div>
+
+      <div role="group" aria-label="Nhờ AI sửa" style="width: 100%; max-width: 460px; display: flex; gap: 8px; padding: 8px; border-radius: 12px; background: #171a21; border: 1px solid #272c37">
+        <label style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; padding-left: 6px">
+          <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffd23f" stroke-width="2" stroke-linejoin="round" style="flex: none"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"></path></svg>
+          <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Nhờ AI sửa phần đang chọn</span>
+          <input placeholder="Nhờ AI sửa chữ này: ngắn hơn, đổi thành câu hỏi…" style="flex: 1; min-width: 0; min-height: 36px; border: 0; background: transparent">
+        </label>
+        <button type="button" style="min-height: 36px; padding: 0 14px; border-radius: 8px; border: 0; background: #1e222b; color: #e6e8ee; font-weight: 600; cursor: pointer">Gửi</button>
+      </div>
+    </main>
+
+    <aside aria-labelledby="layers-title" style="flex: 1 1 220px; max-width: 280px; min-width: 0; display: flex; flex-direction: column; gap: 10px; padding: 16px; border-left: 1px solid #272c37">
+      <h2 id="layers-title" style="margin: 0; font-size: 12px; letter-spacing: 0.1em; color: #9aa3b2">LỚP TẠI 00:09,7</h2>
+      <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px">
+        <sc-for list="{{layers}}" as="ly" hint-placeholder-count="4">
+          <li>
+            <button type="button" style="width: 100%; display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 10px; border-radius: 8px; cursor: pointer; text-align: left; {{ly.style}}">
+              <span aria-hidden="true" style="flex: none; width: 10px; height: 10px; border-radius: 3px; background: {{ly.color}}"></span>
+              <span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ly.label}}</span>
+              <span style="color: #9aa3b2; font-size: 11.5px">{{ly.kind}}</span>
+            </button>
+          </li>
+        </sc-for>
+      </ul>
+      <p style="margin: 0; color: #9aa3b2; font-size: 12px; line-height: 1.5">Nhiều lớp chồng nhau thì chọn ở đây, hoặc giữ Alt khi bấm trên preview để đổi lớp.</p>
+    </aside>
+  </div>
+
+  <section aria-label="Dòng thời gian" style="border-top: 1px solid #272c37; background: #12151a">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 12px; border-bottom: 1px solid #1e222b">
+      <button type="button" style="display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 10px; border-radius: 8px; border: 0; background: transparent; cursor: pointer">
+        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"></path></svg>Tách
+      </button>
+      <button type="button" style="display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 10px; border-radius: 8px; border: 0; background: transparent; cursor: pointer">
+        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg>Xoá
+      </button>
+      <button type="button" style="display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 10px; border-radius: 8px; border: 0; background: transparent; cursor: pointer">
+        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="8" y="8" width="13" height="13" rx="2"></rect><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"></path></svg>Nhân bản
+      </button>
+      <span aria-hidden="true" style="width: 1px; height: 20px; background: #2d3340; margin: 0 6px"></span>
+      <button type="button" aria-pressed="true" style="display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 10px; border-radius: 8px; border: 1px solid #f0b24a; background: rgba(240,178,74,0.12); color: #ffe0a6; cursor: pointer">
+        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3v8a6 6 0 0 0 12 0V3M6 7h4M14 7h4"></path></svg>Hít theo nhịp nhạc
+      </button>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 8px">
+        <label style="display: flex; align-items: center; gap: 8px; color: #9aa3b2">Thu phóng <input type="range" min="1" max="10" value="3" style="width: 120px; accent-color: #ffd23f"></label>
+        <button type="button" style="min-height: 34px; padding: 0 10px; border-radius: 8px; border: 1px solid #2d3340; background: #1b1f27; cursor: pointer">Vừa khung</button>
+      </div>
+    </div>
+
+    <div style="overflow-x: auto">
+      <div style="position: relative; min-width: 980px; padding-bottom: 8px">
+        <div style="display: grid; grid-template-columns: 112px minmax(0, 1fr); height: 26px">
+          <span></span>
+          <div aria-hidden="true" style="position: relative">
+            <sc-for list="{{ruler}}" as="r" hint-placeholder-count="13">
+              <span style="position: absolute; top: 6px; font-size: 10.5px; color: #9aa3b2; font-variant-numeric: tabular-nums; {{r.style}}">{{r.label}}</span>
+            </sc-for>
+          </div>
+        </div>
+        <sc-for list="{{tracks}}" as="tr" hint-placeholder-count="10">
+          <div style="display: grid; grid-template-columns: 112px minmax(0, 1fr); border-top: 1px solid #1b1f27">
+            <span style="display: flex; align-items: center; padding: 0 12px; color: #c9ced9; font-size: 12px">{{tr.label}}</span>
+            <div style="position: relative; height: 34px">
+              <sc-for list="{{tr.ticks}}" as="k" hint-placeholder-count="0">
+                <span aria-hidden="true" style="position: absolute; bottom: 6px; width: 1px; height: 7px; background: #f0b24a; {{k.style}}"></span>
+              </sc-for>
+              <sc-for list="{{tr.blocks}}" as="b" hint-placeholder-count="3">
+                <button type="button" aria-label="{{b.aria}}" style="position: absolute; top: 4px; bottom: 4px; box-sizing: border-box; padding: 0 8px; border-radius: 6px; font-size: 11.5px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; {{b.style}}">{{b.label}}</button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+        <div aria-hidden="true" style="position: absolute; top: 0; bottom: 0; left: calc(112px + (100% - 112px) * 0.3992); width: 2px; background: #ffffff; pointer-events: none">
+          <span style="position: absolute; top: 2px; left: -5px; width: 12px; height: 12px; border-radius: 3px; background: #ffffff"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { kicker: 'BƯỚC 1', title: 'Có gì trong đầu|*nói luôn*', sub: 'không cần chuẩn bị content', anim: 'slide-up', scale: 112 };
+  }
+  renderVals() {
+    const s = this.state;
+    const T = 24.3;
+    const pc = (t) => (t / T * 100).toFixed(2) + '%';
+    const animNames = { 'type': 'Gõ chữ', 'slide-short': 'Trượt ngắn', 'slide-up': 'Trượt lên', 'pop': 'Bật lên', 'fade': 'Hiện mờ' };
+
+    const lines = s.title.split('|').slice(0, 3).map((line) => {
+      const parts = line.split('*');
+      const segs = parts.map((text, i) => ({
+        text,
+        style: i % 2 === 1 ? 'background:#ffd23f;color:#171726;padding:0 6px;border-radius:3px;text-shadow:none' : ''
+      })).filter((x) => x.text.length > 0);
+      return { segs };
+    });
+    const words = s.title.replace(/[*|]/g, ' ').split(/\s+/).filter(Boolean).length;
+    const nLines = s.title.split('|').length;
+    const ok = words >= 2 && words <= 6 && nLines <= 2;
+
+    const kinds = {
+      text: 'background:#ffd23f;color:#171726;border:1px solid #ffd23f;font-weight:600',
+      cap: 'background:#232833;color:#c9ced9;border:1px solid #2d3340',
+      illus: 'background:rgba(224,86,154,0.22);color:#ffc9e3;border:1px solid #e0569a',
+      broll: 'background:rgba(70,194,138,0.18);color:#b5f0d3;border:1px solid #46c28a',
+      gfx: 'background:rgba(199,155,255,0.18);color:#e6d4ff;border:1px solid #c79bff',
+      zoom: 'background:rgba(109,141,255,0.2);color:#d0dbff;border:1px solid #6d8dff',
+      music: 'background:rgba(240,178,74,0.14);color:#ffe0a6;border:1px solid #f0b24a',
+      video: 'background:#2a2620;color:#c9ced9;border:1px solid #3a352d',
+      sfx: 'background:#e6e8ee;border:0;padding:0;width:10px;top:12px;bottom:auto;height:10px;transform:translateX(-50%) rotate(45deg);border-radius:2px',
+      mark: 'background:#e0569a;color:#ffffff;border:0;padding:0;width:20px;height:20px;top:7px;bottom:auto;border-radius:50%;transform:translateX(-50%);text-align:center;font-weight:700'
+    };
+    const blk = (kind, s0, e0, label, opts) => {
+      const o = opts || {};
+      const width = kind === 'sfx' || kind === 'mark' ? '' : 'width:' + ((e0 - s0) / T * 100).toFixed(2) + '%;';
+      return {
+        label: kind === 'sfx' ? '' : label,
+        aria: o.aria || label,
+        style: 'left:' + pc(s0) + ';' + width + kinds[kind] + (o.sel ? ';outline:2px solid #ffffff;outline-offset:1px' : '')
+      };
+    };
+    const tracks = [
+      { label: 'Chữ', blocks: [
+        blk('text', 0, 1.6, 'Edit video bằng AI'), blk('text', 3.8, 6.4, 'Quay video'),
+        blk('text', 9.7, 12.1, 'Có gì trong đầu…', { sel: true }), blk('text', 12.3, 14.0, 'Gửi cho ChatGPT'),
+        blk('text', 17.9, 20.4, 'Đi làm việc khác'), blk('text', 21.0, 23.2, 'Kiểm tra lại')
+      ] },
+      { label: 'Phụ đề', blocks: [
+        [0, 1.3, 'Đây là cách mình'], [1.3, 2.6, 'edit video bằng AI'], [2.7, 3.8, 'trước mình hay mở'], [3.8, 5.1, 'Claude để edit'],
+        [5.2, 6.4, 'giờ mình build'], [6.5, 7.8, 'một phần mềm riêng'], [7.9, 9.6, 'chỉ cần quay video'], [9.7, 11.0, 'có gì trong đầu'],
+        [11.0, 12.1, 'là nói luôn'], [12.3, 14.0, 'gửi cho ChatGPT'], [14.2, 15.8, 'bảo edit video này'], [15.9, 17.6, 'rồi chờ vài phút'],
+        [17.9, 20.4, 'đi làm việc khác'], [21.0, 23.2, 'quay lại kiểm tra'], [23.3, 24.3, 'là xong']
+      ].map((c) => blk('cap', c[0], c[1], c[2], { aria: 'Phụ đề: ' + c[2] })) },
+      { label: 'Minh hoạ', blocks: [blk('illus', 14.2, 17.6, 'Bước 3 · Nhờ ChatGPT edit')] },
+      { label: 'Cảnh trám', blocks: [blk('broll', 9.7, 12.1, 'canh-lam-viec.jpg · của bạn'), blk('broll', 17.9, 20.4, 'Pexels · gõ laptop')] },
+      { label: 'Đồ hoạ', blocks: [blk('gfx', 22.6, 24.3, 'Logo cuối')] },
+      { label: 'Zoom', blocks: [blk('zoom', 6.6, 8.0, 'Zoom 7%'), blk('zoom', 20.6, 21.8, 'Zoom 6%')] },
+      { label: 'Nhạc', blocks: [blk('music', 0, 24.3, 'Chill Lofi · tự giảm khi đang nói')],
+        ticks: Array.from({ length: 34 }, (_, i) => ({ style: 'left:' + pc(0.35 + i * 0.7) })) },
+      { label: 'Tiếng động', blocks: [0, 3.8, 9.7, 12.3, 17.9, 21.0].map((t) => blk('sfx', t, t, '', { aria: 'Tiếng pop tại giây ' + t })) },
+      { label: 'Video', blocks: [[0, 3.8, 'nguồn 0:00'], [3.8, 9.7, 'nguồn 0:05,1'], [9.7, 14.2, 'nguồn 0:11,6'], [14.2, 17.9, 'nguồn 0:16,4'], [17.9, 24.3, 'nguồn 0:21,0']]
+        .map((v) => blk('video', v[0], v[1], v[2], { aria: 'Đoạn video ' + v[2] })) },
+      { label: 'Góp ý', blocks: [blk('mark', 21.0, 21.0, '1', { aria: 'Góp ý 1 tại 00:21,0' })] }
+    ].map((tr) => ({ ...tr, ticks: tr.ticks || [] }));
+
+    const ruler = [];
+    for (let t = 0; t <= 24; t += 2) {
+      ruler.push({ label: '0:' + String(t).padStart(2, '0'), style: 'left:' + pc(t) + ';transform:' + (t === 0 ? 'none' : 'translateX(-50%)') });
+    }
+
+    return {
+      kicker: s.kicker,
+      title: s.title,
+      sub: s.sub,
+      anim: s.anim,
+      animLabel: animNames[s.anim],
+      scale: s.scale,
+      scaleFactor: (s.scale / 112).toFixed(3),
+      scaleLabel: s.scale + '%',
+      titleLines: lines,
+      countLabel: words + ' từ · ' + nLines + ' dòng' + (ok ? ' · đạt' : ' · nên 2–6 từ, tối đa 2 dòng'),
+      countStyle: ok ? 'color:#46c28a' : 'color:#f0b24a',
+      onKicker: (e) => this.setState({ kicker: e.target.value }),
+      onTitle: (e) => this.setState({ title: e.target.value }),
+      onSub: (e) => this.setState({ sub: e.target.value }),
+      onAnim: (e) => this.setState({ anim: e.target.value }),
+      onScale: (e) => this.setState({ scale: Number(e.target.value) }),
+      layers: [
+        { label: 'Có gì trong đầu…', kind: 'Chữ', color: '#ffd23f', style: 'border:1.5px solid #6d8dff;background:#1e222b' },
+        { label: 'có gì trong đầu', kind: 'Phụ đề', color: '#8b93a5', style: 'border:1px solid transparent;background:transparent' },
+        { label: 'canh-lam-viec.jpg', kind: 'Cảnh trám', color: '#46c28a', style: 'border:1px solid transparent;background:transparent' },
+        { label: 'Đoạn nguồn 0:11,6', kind: 'Video', color: '#3a352d', style: 'border:1px solid transparent;background:transparent' }
+      ],
+      ruler,
+      tracks
+    };
+  }
+}
+</script>
+</body>
+</html>

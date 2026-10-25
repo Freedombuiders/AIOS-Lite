@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>AI đang dựng</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115}
+a{color:#8aa3ff}a:hover{color:#b3c3ff}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid #6d8dff;outline-offset:2px}
+</style>
+</helmet>
+<div style="min-height: 900px; background: #0f1115; color: #e6e8ee; font-family: Inter, system-ui, sans-serif; font-size: 14px; display: flex; flex-direction: column">
+
+  <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 12px 24px; border-bottom: 1px solid #272c37; background: #12151a">
+    <a href="Setup.dc.html" style="display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px; border-radius: 8px; color: #c9ced9; text-decoration: none">
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+      Thiết lập
+    </a>
+    <strong style="font-size: 15px">AI Video Studio</strong>
+    <span style="color: #9aa3b2">› Dựng nhanh › 10-5-tiktok-2</span>
+  </header>
+
+  <div style="flex: 1; padding: 32px 24px 48px">
+    <div style="max-width: 1100px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start">
+
+      <section aria-label="Bản xem trước" style="flex: 1 1 300px; display: flex; flex-direction: column; align-items: center; gap: 14px">
+        <div style="position: relative; width: 100%; max-width: 330px; aspect-ratio: 9 / 16; border-radius: 16px; background: #171a21; border: 1px solid #272c37; overflow: hidden">
+          <svg aria-hidden="true" viewBox="0 0 100 100" style="position: absolute; left: 10%; bottom: 0; width: 80%; fill: #1e222b"><circle cx="50" cy="40" r="17"></circle><path d="M14 100c0-22 16-38 36-38s36 16 36 38z"></path></svg>
+          <div style="position: absolute; left: 14%; right: 14%; top: 30%; display: flex; flex-direction: column; gap: 10px; align-items: center">
+            <span style="width: 40%; height: 12px; border-radius: 4px; background: #272c37"></span>
+            <span style="width: 90%; height: 30px; border-radius: 6px; background: #272c37"></span>
+            <span style="width: 70%; height: 30px; border-radius: 6px; background: #272c37"></span>
+          </div>
+          <div style="position: absolute; left: 18%; right: 18%; bottom: 16%; height: 16px; border-radius: 4px; background: #272c37"></div>
+        </div>
+        <p style="margin: 0; color: #9aa3b2; text-align: center">Bản xem trước hiện ở đây khi AI dựng xong.</p>
+      </section>
+
+      <main style="flex: 999 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+        <div>
+          <h1 style="margin: 0 0 6px; font-size: 26px">AI đang dựng video của bạn</h1>
+          <p style="margin: 0; color: #9aa3b2; line-height: 1.5">Thường mất vài phút. Bạn có thể rời trang, AI báo trong mục “Cần tôi” khi xong.</p>
+        </div>
+
+        <ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px">
+          <sc-for list="{{steps}}" as="s" hint-placeholder-count="7">
+            <li style="display: flex; gap: 14px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; {{s.rowStyle}}">
+              <span aria-hidden="true" style="flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; margin-top: 1px; box-sizing: border-box; {{s.iconStyle}}">
+                <sc-if value="{{s.done}}" hint-placeholder-val="{{true}}">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                </sc-if>
+                <sc-if value="{{s.running}}" hint-placeholder-val="{{false}}">
+                  <span style="width: 10px; height: 10px; border-radius: 50%; background: #ffd23f"></span>
+                </sc-if>
+              </span>
+              <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+                <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px">
+                  <strong style="{{s.titleStyle}}">{{s.title}}</strong>
+                  <span style="margin-left: auto; color: #9aa3b2; font-size: 12px">{{s.when}}</span>
+                </div>
+                <span style="color: #9aa3b2; line-height: 1.45">{{s.evidence}}</span>
+                <sc-if value="{{s.running}}" hint-placeholder-val="{{false}}">
+                  <span role="progressbar" aria-label="Tiến độ đạo diễn AI" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="display: block; height: 6px; margin-top: 6px; border-radius: 999px; background: #272c37; overflow: hidden">
+                    <span style="display: block; width: 60%; height: 100%; background: #ffd23f"></span>
+                  </span>
+                </sc-if>
+              </div>
+            </li>
+          </sc-for>
+        </ol>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding-top: 4px">
+          <button type="button" style="min-height: 44px; padding: 0 18px; border-radius: 10px; border: 1px solid #2d3340; background: #1b1f27; color: #f0647a; cursor: pointer">Dừng</button>
+          <span style="color: #9aa3b2">Dừng không mất phần đã làm. Bạn có thể vào chỉnh tay luôn.</span>
+          <a href="Editor.dc.html" style="margin-left: auto; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px; border-radius: 10px; background: #ffd23f; color: #171726; font-weight: 700; text-decoration: none">
+            Mở editor
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+          </a>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const steps = [
+      { title: 'Nhận video', evidence: '1080×1920 · 28,4 giây · đã chuẩn hoá màu và âm lượng', when: '09:41', state: 'done' },
+      { title: 'Chép lời tiếng Việt', evidence: 'Có mốc thời gian từng từ · giữ đúng tên riêng trong hồ sơ kênh', when: '09:42', state: 'done' },
+      { title: 'Cắt vấp và khoảng lặng', evidence: '28,4 giây → 24,3 giây · 2 câu nói lại, giữ lần nói tốt nhất', when: '09:42', state: 'done' },
+      { title: 'Đạo diễn AI dựng theo mẫu', evidence: 'Talking head vàng · đang đặt 6 nhịp chữ và 1 cảnh minh hoạ', when: 'đang chạy', state: 'running' },
+      { title: 'Cảnh trám', evidence: '2 tư liệu của bạn · tìm thêm trong Kho của tôi và Pexels nếu thiếu', when: '', state: 'pending' },
+      { title: 'Nhạc và tiếng động', evidence: 'AI chọn theo mẫu · tự giảm nhạc khi đang nói', when: '', state: 'pending' },
+      { title: 'Dựng bản xem trước', evidence: 'Chưa xuất video: bạn xem, chỉnh rồi mới bấm Xuất', when: '', state: 'pending' }
+    ];
+    return {
+      steps: steps.map((s) => ({
+        ...s,
+        done: s.state === 'done',
+        running: s.state === 'running',
+        rowStyle: s.state === 'running' ? 'background:#171a21;border:1px solid #353c4a' : 'background:transparent;border:1px solid transparent',
+        iconStyle: s.state === 'done' ? 'background:#46c28a;color:#0f1115' : s.state === 'running' ? 'border:2px solid #ffd23f' : 'border:2px solid #353c4a',
+        titleStyle: s.state === 'pending' ? 'color:#9aa3b2' : 'color:#e6e8ee'
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>
