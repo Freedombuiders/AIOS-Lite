@@ -196,6 +196,8 @@ quick?: {
 
 `POST /projects/:id/ai-edit` nhận `quick` (trừ `startedAt`), lưu vào dự án, tự duyệt plan cho riêng dự án này, rồi chạy chuỗi. 409 nếu chưa có video nguồn. Trả `{ project, job }`.
 
+Dự án Dựng nhanh được tạo bằng `POST /projects` với `flow: 'quick'` (`VideoProject.flow?: 'quick'`) và upload ngay khi vào màn Thiết lập, nên ingest → transcribe → analyze chạy trong lúc chủ kênh thiết lập. Với dự án `flow: 'quick'` chưa có `quick`, runner không tự chạy `direct` sau analyze (bước `direct` ở trạng thái `waiting`, "Chờ bạn bấm AI edit"). `POST /ai-edit`: analyze đã xong thì chạy `direct` (hoặc plan auto khi `mode: 'manual'`) ngay; chưa xong thì chuỗi tự đi tiếp theo `quick`.
+
 ### Asset Hub (`server/edit/assets/types.ts`)
 
 ```ts
