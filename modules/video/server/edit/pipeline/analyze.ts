@@ -1,5 +1,7 @@
 // Step "Soi chỗ lặng & vấp": silences, filler words, restarted phrases, scene changes,
 // keyframes for the agent to look at, and loudness. Everything is deterministic ffmpeg + text.
+// Filler sounds whisper left out are already in the transcript as synthetic words (transcribe.ts with
+// speech-probe.ts): they are listed as fillers here, so the cut list removes them like any other.
 import fs from 'node:fs';
 import path from 'node:path';
 import type { AnalysisResult, Transcript } from '../types.js';
@@ -29,9 +31,12 @@ export function isFillerWord(text: string): boolean {
   return n.length > 0 && FILLER_RE.test(n);
 }
 
+/** A word the cut list may drop as a hesitation: a filler word, or a voiced sound with no word (synthetic). */
+export const isFiller = (w: Pick<Transcript['words'][number], 'text' | 'synthetic'>): boolean => Boolean(w.synthetic) || isFillerWord(w.text);
+
 export function findFillers(words: Transcript['words']): AnalysisResult['fillers'] {
   const out: AnalysisResult['fillers'] = [];
-  for (const w of words) if (isFillerWord(w.text)) out.push({ wordIndex: w.i, text: w.text });
+  for (const w of words) if (isFiller(w)) out.push({ wordIndex: w.i, text: w.text });
   return out;
 }
 
@@ -40,7 +45,7 @@ export function findFillers(words: Transcript['words']): AnalysisResult['fillers
  * The earlier take (from its first word up to the word before the restart) is the retake.
  */
 export function findRetakes(words: Transcript['words']): AnalysisResult['retakes'] {
-  const keys = words.map((w) => (isFillerWord(w.text) ? '' : normWord(w.text)));
+  const keys = words.map((w) => (isFiller(w) ? '' : normWord(w.text)));
   const out: AnalysisResult['retakes'] = [];
   let i = 0;
   while (i < words.length) {

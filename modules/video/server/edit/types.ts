@@ -80,6 +80,9 @@ export interface TranscriptWord {
   start: number;
   end: number;
   prob?: number;
+  /** A voiced sound the transcriber gave no word for (speech-probe), inserted as a filler "ừm". Captions,
+   *  titles and any text built from the words skip it. */
+  synthetic?: true;
 }
 
 export interface Transcript {
@@ -545,6 +548,9 @@ export interface VideoProject {
   /** Chosen cover (1..3) after delivery. */
   chosenCover?: number;
   outputs: { final?: boolean; covers?: number };
+  /** quick = a Dựng nhanh project: uploaded while the owner sets it up, so the chain stops after analyze and
+   *  waits for POST /ai-edit instead of starting the director. */
+  flow?: 'quick';
   /** Dựng nhanh settings saved by POST /projects/:id/ai-edit. */
   quick?: QuickSettings;
   /** True while an agent turn is running. */

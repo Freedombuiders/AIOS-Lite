@@ -11,12 +11,18 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { jsonObjectsOf } from '../../kol-port.js';
+import { buildShortlist, renderShortlistForPrompt } from '../assets/shortlist.js';
+import type { AssetShortlist } from '../assets/types.js';
 import { VIDEO_STYLES } from '../catalog/styles.js';
 import { assetFilePath, findAsset } from '../library/store.js';
+import { extractFrame } from '../pipeline/analyze.js';
+import { ELEMENT_LISTS, elementLabel, findElement, planElements } from '../pipeline/plan.js';
+import { CUT_LEVEL_LABEL, NO_CUT_GAP_MS, QUICK_GAP_MS } from '../pipeline/runner.js';
 import { createVideoEditStore, type VideoEditStore } from '../store.js';
+import { templateForPrompt } from '../templates/registry.js';
 import {
   MARK_KINDS, ONBOARDING_QUESTIONS,
-  type AnalysisResult, type EditPlan, type Transcript, type VideoMark, type VideoMessage, type VideoProfile, type VideoProject, type VideoStyle,
+  type AnalysisResult, type EditPlan, type OverridesDoc, type QuickSettings, type Transcript, type VideoMark, type VideoMessage, type VideoProfile, type VideoProject, type VideoStyle,
 } from '../types.js';
 import { loadCurrentPlan, requestVideoPlanApproval } from './approval-handler.js';
 import { appendTasteRule } from '../routes-editor.js';
@@ -64,6 +70,12 @@ export interface DirectorDeps {
   submitPlan?: (projectId: string, plan: unknown, note?: string) => SubmitPlanResult;
   /** Vault-style lessons for the prompt (ctx.brain.search). */
   lessons?: (query: string) => string[];
+  /** Dựng nhanh: the chosen template for the prompt. Default: templates/registry.ts templateForPrompt. */
+  templatePrompt?: (templateId: string) => string;
+  /** Dựng nhanh: the Asset Hub shortlist. Default: assets/shortlist.ts buildShortlist. */
+  shortlist?: (projectId: string) => Promise<AssetShortlist>;
+  /** Dựng nhanh: a small still of the owner's footage (video at `at` seconds, or an image) for the agent to look at. */
+  frameOf?: (file: string, dest: string, at: number) => Promise<void>;
 }
 
 const DEFAULT_TIMEOUT_MS = 10 * 60_000;
@@ -73,6 +85,9 @@ const TASTE_MAX_CHARS = 4000;
 const TRANSCRIPT_MAX_CHARS = 30_000;
 const PLAN_MAX_CHARS = 24_000;
 const MAX_FRAMES = 4;
+/** Dựng nhanh: stills of the owner's footage attached on top of the analysis frames. */
+const MAX_ASSET_IMAGES = 6;
+const ASSET_STILL_WIDTH = 480;
 
 function turnTimeoutMs(): number {
   const raw = Number(process.env.VIDEO_EDIT_TURN_TIMEOUT_MS);
@@ -139,7 +154,10 @@ function contextBlock(ctx: DirectorContext): string {
     out.push(`Video gốc: ${fmt(project.source.durationSec)} (${project.source.durationSec.toFixed(1)}s), ${project.source.width}×${project.source.height}, ${project.source.fps} fps${project.source.hasAudio ? '' : ', KHÔNG có tiếng'}.`);
   }
   if (ctx.wordCount !== null) out.push(`Lời chép: ${ctx.wordCount} từ (chỉ số từ 0 đến ${Math.max(0, ctx.wordCount - 1)}).`);
-  if (style) {
+  if (project.quick) {
+    // Dựng nhanh: the template replaces the style; its rules come in the MẪU EDIT section.
+    out.push(`MẪU EDIT: chủ kênh đã chọn mẫu "${project.quick.templateId}". Luật, component và hiệu ứng của mẫu ở mục MẪU EDIT bên dưới; không đổi sang phong cách hay mẫu khác.`);
+  } else if (style) {
     out.push(`PHONG CÁCH: ${style.name} (${style.command}) · nhịp cắt ${style.cutPace} · tiếng động ${style.sfxDensity} · nhạc ${style.musicMoods.join(', ')} · caption ${style.captionStyle}\nGhi chú phong cách: ${style.promptNotes}`);
   } else {
     out.push('PHONG CÁCH: chưa chọn. Chọn 1 phong cách hợp nhất trong danh sách PHONG CÁCH CÓ SẴN bên dưới và nói lý do trong summary.');
@@ -169,7 +187,9 @@ function contextBlock(ctx: DirectorContext): string {
       profile.keepWords.length
         ? `TỪ CẦN GIỮ NGUYÊN (tên sản phẩm, thương hiệu): ${profile.keepWords.join(' · ')}. KHÔNG "sửa chính tả", không đổi hoa/thường, không bỏ khỏi phụ đề và hiệu ứng chữ.`
         : '',
-      `Tự duyệt kế hoạch: ${profile.autoApprovePlan ? 'có' : 'không (chủ kênh duyệt)'}.`,
+      project.quick
+        ? 'Dựng nhanh: kế hoạch vào thẳng editor, chủ kênh chỉnh tay rồi bấm Xuất.'
+        : `Tự duyệt kế hoạch: ${profile.autoApprovePlan ? 'có' : 'không (chủ kênh duyệt)'}.`,
     ].filter(Boolean).join('\n'));
     const answers = ONBOARDING_QUESTIONS
       .map((q) => ({ q: q.question, a: profile.onboarding[q.id]?.trim() }))
@@ -251,7 +271,29 @@ export interface DirectorData {
   styles: string;
   lessons: string[];
   schemaRef: string;
+  /** Dựng nhanh: skills/video-edit/references/templates.md. */
+  templatesRef?: string;
+  /** Dựng nhanh: what the owner set up for this video (project.quick present). */
+  quick?: QuickBrief;
 }
+
+/** Dựng nhanh: the owner's setup, inlined into the prompt. */
+export interface QuickBrief {
+  settings: QuickSettings;
+  /** templateForPrompt: rules.md + components, props and entrance presets of the chosen template. */
+  template: string;
+  /** renderShortlistForPrompt of the Asset Hub shortlist ('' when nothing is shortlisted). */
+  shortlist: string;
+  /** The owner's footage ("tư liệu") with the description sent along. */
+  assets: { assetId: string; kind: string; name: string; hint?: string }[];
+  /** Which attached images are stills of which footage (they come before the analysis frames). */
+  assetImages: string[];
+  /** Elements the owner edited by hand or added: read-only for the director. */
+  ownerEdits: string[];
+}
+
+/** Synthetic words (a voiced sound with no word) are shown as this, never as text the speaker said. */
+const SOUND_MARK = '(tiếng)';
 
 function renderTranscript(t: Transcript): string {
   const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -259,7 +301,7 @@ function renderTranscript(t: Transcript): string {
   let cur: Transcript['words'] = [];
   const flush = () => {
     if (!cur.length) return;
-    lines.push(`@${cur[0].i}-${cur[cur.length - 1].i} ${r2(cur[0].start)}s-${r2(cur[cur.length - 1].end)}s | ${cur.map((w) => `${w.text.trim()}[${w.i}]`).join(' ')}`);
+    lines.push(`@${cur[0].i}-${cur[cur.length - 1].i} ${r2(cur[0].start)}s-${r2(cur[cur.length - 1].end)}s | ${cur.map((w) => `${w.synthetic ? SOUND_MARK : w.text.trim()}[${w.i}]`).join(' ')}`);
     cur = [];
   };
   for (const w of t.words) {
@@ -268,7 +310,10 @@ function renderTranscript(t: Transcript): string {
     cur.push(w);
   }
   flush();
-  const text = [`# ${t.language} · ${r2(t.durationSec)}s · ${t.words.length} từ (@đầu-cuối = chỉ số từ; mốc là giây trong video gốc)`, ...lines].join('\n');
+  const sounds = t.words.some((w) => w.synthetic)
+    ? [`${SOUND_MARK}[n] = tiếng không thành lời (máy đoán là từ đệm, không phải lời nói): cắt khi tự cắt bật, không đưa vào chữ hay phụ đề.`]
+    : [];
+  const text = [`# ${t.language} · ${r2(t.durationSec)}s · ${t.words.length} từ (@đầu-cuối = chỉ số từ; mốc là giây trong video gốc)`, ...sounds, ...lines].join('\n');
   return text.length > TRANSCRIPT_MAX_CHARS ? `${text.slice(0, TRANSCRIPT_MAX_CHARS)}\n… (đã rút gọn, còn tiếp)` : text;
 }
 
@@ -283,8 +328,13 @@ function renderAnalysis(a: AnalysisResult): string {
 /** Everything the turn needs from the project folder and the skill references. */
 export function loadDirectorData(store: VideoEditStore, ctx: DirectorContext, root: string, lessons: string[] = []): DirectorData {
   const transcript = store.readTranscript(ctx.project.id);
+  const refs = path.join(root, 'skills', 'video-edit', 'references');
   let schemaRef = '';
-  try { schemaRef = fs.readFileSync(path.join(root, 'skills', 'video-edit', 'references', 'plan-schema.md'), 'utf8'); } catch { /* skill missing: the prompt still names the fields */ }
+  try { schemaRef = fs.readFileSync(path.join(refs, 'plan-schema.md'), 'utf8'); } catch { /* skill missing: the prompt still names the fields */ }
+  let templatesRef = '';
+  if (ctx.project.quick) {
+    try { templatesRef = fs.readFileSync(path.join(refs, 'templates.md'), 'utf8'); } catch { /* the template section still lists components */ }
+  }
   const planJson = ctx.plan ? JSON.stringify(ctx.plan) : null;
   return {
     transcript: transcript ? renderTranscript(transcript) : null,
@@ -293,20 +343,151 @@ export function loadDirectorData(store: VideoEditStore, ctx: DirectorContext, ro
     styles: VIDEO_STYLES.map((s) => `${s.id} (${s.command}): ${s.name} · nhịp ${s.cutPace} · SFX ${s.sfxDensity}`).join('\n'),
     lessons,
     schemaRef,
+    ...(templatesRef ? { templatesRef } : {}),
+  };
+}
+
+const KIND_LABEL = new Map(ELEMENT_LISTS.map((l) => [l.kind, l.label]));
+
+/** Elements the owner added (origin owner) or edited by hand (overrides.json), one line each. */
+export function ownerEditLines(plan: EditPlan | null, overrides: OverridesDoc | null): string[] {
+  const out: string[] = [];
+  const name = (id: string) => {
+    const found = plan ? findElement(plan, id) : null;
+    return found ? ` (${KIND_LABEL.get(found.kind)} «${elementLabel(found.kind, found.el)}»)` : '';
+  };
+  for (const { el } of plan ? planElements(plan) : []) if (el.origin === 'owner') out.push(`- ${el.id}${name(el.id!)}: chủ kênh tự thêm`);
+  for (const [id, o] of Object.entries(overrides?.elements ?? {})) {
+    const what = [
+      o.hidden && 'chủ kênh đã xoá (ẩn), không thêm lại',
+      o.text && 'sửa chữ',
+      o.props && 'sửa nội dung',
+      (o.t || o.s !== undefined) && 'đổi vị trí hoặc cỡ',
+      o.animIn && `hiệu ứng vào ${o.animIn}`,
+      o.sound && 'đổi âm thanh',
+      (o.at !== undefined || o.duration !== undefined) && 'đổi thời điểm',
+    ].filter(Boolean).join(', ');
+    out.push(`- ${id}${name(id)}: ${what || 'đã chỉnh tay'}`);
+  }
+  return out;
+}
+
+const safeName = (id: string) => id.replace(/[^A-Za-z0-9_-]+/g, '_').slice(0, 80);
+
+/** The owner's footage, shortlist, template and hand edits for a Dựng nhanh turn, plus stills of the footage. */
+export async function loadQuickBrief(
+  store: VideoEditStore,
+  ctx: DirectorContext,
+  deps: Pick<DirectorDeps, 'templatePrompt' | 'shortlist' | 'frameOf'> = {},
+): Promise<{ brief: QuickBrief; images: string[] }> {
+  const { project } = ctx;
+  const settings = project.quick!;
+  let template = '';
+  try { template = (deps.templatePrompt ?? templateForPrompt)(settings.templateId); }
+  catch { template = `(Không đọc được mẫu "${settings.templateId}" trên máy: dựng theo luật chung, chỉ dùng component text-beat.)`; }
+  let shortlist = '';
+  try { shortlist = renderShortlistForPrompt(await (deps.shortlist ?? buildShortlist)(project.id)).trim(); }
+  catch { /* the prompt says nothing is shortlisted */ }
+
+  const frameOf = deps.frameOf ?? ((file: string, dest: string, at: number) => extractFrame(file, at, dest, ASSET_STILL_WIDTH));
+  const images: string[] = [];
+  const assetImages: string[] = [];
+  const assets: QuickBrief['assets'] = [];
+  for (const item of settings.assets) {
+    const asset = findAsset(store.root, item.assetId);
+    assets.push({ assetId: item.assetId, kind: asset?.kind ?? 'không còn trong kho', name: asset?.name ?? item.assetId, ...(item.hint ? { hint: item.hint } : {}) });
+    const file = asset ? assetFilePath(store.root, asset) : null;
+    if (!file || images.length >= MAX_ASSET_IMAGES || (asset!.kind !== 'video' && asset!.kind !== 'image')) continue;
+    // A small still, so a 4K photo or a whole clip never goes to the model.
+    const dest = path.join(store.projectDir(project.id), 'drafts', `asset-${safeName(item.assetId)}.jpg`);
+    try {
+      if (!fs.existsSync(dest)) await frameOf(file, dest, asset!.kind === 'video' ? Math.min(1, (asset!.durationSec ?? 2) / 2) : 0);
+    } catch { /* fall back below */ }
+    const still = fs.existsSync(dest) ? dest : asset!.kind === 'image' ? file : null;
+    if (!still) continue;
+    images.push(still);
+    assetImages.push(item.assetId);
+  }
+  return {
+    brief: { settings, template, shortlist, assets, assetImages, ownerEdits: ownerEditLines(ctx.plan, store.readOverrides(project.id)) },
+    images,
   };
 }
 
 const OUTPUT_RULES = [
   'CÁCH TRẢ LỜI (bắt buộc): bạn không có công cụ nào chạm vào dự án. Máy sẽ đọc câu trả lời của bạn:',
   '- Khi cần lập hoặc sửa kế hoạch: viết lời nhắn tiếng Việt ngắn cho chủ kênh, rồi MỘT khối ```json chứa đúng EditPlan (các trường theo tài liệu EditPlan bên dưới; không điền trường máy tự tính). Máy sẽ kiểm tra và nộp; nếu lỗi sẽ báo lại.',
-  '- Không bịa số liệu, giá, tên. Không "sửa" từ cần giữ nguyên. Không nói đã dựng xong khi mới có kế hoạch: kế hoạch chờ chủ kênh duyệt rồi máy mới xuất video.',
+  '- Không bịa số liệu, giá, tên. Không "sửa" từ cần giữ nguyên. Không nói đã dựng xong khi mới có kế hoạch: máy chỉ xuất video sau khi chủ kênh duyệt (hoặc bấm Xuất).',
   '- Tin nhắn gửi chủ kênh là văn bản thuần, không bảng.',
+].join('\n');
+
+// Rough cut, sentence by sentence (ideas from OpenStoryline prompts/tasks/speech_rough_cut and video-use's
+// take selection; rewritten in Vietnamese, no text copied).
+const ROUGH_CUT_RULES = [
+  'LUẬT CẮT THÔ (đi lần lượt từng câu trong LỜI CHÉP, đọc cả câu trước và câu sau):',
+  '1. Câu chỉ toàn từ đệm, câu vô nghĩa, hoặc lặp lại đúng ý đã nói: cắt cả câu.',
+  '2. Trong câu: cắt từ đệm, từ lặp ("mình mình"), chỗ vấp; giữ nguyên nghĩa và từ cần giữ nguyên. Cắt ở đầu hay cuối câu chỉ làm câu ngắn lại; cắt ở giữa câu thì phần còn lại vẫn phải đọc liền mạch.',
+  '3. Một ý nói nhiều lần (nói hỏng rồi nói lại): giữ lần nói tốt nhất, thường là lần cuối, trọn câu, không vấp; cắt các lần trước. Lần cuối hỏng hơn thì giữ lần tốt hơn và nói lý do trong summary.',
+  '4. Câu có thông tin thì KHÔNG cắt. Cẩn thận: cắt nhầm một câu có ý còn tệ hơn sót một từ đệm.',
+  '5. Sau khi cắt, câu trước và câu sau phải nối liền, tự nhiên như người nói một mạch.',
+  `6. ${SOUND_MARK} là tiếng không thành lời máy đoán là từ đệm: cắt khi tự cắt bật.`,
+  '7. Mép từ đã được máy khớp theo âm thanh thật: chỗ cắt nằm ở khoảng ngừng giữa hai từ, không cắt giữa một cụm đang nói liền.',
+  '8. Ghi chú của chủ kênh đứng trên mọi luật ở đây.',
+].join('\n');
+
+/** Dựng nhanh: settings, template, footage, shortlist and hand edits, as prompt sections. */
+function quickSections(q: QuickBrief, templatesRef?: string): string[] {
+  const s = q.settings;
+  const gap = s.autoCut ? QUICK_GAP_MS[s.cutLevel] : NO_CUT_GAP_MS;
+  const music = s.music.mode === 'none'
+    ? 'không nhạc (không điền music)'
+    : s.music.mode === 'pick' ? `chủ kênh chọn bài assetId ${s.music.assetId} (giữ đúng bài này)` : 'bạn chọn một bài trong KHO GỢI Ý theo mood của mẫu';
+  const out: string[] = [];
+  out.push([
+    'DỰNG NHANH: CHỦ KÊNH ĐÃ CÀI ĐẶT (làm đúng, máy sẽ ép lại nếu lệch):',
+    s.autoCut
+      ? `- Tự cắt: BẬT, mức ${CUT_LEVEL_LABEL[s.cutLevel]} → gapMs gợi ý ${gap}. autoCut true.`
+      : `- Tự cắt: TẮT → autoCut false, cutWords [] và gapMs ${gap}: giữ nguyên video, không cắt gì.`,
+    `- Nhạc nền: ${music}${s.music.mode === 'none' ? '' : `; giảm nhạc khi nói: ${s.music.duck ? 'có (music.duck true)' : 'không'}`}.`,
+    `- Tìm thêm cảnh trám ngoài tư liệu: ${s.stock ? 'được (B-roll source "pexels" kèm query, máy tự tìm)' : 'KHÔNG (chỉ dùng tư liệu và Kho của tôi)'}.`,
+    s.note ? `- Ghi chú của chủ kênh (ưu tiên cao nhất): ${s.note}` : '',
+  ].filter(Boolean).join('\n'));
+  out.push(`MẪU EDIT:\n${q.template}`);
+  if (templatesRef) out.push(`TÀI LIỆU MẪU EDIT:\n${templatesRef}`);
+  if (q.assets.length) {
+    const rows = q.assets.map((a, k) => `- Tư liệu ${k + 1}: ${a.kind} "${a.name}" (assetId ${a.assetId})${a.hint ? `. Chủ kênh mô tả: ${a.hint}` : ''}`);
+    out.push([
+      'TƯ LIỆU CHỦ KÊNH GỬI (ưu tiên dùng làm B-roll: source "upload", đúng assetId, chép mô tả vào hint, neo vào câu đang nói đúng nội dung):',
+      ...rows,
+      q.assetImages.length ? `Ảnh đính kèm: ${q.assetImages.length} ảnh đầu là ảnh nhỏ của tư liệu theo thứ tự assetId ${q.assetImages.join(', ')}; các ảnh sau là khung hình của video gốc.` : '',
+    ].filter(Boolean).join('\n'));
+  }
+  out.push(q.shortlist
+    ? `KHO GỢI Ý (chỉ dùng assetId có ở đây hoặc ở TƯ LIỆU; không bịa assetId):\n${q.shortlist}`
+    : 'KHO GỢI Ý: chưa có. Không bịa assetId: chỗ cần cảnh trám mà không có tư liệu thì ghi query (nếu được tìm thêm), không thì bỏ.');
+  if (q.ownerEdits.length) {
+    out.push(['PHẦN TỬ CHỦ KÊNH ĐÃ SỬA TAY (chỉ đọc: giữ nguyên id và nội dung, không xoá, không sửa, không thêm lại phần tử đã ẩn):', ...q.ownerEdits].join('\n'));
+  }
+  out.push(ROUGH_CUT_RULES);
+  return out;
+}
+
+const QUICK_PLAN_TASK = [
+  'NHIỆM VỤ: dựng nhanh theo mẫu (plan v2). Kế hoạch vào thẳng editor, không chờ duyệt.',
+  '1. Cắt: theo LUẬT CẮT THÔ và cài đặt tự cắt (cutWords, gapMs).',
+  '2. Chữ theo nhịp (beats): mỗi ý chính một beat, component và animIn của mẫu, title 2–6 từ, tối đa 2 dòng, *từ* để tô, | để xuống dòng; anchorWord = từ bắt đầu ý đó (không phải từ bị cắt), duration theo component.',
+  '3. Cảnh minh hoạ (scenes): khi người nói kể các bước hoặc so sánh trước–sau, dùng component cảnh của mẫu, props đúng schema.',
+  '4. B-roll: tư liệu của chủ kênh trước (assetId thật + hint); chỗ cần cảnh trám mà không có tư liệu: source "pexels", không assetId, query { description tiếng Việt, keywords 2–4 từ tiếng Anh } (chỉ khi được tìm thêm). graphics nếu mẫu có (ví dụ logo cuối).',
+  '5. Nhạc, phụ đề (captions.highlight), 3 ảnh bìa, tiêu đề + caption + hashtag như bình thường.',
+  '6. Tự kiểm: id không trùng, mọi anchorWord không nằm trong cutWords, component có trong mẫu, phần tử chủ kênh đã sửa giữ nguyên.',
+  '7. Trả lời: 2 đến 4 dòng tiếng Việt (dựng thế nào, độ dài ước tính), rồi khối ```json EditPlan với planFormat 2, templateId của mẫu, autoCut, beats, scenes, brolls.',
 ].join('\n');
 
 /** The turn prompt. Pure: no I/O, so it is unit-tested directly. */
 export function buildDirectorPrompt(input: { reason: DirectorReason; note?: string; attachments?: DirectorAttachment[]; ctx: DirectorContext; data: DirectorData }): string {
   const { reason, ctx, data } = input;
   const note = input.note?.trim() ?? '';
+  const quick = data.quick && reason !== 'produce' ? data.quick : undefined;
   const parts: string[] = [];
 
   parts.push([
@@ -315,10 +496,14 @@ export function buildDirectorPrompt(input: { reason: DirectorReason; note?: stri
   ].join('\n'));
 
   parts.push(contextBlock(ctx));
-  if (ctx.style?.id === 'quyen') {
-    parts.push('Phong cách Quyên: chỉ dùng ảnh Pexels đã tách nền trong kho với layout cutout; nếu thiếu assetId thì nói rõ phần còn thiếu, không hứa bản xuất đã có vật thể trên đầu.');
+  if (!quick) {
+    if (ctx.style?.id === 'quyen') {
+      parts.push('Phong cách Quyên: chỉ dùng ảnh Pexels đã tách nền trong kho với layout cutout; nếu thiếu assetId thì nói rõ phần còn thiếu, không hứa bản xuất đã có vật thể trên đầu.');
+    }
+    parts.push(`PHONG CÁCH CÓ SẴN:\n${data.styles}`);
+  } else {
+    parts.push(...quickSections(quick, data.templatesRef));
   }
-  parts.push(`PHONG CÁCH CÓ SẴN:\n${data.styles}`);
   if (data.lessons.length) parts.push(`BÀI HỌC TÌM ĐƯỢC TRONG KHO TRI THỨC (dùng đúng, nêu tên bài trong summary):\n${data.lessons.join('\n---\n')}`);
   if (data.transcript) parts.push(`LỜI CHÉP:\n${data.transcript}`);
   else parts.push('LỜI CHÉP: chưa có. Báo chủ kênh rằng bước chép lời chưa chạy, không lập kế hoạch.');
@@ -328,6 +513,7 @@ export function buildDirectorPrompt(input: { reason: DirectorReason; note?: stri
 
   switch (reason) {
     case 'plan':
+      if (quick) { parts.push(QUICK_PLAN_TASK); break; }
       parts.push([
         'NHIỆM VỤ: lên kế hoạch dựng (plan).',
         '1. Đọc kỹ lời chép và phân tích: quyết định cutWords (giữ lời gốc và nhịp thở của người nói, cắt từ đệm, câu nói lại, chỗ lặng), gapMs theo nhịp phong cách, hook (3 phương án khác kiểu nhau, chọn 1), phụ đề (từ nhấn), hiệu ứng chữ đúng lúc nói, B-roll có lý do, nhạc + SFX theo mật độ phong cách, 3 ảnh bìa, tiêu đề + caption + hashtag đăng bài.',
@@ -368,6 +554,9 @@ export function buildDirectorPrompt(input: { reason: DirectorReason; note?: stri
     case 'produce':
       parts.push('NHIỆM VỤ: video này đang ở chế độ sản xuất; trả lời ngắn gọn bằng tiếng Việt.');
       break;
+  }
+  if (quick && reason !== 'plan') {
+    parts.push('Dựng nhanh: khi gửi kế hoạch, giữ plan v2 (planFormat 2, templateId của mẫu, beats/scenes/graphics theo component của mẫu) và giữ nguyên phần tử chủ kênh đã sửa tay. Kế hoạch vào thẳng editor, chỉ khi chủ kênh bấm Xuất máy mới xuất video.');
   }
   return parts.join('\n\n');
 }
@@ -419,6 +608,7 @@ export async function runDirectorTurn(input: DirectorTurnInput, deps: DirectorDe
   const root = deps.projectRoot ?? moduleCtx()?.dir ?? process.cwd();
   const run = deps.run ?? defaultRun();
   let planned = false;
+  let quickProject = false;
 
   try {
     const ctx = loadDirectorContext(store, input.projectId);
@@ -451,9 +641,18 @@ export async function runDirectorTurn(input: DirectorTurnInput, deps: DirectorDe
       act('Đọc lời chép và phân tích');
       const query = [ctx.style?.name, reason === 'plan' ? 'hook nhịp cắt phụ đề' : input.note].filter(Boolean).join(' ');
       const data = loadDirectorData(store, ctx, root, deps.lessons?.(query) ?? []);
+      let assetImages: string[] = [];
+      if (project.quick) {
+        act('Đọc mẫu edit, tư liệu và kho');
+        const loaded = await loadQuickBrief(store, ctx, deps);
+        data.quick = loaded.brief;
+        assetImages = loaded.images;
+      }
       prompt = buildDirectorPrompt({ reason, ...(input.note ? { note: input.note } : {}), attachments, ctx, data });
-      images = frameImages(store, ctx);
+      images = [...assetImages, ...frameImages(store, ctx)];
       planned = reason !== 'chat' && reason !== 'produce';
+      // Dựng nhanh plans go straight to the editor: no "Cần tôi" card.
+      quickProject = Boolean(project.quick);
     }
 
     fs.mkdirSync(path.join(store.projectDir(project.id), 'drafts'), { recursive: true });
@@ -498,7 +697,7 @@ export async function runDirectorTurn(input: DirectorTurnInput, deps: DirectorDe
   }
 
   // A plan that is now waiting for the owner becomes a "Cần tôi" card (idempotent per plan version).
-  if (planned && !error) {
+  if (planned && !error && !quickProject) {
     try { requestVideoPlanApproval(input.projectId, { store: () => store }); }
     catch { /* the approval card is a convenience; the plan itself is saved */ }
   }

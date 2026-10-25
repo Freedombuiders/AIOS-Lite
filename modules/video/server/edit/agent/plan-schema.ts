@@ -7,11 +7,18 @@
  *      them from cutWords + gapMs.
  *   2. Cross-checks against the transcript: word indexes in range, anchors not on cut words,
  *      hook ranges valid, estimated output length vs the target.
+ *
+ * Plan v2 (Dựng nhanh) fields are known too: templateId, autoCut, beats/scenes/graphics (the element
+ * schemas and checks of ../pipeline/plan.ts, so both validators agree), B-roll hint/query, zoom ids.
  */
 
 import { z } from 'zod';
 
-import type { Transcript } from '../types.js';
+import {
+  checkElement, ELEMENT_SCHEMAS, elementIdSchema, elementSoundSchema,
+  type CheckedElement, type ElementCheckEnv, type TemplateLookup,
+} from '../pipeline/plan.js';
+import type { PlanElementKind, Transcript } from '../types.js';
 
 export const BUILTIN_EFFECTS = ['two-tier-title', 'keyword-pop', 'big-number', 'stacked-list', 'compare-ab', 'cta-button'] as const;
 
@@ -49,7 +56,22 @@ const broll = z.object({
   layout: z.enum(['full', 'card', 'cutout']),
   box: z.object({ x: z.number().min(0).max(100), y: z.number().min(0).max(100), w: z.number().positive().max(100), h: z.number().positive().max(100) }).refine((b) => b.x + b.w <= 100 && b.y + b.h <= 100, 'Vùng ảnh phải nằm trong khung hình.').optional(),
   enabled: z.boolean().default(true),
+  // Plan v2
+  hint: z.string().trim().max(500).optional(),
+  query: z.object({ description: z.string().trim().min(1).max(300), keywords: z.array(z.string().trim().min(1).max(60)).min(1).max(8) }).optional(),
+  animIn: z.string().trim().min(1).max(60).optional(),
+  sound: elementSoundSchema.optional(),
+  origin: z.enum(['ai', 'owner']).optional(),
 });
+
+const zoom = z.object({
+  id: elementIdSchema.optional(),
+  anchorWord: wordIndex.optional(),
+  at: seconds.optional(),
+  duration: z.number().min(0.2).max(10),
+  scale: z.number().min(1).max(2),
+  origin: z.enum(['ai', 'owner']).optional(),
+}).refine((x) => x.at !== undefined || x.anchorWord !== undefined, 'Zoom cần at hoặc anchorWord.');
 
 const overlay = z.object({
   id: z.string().min(1).max(40),
@@ -76,7 +98,7 @@ export const planInputSchema = z.object({
     maxWordsPerChunk: z.number().int().min(1).max(8),
   }),
   overlays: z.array(overlay).max(60).default([]),
-  zooms: z.array(z.object({ at: seconds, duration: z.number().min(0.2).max(10), scale: z.number().min(1).max(2) })).max(60).default([]),
+  zooms: z.array(zoom).max(60).default([]),
   music: z.object({
     assetId: z.string().min(1).max(200),
     mood: z.string().max(60),
@@ -92,6 +114,13 @@ export const planInputSchema = z.object({
     hook: z.string().max(200).optional(),
   }),
   changes: z.array(z.string().max(300)).max(40).optional(),
+  // Plan v2 (Dựng nhanh): all optional.
+  planFormat: z.literal(2).optional(),
+  templateId: z.string().trim().min(1).max(80).optional(),
+  autoCut: z.boolean().optional(),
+  beats: z.array(ELEMENT_SCHEMAS.beat).max(80).optional(),
+  scenes: z.array(ELEMENT_SCHEMAS.scene).max(40).optional(),
+  graphics: z.array(ELEMENT_SCHEMAS.graphic).max(20).optional(),
   // Derived or server-owned; accepted and ignored when present.
   version: z.number().int().optional(),
   createdAt: z.string().optional(),
@@ -130,7 +159,8 @@ export function estimateOutputSeconds(words: Transcript['words'], cutWords: Read
   return total;
 }
 
-export function validatePlan(raw: unknown, transcript?: Pick<Transcript, 'words' | 'durationSec'> | null): PlanValidation {
+/** With `templates` (registry getTemplate), components, props and animIn are checked against the plan's template. */
+export function validatePlan(raw: unknown, transcript?: Pick<Transcript, 'words' | 'durationSec'> | null, templates?: TemplateLookup): PlanValidation {
   const parsed = planInputSchema.safeParse(raw);
   if (!parsed.success) {
     return {
@@ -153,6 +183,12 @@ export function validatePlan(raw: unknown, transcript?: Pick<Transcript, 'words'
   dup('hook.options', plan.hook?.options.map((o) => o.id) ?? []);
   dup('brolls', plan.brolls.map((b) => b.id));
   dup('overlays', plan.overlays.map((o) => o.id));
+  // Element ids key overrides.json, so they are unique across beats, scenes, graphics, B-roll and zooms.
+  const elementIds = [...(plan.beats ?? []), ...(plan.scenes ?? []), ...(plan.graphics ?? []), ...plan.zooms].flatMap((x) => (x.id ? [x.id] : []));
+  const brollIds = new Set(plan.brolls.map((b) => b.id));
+  dup('phần tử', elementIds);
+  for (const id of new Set(elementIds)) if (brollIds.has(id)) errors.push(`phần tử: id "${id}" trùng với một B-roll.`);
+  if (plan.autoCut === false && plan.cutWords.length) errors.push('autoCut false (tắt tự cắt) thì cutWords phải rỗng.');
 
   if (plan.hook && !plan.hook.options.some((o) => o.id === plan.hook!.chosen)) {
     errors.push(`hook.chosen "${plan.hook.chosen}" không nằm trong hook.options.`);
@@ -160,10 +196,20 @@ export function validatePlan(raw: unknown, transcript?: Pick<Transcript, 'words'
   if (new Set(plan.cutWords).size !== plan.cutWords.length) warnings.push('cutWords có chỉ số lặp; server sẽ gộp lại.');
   for (const b of plan.brolls) {
     if (b.source === 'ai' && !b.prompt) warnings.push(`brolls[${b.id}]: nguồn "ai" nên có prompt.`);
-    if ((b.source === 'library' || b.source === 'product' || b.source === 'upload' || b.source === 'pexels') && !b.assetId) {
-      warnings.push(`brolls[${b.id}]: nguồn "${b.source}" nên có assetId; không có thì chỉ hiện thẻ giữ chỗ.`);
+    // A slot with a query is filled by the machine (Asset Hub) after the plan is in.
+    if ((b.source === 'library' || b.source === 'product' || b.source === 'upload' || b.source === 'pexels') && !b.assetId && !b.query) {
+      warnings.push(`brolls[${b.id}]: nguồn "${b.source}" nên có assetId (hoặc query để máy tìm); không có thì chỉ hiện thẻ giữ chỗ.`);
     }
   }
+  // Plan v2 elements: anchors, title length, components of the template (pipeline/plan.ts checkElement).
+  const template = plan.templateId && templates ? templates(plan.templateId) : null;
+  if (plan.templateId && templates && !template) warnings.push(`Mẫu "${plan.templateId}" chưa có trên máy: chưa kiểm tra component và hiệu ứng.`);
+  const env: ElementCheckEnv = { words: transcript ? transcript.words.length : Number.POSITIVE_INFINITY, cut: new Set(plan.cutWords), template, strictBroll: true };
+  const lists: [PlanElementKind, string, CheckedElement[]][] = [
+    ['beat', 'beats', plan.beats ?? []], ['scene', 'scenes', plan.scenes ?? []], ['graphic', 'graphics', plan.graphics ?? []], ['zoom', 'zooms', plan.zooms],
+  ];
+  for (const [kind, key, list] of lists) list.forEach((el, k) => checkElement(kind, el.id ? `${key}[${el.id}]` : `${key}[${k}]`, el, env, errors, warnings));
+  for (const b of plan.brolls) if (b.query || b.animIn) checkElement('broll', `brolls[${b.id}]`, { ...b, anchorWord: undefined }, env, errors, warnings);
   for (const o of plan.overlays) {
     if (!(BUILTIN_EFFECTS as readonly string[]).includes(o.effect)) {
       warnings.push(`overlays[${o.id}]: hiệu ứng "${o.effect}" chưa có trong 6 hiệu ứng dựng sẵn (${BUILTIN_EFFECTS.join(', ')}); renderer có thể bỏ qua.`);
