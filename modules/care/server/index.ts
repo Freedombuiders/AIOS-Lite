@@ -2,6 +2,7 @@ import { defineModule } from '../../../src/modules/sdk.js';
 import { registerCareRoutes } from './api/index.js';
 import { createCareSchema } from './persistence/schema.js';
 import { createCustomersApi, type CareCustomersApi } from './customers-service.js';
+import { draftStats, type DraftStatsRange } from './draft-stats.js';
 import { careState, startCare, stopCare } from './module-runtime.js';
 import { parseHandoffKeywords, parseHandoffPauseMinutes } from './policy/handoff.js';
 
@@ -53,6 +54,8 @@ export default defineModule({
         customers ??= createCustomersApi(ctx.db, () => careState(ctx).stores);
         return customers;
       },
+      /** read-only counts of bot drafts (sent unchanged, edited, discarded) by creation time; draft-stats.ts */
+      draftStats: (range: DraftStatsRange) => draftStats(ctx.db, range),
     };
   },
 });

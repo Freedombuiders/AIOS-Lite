@@ -28,8 +28,11 @@ const TRIGGER_TEXT: Record<TaskTrigger, string> = {
   module: 'một module giao việc này cho bạn.',
 };
 
-/** Frame untrusted data: labelled, with markers it cannot close and directive tags defused. */
-function untrusted(title: string, label: string, body: string): string {
+/**
+ * Frame untrusted data: labelled, with markers it cannot close and directive tags defused. This is a label for
+ * the model, not a permission barrier: it blocks nothing by itself.
+ */
+export function untrusted(title: string, label: string, body: string): string {
   const safe = body.replace(/<<<(?:BEGIN|END)[^>]*>>>/g, '[đã lược]').replace(/<(\/?)aios-/gi, '‹$1aios-');
   return `## ${title}\n${UNTRUSTED_NOTE}\n<<<BEGIN ${label}>>>\n${safe}\n<<<END ${label}>>>`;
 }

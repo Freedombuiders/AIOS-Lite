@@ -49,6 +49,10 @@ Sự kiện được ghi vào bảng `fb_content_feed` trong cùng giao dịch v
 
 **Đối soát:** nếu bộ phân tích nhập bài từ Facebook trước khi bộ đăng bài kịp lưu mã bài, bộ đăng bài gộp bản nhập vào dòng gốc trong một giao dịch: dòng gốc giữ dòng dõi, người tạo và nhận mã bài; số đo gắn theo mã bài nên đi theo. Dòng trùng do bản cũ để lại được sửa mỗi lần module khởi động, dựa vào mã bài trong nhật ký đăng.
 
+### Điểm mở rộng giao diện
+
+- `marketing.composerScore`: màn sửa bài ở Kho nội dung render mọi component được cung cấp, với `{ text, format, scheduledAt, hasVideo, videoLengthS }` (chỉ khi bài chưa khoá). Module `learn` cung cấp ô "Khớp sổ bài học x/y". Không module nào cung cấp thì không hiện gì.
+
 ## Thông báo
 
 Phàn nàn, kết nối hết hạn, lỗi đăng bài và bình luận cần người đều thành mục "Cần bạn" (`ctx.attention.raise`).

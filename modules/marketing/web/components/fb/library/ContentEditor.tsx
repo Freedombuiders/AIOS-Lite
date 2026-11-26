@@ -1,6 +1,7 @@
 // Create / edit one Kho content row, with the status actions that apply to it
 // (send for review, approve, return, unschedule, publish now, delete).
 
+import type { ComponentType } from 'preact';
 import { useState } from 'preact/hooks';
 import { ExternalLink } from 'lucide-preact';
 import { Modal } from '@/components/Modal';
@@ -12,12 +13,22 @@ import {
 import { apiDelete, apiPatch, apiPost } from '@/lib/api';
 import { useFetch } from '@/lib/useFetch';
 import { pushToast } from '@/lib/toasts';
+import { useProvides } from '@/module-host';
 import {
   FORMAT_META,
   type FbContentDto, type FbContentInput, type FbContentStatus, type FbFormat, type FbPageDto, type FbPublishLogDto,
 } from '@modules/marketing/web/lib/fbstudio';
 
 type Detail = FbContentDto & { log?: FbPublishLogDto[] };
+
+/** What the composer passes to a 'marketing.composerScore' component another module provides. */
+interface ComposerScoreProps {
+  text: string;
+  format: FbFormat;
+  scheduledAt: number | null;
+  hasVideo: boolean;
+  videoLengthS: number | null;
+}
 type Confirm = 'publish' | 'remote' | 'delete' | null;
 
 const LOCKED: FbContentStatus[] = ['publishing', 'published', 'deleted'];
@@ -81,6 +92,8 @@ function EditorBody({ content, pages, onClose, onChanged }: {
   const [error, setError] = useState('');
   const [confirm, setConfirm] = useState<Confirm>(null);
 
+  // "Khớp sổ bài học x/y" from the learn module when it is enabled (props: learn/web/components/ScoreBox.tsx)
+  const scoreBoxes = useProvides<ComponentType<ComposerScoreProps>>('marketing.composerScore');
   const page = pages.find((p) => p.id === pageId);
   const needsLink = format === 'link';
   const whenSec = fromLocalInput(when);
@@ -299,6 +312,17 @@ function EditorBody({ content, pages, onClose, onChanged }: {
               )}
             </div>
           </div>
+
+          {!locked && scoreBoxes.map((Box, i) => (
+            <Box
+              key={i}
+              text={[title, caption].filter((t) => t.trim()).join('\n\n')}
+              format={format}
+              scheduledAt={whenSec}
+              hasVideo={format === 'reel' || format === 'video' || !!content?.media.some((m) => m.kind === 'video')}
+              videoLengthS={content?.media.find((m) => m.kind === 'video')?.durationS ?? null}
+            />
+          ))}
 
           {content?.scheduledAt && status !== 'published' && (
             <div class="text-[12px] text-[var(--color-text-muted)]">Lịch hiện tại: {fmtDayLong(content.scheduledAt)}</div>
