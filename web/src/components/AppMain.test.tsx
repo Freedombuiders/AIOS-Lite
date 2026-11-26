@@ -20,16 +20,23 @@ const routes: AppRoute[] = [
   { path: '/m/x/inbox', component: OwnComposer, hideCommandBar: true, modulePage: true },
 ];
 
+const mounted: HTMLElement[] = [];
+
 async function mount(path: string) {
   history.replaceState(null, '', path);
   const el = document.createElement('div');
   document.body.appendChild(el);
+  mounted.push(el);
   await act(() => render(<Router><AppMain routes={routes} notFound={Missing} /></Router>, el));
   return el;
 }
 
 describe('AppMain command bar', () => {
-  afterEach(() => { document.body.innerHTML = ''; });
+  // Unmount for real so pending hook effects (wouter reads `location`) do not fire after jsdom is torn down.
+  afterEach(async () => {
+    for (const el of mounted.splice(0)) await act(() => render(null, el));
+    document.body.innerHTML = '';
+  });
 
   it('shows the bar on a page that does not ask to hide it', async () => {
     const el = await mount('/');
