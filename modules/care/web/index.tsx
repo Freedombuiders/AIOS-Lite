@@ -4,7 +4,7 @@ import { useFetch } from '@/lib/useFetch';
 import { defineWebModule, type WebNavItem } from '@/module-host/contracts';
 import { CareActivity } from './pages/care/CareActivity';
 import { CareChannels } from './pages/care/CareChannels';
-import { CareCustomers } from './pages/care/CareCustomers';
+import { CareCustomersEntry } from './pages/care/CareCustomersEntry';
 import { CareDrafts } from './pages/care/CareDrafts';
 import { CareInbox } from './pages/care/CareInbox';
 import { CareRules } from './pages/care/CareRules';
@@ -47,7 +47,8 @@ export default defineWebModule({
       badge: async () => meCountFrom(await apiGet(INBOX_BADGE_PATH)) || undefined,
     },
     { group: 'sales', label: 'Nháp chờ duyệt', path: '/m/care/drafts', icon: asIcon(PencilLine), order: 11 },
-    { group: 'sales', label: 'Khách hàng', path: '/m/care/customers', icon: asIcon(Users), order: 12 },
+    // the screens moved to module crm (/m/crm/*) when it is on; this entry stays the one "Khách hàng" in the menu
+    { group: 'sales', label: 'Khách hàng', path: '/m/care/customers', icon: asIcon(Users), order: 12, match: ['/m/crm'] },
     { group: 'sales', label: 'Việc chăm sóc', path: '/m/care/followups', icon: asIcon(ListChecks), order: 13 },
     { group: 'sales', label: 'Kênh & agent', path: '/m/care/channels', icon: asIcon(Cable), order: 14 },
     { group: 'sales', label: 'Quy tắc', path: '/m/care/rules', icon: asIcon(SlidersHorizontal), order: 15 },
@@ -58,7 +59,7 @@ export default defineWebModule({
     { path: '/m/care/inbox', component: CareInbox },
     { path: '/m/care/inbox/:id', component: CareInbox },
     { path: '/m/care/drafts', component: CareDrafts },
-    { path: '/m/care/customers', component: CareCustomers },
+    { path: '/m/care/customers', component: CareCustomersEntry },
     { path: '/m/care/followups', component: CareTasks },
     { path: '/m/care/channels', component: CareChannels },
     { path: '/m/care/rules', component: CareRules },

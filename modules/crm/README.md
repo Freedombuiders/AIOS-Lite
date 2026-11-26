@@ -11,6 +11,16 @@ Mỗi khách trong module **Chăm sóc khách hàng** (`care`) có một ghi ch�
 3. Lần chạy đầu, máy tạo ghi chú cho mọi khách đang có, theo lô 50 khách, mỗi lô một commit git, chạy nền nên không làm chậm lúc khởi động.
 4. Sau đó, cứ vài giây máy đọc dòng thay đổi của `care` và cập nhật ghi chú của đúng những khách vừa đổi.
 
+## Ba màn hình
+
+Menu **Khách hàng** (Chăm sóc khách hàng) mở các màn này khi module `crm` bật; `/m/care/customers` chuyển sang `/m/crm/stages`. Khi `crm` tắt, danh sách cũ của `care` vẫn hiện.
+
+- **Giai đoạn** (`/m/crm/stages`): bảng cột theo giai đoạn của `care`. Kéo thẻ sang cột khác (hoặc chọn ở ô trên thẻ, dùng được trên điện thoại) để đổi giai đoạn; màn gọi đúng đường sửa hồ sơ của `care` (`PUT /api/m/care/conversations/:id/customer-care`, cuộc trò chuyện chính của khách đó), ghi chú đổi theo sau vài giây. Lỗi thì thẻ về chỗ cũ và có thông báo. Phía trên có mục "Cần chăm hôm nay" (việc quá hạn hoặc đến hạn hôm nay).
+- **Tất cả khách** (`/m/crm/all`): bảng các khoá do máy quản (`ten · tệp`, `giai_doan`, `the`, `sdt`, `viec_tiep · han`, `cap_nhat`), lọc theo giai đoạn, thẻ, hạn, tìm chữ; bộ lọc đặt tên lưu trong trình duyệt này (localStorage), không đồng bộ giữa các máy. Chưa có cột Zalo vì `care` chưa có dữ liệu kết bạn.
+- **Hồ sơ** (`/m/crm/customer/:id`): thuộc tính, nút "File gốc" hiện đúng markdown của ghi chú (đọc bằng `GET /api/brain/file`), khách cần gì, nhật ký, việc chưa xong (Xong, Dời hạn), "Mở cuộc chat" (sang Hộp thư), "Mở bằng Obsidian" (`obsidian://open?path=` dựng từ đường dẫn tuyệt đối của thư mục + đường dẫn ghi chú).
+
+Chưa chọn thư mục Second Brain: cả ba màn vẫn chạy từ cơ sở dữ liệu, có thanh báo trỏ tới Module CRM; "File gốc" và "Mở bằng Obsidian" tắt vì chưa có file.
+
 ## Trong một ghi chú, phần nào của ai
 
 ```markdown
@@ -74,4 +84,5 @@ Hệ quả bạn cần biết:
 - Chạy hai lần không ghi lần hai: `patch`/`setBlock` không ghi khi nội dung không đổi. Sập giữa lúc ghi file và lúc lưu con trỏ: lần chạy sau áp lại cùng thay đổi; khách chưa có dòng chỉ mục được tìm theo `id` trong thư mục trước khi tạo file mới, nên không sinh ghi chú thứ hai.
 - Đổi thư mục trong cài đặt: thư mục mới chạy lại lần xuất đầu của riêng nó; file trong thư mục cũ để nguyên.
 - API cho web (chỉ đọc): `GET /api/m/crm/status`, `GET /api/m/crm/customers?after=&limit=` (khách, đường dẫn ghi chú, trạng thái `da-xuat` | `cho-xuat` | `chua-xuat`).
-- Chưa làm (để task sau): nhập ngược từ ghi chú vào cơ sở dữ liệu, bốn màn CRM, xếp hạng, đơn hàng.
+- API cho web (chỉ đọc), thêm: `GET /api/m/crm/customers/:id` (hồ sơ: nhu cầu, việc chưa xong, nhật ký ngắn).
+- Chưa làm (để task sau): nhập ngược từ ghi chú vào cơ sở dữ liệu, xếp hạng, đơn hàng, chân dung "khách tốt nhất".

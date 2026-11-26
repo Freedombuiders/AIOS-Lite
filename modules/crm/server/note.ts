@@ -20,7 +20,7 @@ export type ManagedKey = (typeof MANAGED_KEYS)[number];
 
 export const STAGE_SLUG = { new: 'moi', consulting: 'dang-tu-van', quoted: 'da-bao-gia', deposit: 'dat-coc', won: 'da-chot', lost: 'mat' } as const;
 const STAGE_LABEL: Record<string, string> = { new: 'Mới', consulting: 'Đang tư vấn', quoted: 'Đã báo giá', deposit: 'Đặt cọc', won: 'Đã chốt', lost: 'Mất' };
-const NEED_LABEL: Record<CareNeedField, string> = { service: 'Dịch vụ', dates: 'Thời gian', people: 'Số người', budget: 'Ngân sách', details: 'Chi tiết' };
+export const NEED_LABEL: Record<CareNeedField, string> = { service: 'Dịch vụ', dates: 'Thời gian', people: 'Số người', budget: 'Ngân sách', details: 'Chi tiết' };
 const FIELD_LABEL: Record<string, string> = { ten: 'tên', cong_ty: 'công ty', sdt: 'số điện thoại', email: 'email', the: 'thẻ', phu_trach: 'người phụ trách' };
 
 /** Vietnam has no daylight saving: a fixed +07:00 keeps every export of the same data byte-identical. */
@@ -74,8 +74,8 @@ export function needBlock(v: CareCustomerView): string {
   return lines.join('\n') + '\n';
 }
 
-/** A short line per change; never a message body. */
-export function logLine(e: CareCustomerHistoryEntry): string {
+/** What happened in one change, in words (no date); never a message body. */
+export function logWhat(e: CareCustomerHistoryEntry): string {
   const d = e.detail ?? {};
   const title = e.taskTitle ? `: ${oneLine(e.taskTitle, 80)}` : '';
   let what: string;
@@ -103,7 +103,12 @@ export function logLine(e: CareCustomerHistoryEntry): string {
   else if (d.done_to === 0 && d.done_from === 1) what = `Mở lại việc${title}`;
   else if (d.due_to !== d.due_from && typeof d.due_to === 'number') what = `Đổi hạn việc${title} → ${vnDate(d.due_to)}`;
   else what = `Sửa việc${title}`;
-  return `- ${vnShort(e.atMs)} · ${what}`;
+  return what;
+}
+
+/** A short line per change; never a message body. */
+export function logLine(e: CareCustomerHistoryEntry): string {
+  return `- ${vnShort(e.atMs)} · ${logWhat(e)}`;
 }
 
 export function logBlock(history: CareCustomerHistoryEntry[]): string {
