@@ -286,6 +286,25 @@ describe("the owner's work is never overwritten", () => {
     expect(packs.files(ID, FOLDER).find((f) => f.path === edited)?.status).toBe('edited');
   });
 
+  it('a note the owner deleted is not recreated by later updates, and uninstall just forgets it', async () => {
+    publish('1.0.0', samplePack().zip);
+    await install('1.0.0');
+    const rel = 'bai-hoc/video-huong-dan-ngan.md';
+    notes.owner().remove({ folderId: FOLDER, relPath: rel }, { message: 'chủ xoá', overwrite: true });
+    await notes.flush();
+    for (const v of ['1.1.0', '1.2.0']) {
+      publish(v, samplePack({ version: v }).zip);
+      const { result } = await install(v);
+      expect(result.skipped).toEqual([{ path: rel, reason: expect.stringMatching(/đã xoá/) }]);
+      expect(exists(rel)).toBe(false);
+    }
+    expect(packs.files(ID, FOLDER).find((f) => f.path === rel)?.status).toBe('missing');
+    const up = packs.uninstallPreview(ID, FOLDER);
+    expect(up.items.find((i) => i.path === rel)?.action).toBe('forget');
+    await packs.uninstall(ID, FOLDER, up.planId);
+    expect(sb.db.prepare('SELECT COUNT(*) AS n FROM pack_files').get()).toEqual({ n: 0 });
+  });
+
   it('a dropped note the owner edited is kept on update', async () => {
     publish('1.0.0', samplePack().zip);
     await install('1.0.0');

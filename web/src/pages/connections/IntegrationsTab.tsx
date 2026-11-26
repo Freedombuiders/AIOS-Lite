@@ -10,6 +10,7 @@ import { fold, resolveAgentName } from '@/lib/format';
 import { disconnectIntegration, GRANT_LEVELS, RISK_LABEL, saveIntegration, testIntegration, type IntegrationCommand, type IntegrationField, type IntegrationRisk, type IntegrationSummary } from '@/lib/integrations';
 import { pushToast } from '@/lib/toasts';
 import { useFetch } from '@/lib/useFetch';
+import { CloudSignInButton } from '@/pages/packs/CloudSignIn';
 
 const configured = (i: IntegrationSummary) => i.status !== 'not_configured';
 const grantLabel = (g: string) => GRANT_LEVELS.find((l) => l.value === g)?.label ?? g;
@@ -144,6 +145,12 @@ function IntegrationModal({ integration, composioReady, onClose, onChanged }: { 
               {!composioReady && <p class="m-0 text-[12.5px]">Kết nối Composio trước để mở đăng nhập Google.</p>}
               {redirectUrl && <a href={redirectUrl} target="_blank" rel="noopener noreferrer" class="control-button control-accent inline-flex items-center gap-1 no-underline">Mở đăng nhập <ExternalLink size={12} /></a>}
               {composioReady && <button type="button" class="control-button" disabled={!!busy} onClick={() => void checkOAuth()}>{busy === 'check' ? 'Đang xác nhận…' : 'Kiểm tra đăng nhập'}</button>}
+            </div>
+          )}
+          {cur.id === 'agenticos-cloud' && (
+            <div class="flex flex-col gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-border)] p-3">
+              <div class="text-[12.5px]">Nhập địa chỉ cloud bên dưới rồi đăng nhập bằng Google trong trình duyệt; không cần dán mã phiên.</div>
+              <div><CloudSignInButton cloudUrl={values.cloud_url} label={isOn ? 'Đăng nhập cloud lại' : 'Đăng nhập cloud'} onDone={() => { onChanged(); onClose(); }} /></div>
             </div>
           )}
           {cur.fields.map((f) => <FieldInput key={f.key} field={f} value={values[f.key] ?? ''} disabled={!!busy} onChange={(v) => setValues({ ...values, [f.key]: v })} />)}

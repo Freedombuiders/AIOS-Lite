@@ -1,6 +1,6 @@
 import {
   Bot, Brain, Briefcase, Calendar, Cable, ClipboardList, Handshake, LayoutDashboard, Library, Megaphone, MessageSquare, Puzzle,
-  ScrollText, Settings, Sparkles, Workflow, Wand2, Landmark, Gauge, Wallet, Store, Package, Lightbulb, CircleDollarSign,
+  ScrollText, Settings, Sparkles, Workflow, Wand2, Landmark, Gauge, Wallet, Store, Package, Lightbulb, CircleDollarSign, Boxes,
 } from 'lucide-preact';
 import type { LucideIcon } from 'lucide-preact';
 
@@ -19,6 +19,7 @@ export const CORE_NAV: CoreNavItem[] = [
   { label: 'Trò chuyện', path: '/chat', icon: MessageSquare },
   { label: 'Second Brain', path: '/brain', icon: Brain },
   { label: 'Bộ nhớ', path: '/memory', icon: Library },
+  { label: 'Kho dữ liệu', path: '/packs', icon: Boxes },
   { label: 'Skills', path: '/skills', icon: Sparkles },
   { label: 'Chợ Agent', path: '/agent-market', icon: Store },
   { label: 'Gói Team', path: '/teams', icon: Package },
@@ -74,7 +75,7 @@ export const WORK_GROUP: NavGroupDef = {
 export const AGENT_GROUPS: NavGroupDef[] = [
   { id: 'agents', label: 'Đội agent', icon: Bot, defaultOpen: true, items: [byPath('/agents'), byPath('/skills'), byPath('/agent-market'), byPath('/teams'), byPath('/recos')] },
   { id: 'costs', label: 'Chi phí AI', icon: CircleDollarSign, items: [byPath('/usage'), byPath('/budgets')] },
-  { id: 'knowledge', label: 'Tri thức', icon: Brain, items: [byPath('/brain'), byPath('/memory')] },
+  { id: 'knowledge', label: 'Tri thức', icon: Brain, items: [byPath('/brain'), byPath('/memory'), byPath('/packs')] },
 ];
 export const SYSTEM_GROUP: NavGroupDef = { id: 'system', label: 'Hệ thống', icon: Settings, items: BOTTOM_NAV };
 

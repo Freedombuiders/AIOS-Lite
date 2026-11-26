@@ -40,6 +40,8 @@ export interface CloudLoginDeps {
 }
 
 export type CallbackResult = { ok: true; email: string } | { ok: false; message: string };
+/** Outcome of the last sign-in that got past the state check (the page waits for it). */
+export type LastLogin = CallbackResult & { at: number };
 
 const CLOUD_ERRORS: Record<string, string> = {
   access_denied: 'Bạn đã huỷ đăng nhập Google.',
@@ -56,9 +58,20 @@ export function createCloudLogin(deps: CloudLoginDeps) {
   const random = deps.randomBytes ?? crypto.randomBytes;
   const loopback = deps.host === 'localhost' ? 'localhost' : '127.0.0.1';
   const returnUrl = () => `http://${loopback}:${deps.port}${CLOUD_CALLBACK_PATH}`;
+  // only attempts that carried the right state are recorded: a forged callback cannot change what the page shows
+  let last: LastLogin | null = null;
+  const done = (r: CallbackResult): CallbackResult => {
+    last = { ...r, at: now() };
+    return r;
+  };
 
   return {
     returnUrl,
+
+    lastLogin: (): LastLogin | null => last,
+
+    /** true while a sign-in started here is waiting for its callback */
+    pending: (): boolean => Number(deps.store.load(CLOUD_PENDING_ID)?.expires_at) > now(),
 
     /** URL to open in the browser. Uses `cloudUrl`, else the address already saved for the integration. */
     start(cloudUrl?: string): { url: string } {
@@ -85,8 +98,8 @@ export function createCloudLogin(deps: CloudLoginDeps) {
       if (!state || state.length > 200 || expected.length !== 32 || !crypto.timingSafeEqual(hash(state), expected)) return invalid;
       deps.store.remove(CLOUD_PENDING_ID); // used once, whatever happens next
 
-      if (q.error) return { ok: false, message: CLOUD_ERRORS[q.error] ?? 'Cloud từ chối lượt đăng nhập.' };
-      if (!q.code || q.code.length > 200) return invalid;
+      if (q.error) return done({ ok: false, message: CLOUD_ERRORS[q.error] ?? 'Cloud từ chối lượt đăng nhập.' });
+      if (!q.code || q.code.length > 200) return done(invalid);
       try {
         const { token, user } = await exchangeLoginCode({
           baseUrl: pending.cloud_url, code: q.code, state, label: `AIOS-Lite (${os.platform()})`, fetchImpl: deps.fetchImpl,
@@ -96,10 +109,10 @@ export function createCloudLogin(deps: CloudLoginDeps) {
           { cloud_url: pending.cloud_url, session_token: token },
           { ok: true, detail: `Đã kết nối cloud với tài khoản ${user.email}.`, accountLabel: user.email },
         );
-        return { ok: true, email: user.email };
+        return done({ ok: true, email: user.email });
       } catch (e) {
         const known = e instanceof IntegrationApiError || e instanceof IntegrationUsageError;
-        return { ok: false, message: known ? e.message : 'Không đổi được mã đăng nhập lấy phiên.' };
+        return done({ ok: false, message: known ? e.message : 'Không đổi được mã đăng nhập lấy phiên.' });
       }
     },
   };

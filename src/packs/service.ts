@@ -339,7 +339,7 @@ export function createPackService(deps: PackServiceDeps) {
                 kept.push({ path: item.path, reason: item.reason ?? '' });
                 break;
               case 'skip':
-                if (item.reason === REASON.deleted) forgotten.push(item.path);
+                // a note the owner deleted stays recorded, so later updates keep not recreating it
                 skipped.push({ path: item.path, reason: item.reason ?? '' });
                 break;
               case 'same':

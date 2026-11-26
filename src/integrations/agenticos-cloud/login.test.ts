@@ -42,9 +42,14 @@ describe('desktop sign-in to the cloud', () => {
     }
     expect(cloud.calls).toEqual([]);
     expect(store.data.has(CLOUD_INTEGRATION_ID)).toBe(false);
+    // a forged callback is not even recorded as an attempt; the real one is still pending
+    expect(login.lastLogin()).toBeNull();
+    expect(login.pending()).toBe(true);
 
     const ok = await login.callback({ code: cloud.exchange.code, state });
     expect(ok).toEqual({ ok: true, email: cloud.exchange.email });
+    expect(login.lastLogin()).toMatchObject({ ok: true, email: cloud.exchange.email });
+    expect(login.pending()).toBe(false);
     expect(store.data.get(CLOUD_INTEGRATION_ID)).toEqual({ cloud_url: cloud.base, session_token: cloud.exchange.token });
     expect(JSON.parse(cloud.calls[0]!.body!)).toMatchObject({ code: cloud.exchange.code, state, kind: 'machine' });
   });

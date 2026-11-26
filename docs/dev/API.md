@@ -111,6 +111,24 @@ Các kiểu phụ:
 | GET | `/api/brain/search` | `?q=&folders=a,b&limit=` | `{ items: BrainHit[] }` |
 | POST | `/api/brain/reindex` | `{ full?: boolean, folderId?: string }` | `{ indexed, removed, durationMs }` |
 
+## Kho dữ liệu và đăng nhập cloud
+
+Cài gói chỉ là việc chủ làm qua các đường này; không có action nào cho agent. Lưu ý: khi chưa đặt `AIOS_TOKEN`, mọi tiến trình trên máy (kể cả agent có shell) gọi được các đường này, nên đặt `AIOS_TOKEN` nếu chạy agent có shell.
+
+| Method | Path | Body / Query | Trả về |
+|---|---|---|---|
+| GET | `/api/cloud/status` | — | `{ connected, cloudUrl, account, status, returnUrl, pending, lastLogin }` |
+| POST | `/api/cloud/login/start` | `{ cloudUrl? }` | `{ url }`: mở trong trình duyệt (`<cloud>/auth/web/start?return=http://127.0.0.1:<cổng>/api/cloud/callback&state=…`) |
+| GET | `/api/cloud/callback` | `?code=&state=` (hoặc `?error=&state=`) | trang HTML. Không cần `AIOS_TOKEN`; `state` sai thì 400 và không đổi gì |
+| GET | `/api/packs` | `?module=brain\|learn\|dream\|crm` | `{ items: (CloudPack & { installs, updateAvailable })[] }`; 412 khi chưa đăng nhập cloud |
+| GET | `/api/packs/installed` | — | `{ items: InstallRow[] }` |
+| GET | `/api/packs/updates` | — | `{ items: { id, have, latest, update, yanked }[] }` |
+| GET | `/api/packs/:id` | — | chi tiết từ cloud + `installs[]` kèm trạng thái từng file (`unchanged\|edited\|missing`) |
+| POST | `/api/packs/:id/preview` | `{ version, folder }` | `PackPlan` (không ghi gì); 410 khi bản đã bị thu hồi |
+| POST | `/api/packs/:id/install` | `{ version, folder, planId }` | `InstallResult`, một commit; 409 khi brain hoặc gói đổi từ lúc xem trước |
+| POST | `/api/packs/:id/uninstall/preview` | `{ folder }` | `PackPlan` |
+| POST | `/api/packs/:id/uninstall` | `{ folder, planId }` | `InstallResult`, một commit; chỉ xoá file chưa sửa |
+
 ## Bộ nhớ
 
 | Method | Path | Body / Query | Trả về |

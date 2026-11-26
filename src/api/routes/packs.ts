@@ -102,6 +102,8 @@ export function packsRoutes(app: Hono, deps: AppDeps, opts: PacksRouteOptions = 
       account: summary?.accountLabel ?? '',
       status: summary?.status ?? 'not_configured',
       returnUrl: s().login.returnUrl(),
+      pending: s().login.pending(),
+      lastLogin: s().login.lastLogin(),
     });
   });
 

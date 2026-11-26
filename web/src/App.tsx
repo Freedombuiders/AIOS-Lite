@@ -35,6 +35,7 @@ import BudgetsPage from '@/pages/Budgets';
 import TeamsPage from '@/pages/Teams';
 import AgentMarketPage from '@/pages/AgentMarket';
 import RecosPage from '@/pages/Recos';
+import PacksPage from '@/pages/packs/PacksPage';
 
 function NotFound() {
   return (
@@ -120,6 +121,8 @@ export function App() {
             <Route path="/teams" component={TeamsPage} />
             <Route path="/agent-market" component={AgentMarketPage} />
             <Route path="/recos" component={RecosPage} />
+            <Route path="/packs">{() => <PacksPage />}</Route>
+            <Route path="/packs/:id">{(p) => <PacksPage id={p.id} />}</Route>
             {routes.value.map((r) => (
               <Route key={r.path} path={r.path}>{(params) => <ModuleRoute component={r.component} params={params as Record<string, string>} />}</Route>
             ))}
