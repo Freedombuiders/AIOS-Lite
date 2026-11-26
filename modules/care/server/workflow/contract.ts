@@ -17,6 +17,13 @@ export interface CareWorkflowService {
   setAssignee(id: string, change: { kind: 'owner' | 'agent' | 'none' | 'default'; agentId?: string }): CareConversationDto;
   setAiMode(id: string, mode: CareAiMode): CareConversationDto;
   setTakeover(id: string, on: boolean): CareConversationDto;
+  /**
+   * T06 timed pause of the bot in this conversation (care_conversations.is_paused + paused_until). `minutes` null =
+   * until resumed. Queued automatic replies of the bot are cancelled, so nothing stale goes out when the pause ends.
+   */
+  setPause(id: string, minutes: number | null): CareConversationDto;
+  /** Ends a pause now. Does not hand back a taken-over / handed-off conversation (that is setTakeover(id, false)). */
+  resume(id: string): CareConversationDto;
 
   /** Effective-status `open` conversations whose customer waited at least `minWaitMs`, oldest wait first. */
   waiting(opts: { minWaitMs: number; now: number; limit: number }): Array<{ conversation: CareConversationDto; waitingSinceMs: number }>;

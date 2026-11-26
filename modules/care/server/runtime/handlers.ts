@@ -59,12 +59,25 @@ export function createCareHandlers(deps: HandlerDeps): WorkerHandlers {
     }
   };
 
+  /**
+   * T06 debounce: a debounced turn whose conversation already has a LATER turn queued (the customer kept typing) is
+   * done without a model call; the later turn builds its context from the whole burst, so one run answers all of it.
+   */
+  const supersededBy = deps.db.prepare(
+    `SELECT 1 FROM care_jobs
+     WHERE conversation_id = ? AND job_type = 'inbound_turn' AND status IN ('pending','claimed') AND id <> ?
+       AND (due_at > ? OR (due_at = ? AND created_at > ?)) LIMIT 1`,
+  );
+
   const inbound_turn = async (ctx: JobContext): Promise<JobOutcome> => {
-    const payload = ctx.job.payload as { conversationId?: unknown; messageId?: unknown };
+    const payload = ctx.job.payload as { conversationId?: unknown; messageId?: unknown; debounced?: unknown };
     if (typeof payload.conversationId !== 'string' || typeof payload.messageId !== 'string') {
       return { kind: 'fail', error: 'BAD_PAYLOAD' };
     }
     ctx.assertAuthorised();
+    if (payload.debounced === true && supersededBy.get(payload.conversationId, ctx.job.id, ctx.job.dueAtMs, ctx.job.dueAtMs, ctx.job.createdAtMs)) {
+      return { kind: 'done' };
+    }
     try {
       const out = await turn.run({ conversationId: payload.conversationId, triggerMessageId: payload.messageId, trigger: 'inbound' });
       applyAgentTurnEffects(stores, payload.conversationId, out.effects);

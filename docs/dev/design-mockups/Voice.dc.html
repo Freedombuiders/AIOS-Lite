@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Gọi trợ lý</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115;font-family:'Inter',system-ui,'Segoe UI',sans-serif}
+a{color:#8aa3ff}a:hover{color:#a9bbff}
+@keyframes aos-ring{0%{transform:scale(0.72);opacity:0.55}100%{transform:scale(1.5);opacity:0}}
+@keyframes aos-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes aos-bar{0%,100%{transform:scaleY(0.35)}50%{transform:scaleY(1)}}
+@media (prefers-reduced-motion: reduce){.aos-anim{animation:none !important}}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #0f1115; color: #e6e8ee; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+<div style="flex: 0 0 232px"><dc-import name="Sidebar" active="voice" hint-size="232px,100vh"></dc-import></div>
+
+<div style="flex: 999 1 560px; min-width: 0; min-height: 100vh; display: flex; flex-direction: column; background: radial-gradient(ellipse at 38% 42%, #1b2140 0%, #0f1115 58%)">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 24px">
+<h1 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 20px; font-weight: 700">Gọi trợ lý</h1>
+<span style="display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 12px; border: 1px solid #353c4a; border-radius: 999px; background: rgba(23,26,33,0.8); font-size: 13px"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: {{dot}}"></span>{{status}}</span>
+<span style="color: #9aa3b2">Nói như nói với người. Ngắt lời lúc nào cũng được.</span>
+<a href="Main.dc.html" style="margin-left: auto; display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid rgba(240,100,122,0.6); border-radius: 10px; color: #f0647a; font-weight: 600; text-decoration: none">Kết thúc cuộc gọi</a>
+</header>
+
+<main style="flex: 1 1 auto; box-sizing: border-box; padding: 8px 24px 20px; display: flex; flex-wrap: wrap; gap: 24px; align-items: stretch">
+
+<section aria-label="Trợ lý đang nói" style="flex: 1.3 1 420px; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; padding: 12px 0">
+
+<div aria-hidden="true" style="position: relative; width: 300px; height: 300px; display: flex; align-items: center; justify-content: center">
+<div class="aos-anim" style="position: absolute; left: 30px; top: 30px; width: 240px; height: 240px; border-radius: 999px; border: 2px solid {{glow}}; animation: aos-ring 2.8s ease-out infinite; animation-play-state: {{play}}"></div>
+<div class="aos-anim" style="position: absolute; left: 30px; top: 30px; width: 240px; height: 240px; border-radius: 999px; border: 2px solid {{glow}}; animation: aos-ring 2.8s ease-out 0.93s infinite; animation-play-state: {{play}}"></div>
+<div class="aos-anim" style="position: absolute; left: 30px; top: 30px; width: 240px; height: 240px; border-radius: 999px; border: 2px solid {{glow}}; animation: aos-ring 2.8s ease-out 1.86s infinite; animation-play-state: {{play}}"></div>
+<div class="aos-anim" style="width: 176px; height: 176px; border-radius: 999px; background: radial-gradient(circle at 35% 30%, #dfe6ff 0%, {{core}} 38%, #1c2a6b 100%); box-shadow: 0 0 70px {{glow}}, inset 0 0 30px rgba(255,255,255,0.18); animation: aos-breathe 3.2s ease-in-out infinite; animation-play-state: {{play}}; display: flex; align-items: center; justify-content: center; gap: 6px">
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="7">
+<span class="aos-anim" style="width: 6px; height: {{b.h}}px; border-radius: 999px; background: rgba(11,16,32,0.72); animation: aos-bar 0.9s ease-in-out {{b.delay}}s infinite; animation-play-state: {{b.play}}"></span>
+</sc-for>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; max-width: 520px">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; color: #a9bbff">{{speaker}}</span>
+<p style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 22px; font-weight: 500; line-height: 1.45">{{line}}</p>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px">
+<button type="button" aria-pressed="{{muted}}" onClick="{{toggleMute}}" style="display: inline-flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 18px; border: 1px solid #353c4a; border-radius: 999px; background: {{muteBg}}; color: {{muteFg}}; font: inherit; font-weight: 600; cursor: pointer"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>{{muteLabel}}</button>
+<button type="button" style="display: inline-flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 18px; border: 1px solid #353c4a; border-radius: 999px; background: rgba(23,26,33,0.85); color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer">Giọng: nữ miền Bắc</button>
+<a href="Chat.dc.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 18px; border: 1px solid #353c4a; border-radius: 999px; background: rgba(23,26,33,0.85); color: #e6e8ee; font-weight: 600; text-decoration: none">Chuyển sang gõ</a>
+</div>
+</section>
+
+<aside aria-label="Cuộc gọi đang làm gì" style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+
+<section aria-labelledby="dang-hien" style="background: rgba(23,26,33,0.92); border: 1px solid rgba(199,155,255,0.4); border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 8px">
+<h2 id="dang-hien" style="margin: 0; flex: 1 1 auto; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 15px; font-weight: 600">Trợ lý đang đưa lên cho bạn</h2>
+<span style="font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: rgba(199,155,255,0.16); color: #c79bff">Tin nháp · Zalo</span>
+</div>
+<span style="font-weight: 600">Trả lời chị Lan về giá sỉ 60 hộp</span>
+<p style="margin: 0; color: #c9ced9">Ô long sen hộp 200 g giá sỉ 260 nghìn một hộp chị ạ. Đơn từ 50 hộp giảm 8%, nên 60 hộp là 14.352.000đ. Nếu chị làm đại lý cấp 2 thì chiết khấu 10%. Hàng giao toàn quốc trong 3 ngày.</p>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+<button type="button" style="min-height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: #6d8dff; color: #0b1020; font: inherit; font-weight: 600; cursor: pointer">Gửi</button>
+<a href="Inbox.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; color: #e6e8ee; font-weight: 600; text-decoration: none">Mở trong Hộp thư</a>
+<span style="font-size: 13px; color: #9aa3b2">hoặc nói "gửi đi"</span>
+</div>
+</section>
+
+<section aria-labelledby="da-lam" style="background: rgba(23,26,33,0.92); border: 1px solid #272c37; border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+<h2 id="da-lam" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 15px; font-weight: 600">Trong cuộc gọi này</h2>
+<sc-for list="{{steps}}" as="s" hint-placeholder-count="4">
+<div style="display: flex; align-items: flex-start; gap: 10px">
+<span aria-hidden="true" style="flex: 0 0 8px; height: 8px; margin-top: 6px; border-radius: 999px; background: {{s.c}}"></span>
+<div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column"><span>{{s.text}}</span><span style="font-size: 12px; color: #9aa3b2">{{s.who}}</span></div>
+</div>
+</sc-for>
+</section>
+
+<section aria-labelledby="noi-thu" style="border: 1px dashed #353c4a; border-radius: 16px; padding: 14px 18px; display: flex; flex-direction: column; gap: 8px">
+<h2 id="noi-thu" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 15px; font-weight: 600">Thử nói</h2>
+<span style="color: #c9ced9">"Hôm nay có gì cần mình xử lý?"</span>
+<span style="color: #c9ced9">"Mở khách tốt nhất lên."</span>
+<span style="color: #c9ced9">"Bot Nội dung ơi, viết bài về giá sỉ, đăng thứ Bảy."</span>
+<span style="font-size: 13px; color: #9aa3b2">Gọi tên bot để giao việc. Việc lâu thì bot chạy nền, xong sẽ báo lại. Gửi tin và đăng bài luôn chờ bạn xác nhận.</span>
+</section>
+
+</aside>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var self = this;
+    var muted = !!(this.state && this.state.muted);
+    var heights = [22, 46, 30, 62, 34, 50, 24];
+    return {
+      muted: muted,
+      toggleMute: function () { self.setState({ muted: !muted }); },
+      muteLabel: muted ? 'Đang tắt mic' : 'Mic đang bật',
+      muteBg: muted ? 'rgba(240,100,122,0.16)' : 'rgba(23,26,33,0.85)',
+      muteFg: muted ? '#f0647a' : '#e6e8ee',
+      status: muted ? 'Tạm dừng nghe' : 'Trợ lý đang nói',
+      dot: muted ? '#f0b24a' : '#46c28a',
+      play: muted ? 'paused' : 'running',
+      core: muted ? '#697386' : '#6d8dff',
+      glow: muted ? 'rgba(154,163,178,0.35)' : 'rgba(109,141,255,0.55)',
+      speaker: muted ? 'ĐANG TẠM DỪNG' : 'TRỢ LÝ',
+      line: muted
+        ? 'Mic đang tắt. Bấm lại để nói tiếp.'
+        : 'Chị Lan đang chờ báo giá 60 hộp ô long sen. Tôi soạn sẵn rồi, bạn nghe qua nhé.',
+      bars: heights.map(function (h, i) {
+        return { h: h, delay: (i * 0.11).toFixed(2), play: muted ? 'paused' : 'running' };
+      }),
+      steps: [
+        { text: 'Bạn hỏi: hôm nay có gì cần xử lý?', who: 'Trợ lý trả lời ngay, không cần gọi bot', c: '#6d8dff' },
+        { text: 'Đọc Hôm nay: 4 việc đang chờ', who: 'Tra số liệu trong máy, chỉ đọc', c: '#46c28a' },
+        { text: 'Mở Hộp thư, cuộc chat với chị Lan', who: 'Tự chuyển màn hình theo lời nói', c: '#46c28a' },
+        { text: 'Đọc bản nháp của Bot CSKH', who: 'Chờ bạn nói "gửi đi" hoặc bấm Gửi', c: '#c79bff' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Vòng học · Sổ bài học</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115;font-family:'Inter',system-ui,'Segoe UI',sans-serif}
+a{color:#8aa3ff}a:hover{color:#a9bbff}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #0f1115; color: #e6e8ee; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+<div style="flex: 0 0 232px"><dc-import name="Sidebar" active="learn" hint-size="232px,100vh"></dc-import></div>
+
+<div style="flex: 999 1 560px; min-width: 0; min-height: 100vh; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid #272c37">
+<h1 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 20px; font-weight: 700">Vòng học</h1>
+<nav aria-label="Các phần của vòng học" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #171a21; border: 1px solid #272c37; border-radius: 10px">
+<a href="Loop.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Tổng quan</a>
+<a href="Playbook.dc.html" aria-current="page" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; background: #6d8dff; color: #0b1020; font-weight: 600; text-decoration: none">Sổ bài học</a>
+<a href="Learn.dc.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Chờ duyệt<span style="background: rgba(199,155,255,0.16); color: #c79bff; font-size: 12px; padding: 1px 8px; border-radius: 999px">2</span></a>
+<a href="Weekly.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Tổng kết tuần</a>
+</nav>
+<span style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; color: #9aa3b2">brain/tra-sen-viet/bai-hoc/</span>
+<button type="button" style="margin-left: auto; min-height: 44px; padding: 0 16px; border: 0; border-radius: 10px; background: #6d8dff; color: #0b1020; font: inherit; font-weight: 600; cursor: pointer">Thêm giả thuyết</button>
+</header>
+
+<main style="flex: 1 1 auto; box-sizing: border-box; padding: 18px 24px; display: flex; flex-direction: column; gap: 14px">
+
+<div role="group" aria-label="Lọc theo mảng" style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" aria-pressed="true" style="min-height: 44px; padding: 0 14px; border: 1px solid #6d8dff; border-radius: 999px; background: rgba(109,141,255,0.16); color: #a9bbff; font: inherit; font-weight: 600; cursor: pointer">Tất cả · 8</button>
+<button type="button" aria-pressed="false" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 999px; background: transparent; color: #e6e8ee; font: inherit; cursor: pointer">Nội dung · 5</button>
+<button type="button" aria-pressed="false" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 999px; background: transparent; color: #e6e8ee; font: inherit; cursor: pointer">Chăm khách · 2</button>
+<button type="button" aria-pressed="false" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 999px; background: transparent; color: #e6e8ee; font: inherit; cursor: pointer">Quảng cáo · 1</button>
+</div>
+
+<section aria-label="Bài học theo trạng thái" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr)); gap: 12px; align-items: start">
+
+<div style="background: #12151a; border: 1px solid #272c37; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-direction: column"><div style="display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: #f0b24a"></span><h2 style="margin: 0; font-size: 14px; font-weight: 600">Giả thuyết</h2><span style="font-size: 13px; color: #9aa3b2">2</span></div><span style="font-size: 12px; color: #9aa3b2">Bot mới để ý, chưa đủ bằng chứng</span></div>
+<sc-for list="{{guess}}" as="k" hint-placeholder-count="2">
+<div style="background: #171a21; border: 1px solid #272c37; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-weight: 600">{{k.text}}</span><span style="font-size: 13px; color: #9aa3b2">{{k.proof}}</span><span style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px"><span style="padding: 1px 8px; border-radius: 999px; background: rgba(255,255,255,0.07); color: #c9ced9">{{k.area}}</span><span style="color: #9aa3b2">{{k.bot}}</span></span></div>
+</sc-for>
+</div>
+
+<div style="background: #12151a; border: 1px solid #272c37; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-direction: column"><div style="display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: #6d8dff"></span><h2 style="margin: 0; font-size: 14px; font-weight: 600">Đang thử</h2><span style="font-size: 13px; color: #9aa3b2">2</span></div><span style="font-size: 12px; color: #9aa3b2">Bot cố ý làm theo để xem có đúng không</span></div>
+<sc-for list="{{testing}}" as="k" hint-placeholder-count="2">
+<div style="background: #171a21; border: 1px solid #272c37; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-weight: 600">{{k.text}}</span><span style="font-size: 13px; color: #9aa3b2">{{k.proof}}</span><span style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px"><span style="padding: 1px 8px; border-radius: 999px; background: rgba(255,255,255,0.07); color: #c9ced9">{{k.area}}</span><span style="color: #9aa3b2">{{k.bot}}</span></span></div>
+</sc-for>
+</div>
+
+<div style="background: #12151a; border: 1px solid rgba(70,194,138,0.4); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-direction: column"><div style="display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: #46c28a"></span><h2 style="margin: 0; font-size: 14px; font-weight: 600">Đã kiểm chứng</h2><span style="font-size: 13px; color: #9aa3b2">3</span></div><span style="font-size: 12px; color: #9aa3b2">Bot luôn làm theo khi viết và trả lời</span></div>
+<sc-for list="{{proven}}" as="k" hint-placeholder-count="3">
+<div style="background: #171a21; border: 1px solid #272c37; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-weight: 600">{{k.text}}</span><span style="font-size: 13px; color: #9aa3b2">{{k.proof}}</span><span style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px"><span style="padding: 1px 8px; border-radius: 999px; background: rgba(255,255,255,0.07); color: #c9ced9">{{k.area}}</span><span style="color: #9aa3b2">{{k.bot}}</span></span></div>
+</sc-for>
+</div>
+
+<div style="background: #12151a; border: 1px solid #272c37; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-direction: column"><div style="display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: #697386"></span><h2 style="margin: 0; font-size: 14px; font-weight: 600">Bị bác bỏ</h2><span style="font-size: 13px; color: #9aa3b2">1</span></div><span style="font-size: 12px; color: #9aa3b2">Đã thử, không đúng. Giữ lại để khỏi thử lại</span></div>
+<sc-for list="{{rejected}}" as="k" hint-placeholder-count="1">
+<div style="background: #171a21; border: 1px solid #272c37; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-weight: 600; color: #c9ced9">{{k.text}}</span><span style="font-size: 13px; color: #9aa3b2">{{k.proof}}</span><span style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px"><span style="padding: 1px 8px; border-radius: 999px; background: rgba(255,255,255,0.07); color: #c9ced9">{{k.area}}</span><span style="color: #9aa3b2">{{k.bot}}</span></span></div>
+</sc-for>
+</div>
+
+</section>
+
+<div style="border: 1px dashed #353c4a; border-radius: 14px; padding: 14px 18px; display: flex; flex-wrap: wrap; gap: 20px">
+<div style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600">Lên hạng thế nào</span><span style="font-size: 13px; color: #9aa3b2">Giả thuyết cần ít nhất 3 bằng chứng mới được đem thử. Thử xong đạt thì thành Đã kiểm chứng, và chỉ khi bạn bấm duyệt.</span></div>
+<div style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600">Bằng chứng là gì</span><span style="font-size: 13px; color: #9aa3b2">Mỗi bằng chứng là một liên kết tới ghi chú thật: một bài đăng có số đo, hoặc một cuộc chat. Bấm vào thẻ để xem.</span></div>
+<div style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600">Bài học cũ có hết hạn không</span><span style="font-size: 13px; color: #9aa3b2">Bài học đã kiểm chứng mà 5 bài gần nhất làm theo đều thấp hơn trung vị thì tự quay về Đang thử.</span></div>
+</div>
+
+</main>
+
+<dc-import name="ChatBar" ask="Ví dụ: thêm giả thuyết: bài đăng buổi sáng thứ Bảy có nhiều người nhắn Zalo hơn" hint-size="100%,72px"></dc-import>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      guess: [
+        { text: 'Bài về chính sách đại lý ít người thấy nhưng kéo nhiều tin Zalo', proof: '2 bài · cần thêm 1 bằng chứng nữa mới thử', area: 'Nội dung', bot: 'Bot Nội dung để ý' },
+        { text: 'Quảng cáo dùng lại video có ER cao thì giá mỗi khách thấp hơn', proof: '1 chiến dịch · Quà Tết dùng video ướp trà', area: 'Quảng cáo', bot: 'Bot Trợ lý để ý' }
+      ],
+      testing: [
+        { text: 'Mở đầu bằng câu hỏi giữ người xem lâu hơn mở đầu bằng tên sản phẩm', proof: 'Đã thử 2/4 bài · cả hai cao hơn trung vị', area: 'Nội dung', bot: 'Bot Nội dung đang thử' },
+        { text: 'Gọi khách lớn tuổi là cô, chú thì khách trả lời lại nhiều hơn', proof: 'Đã thử 9/15 cuộc chat', area: 'Chăm khách', bot: 'Bot CSKH đang thử' }
+      ],
+      proven: [
+        { text: 'Video hướng dẫn dưới 45 giây có ER cao gấp rưỡi ảnh sản phẩm', proof: '5 bài · video 6,6% so với ảnh 3,9%', area: 'Nội dung', bot: 'Bot Nội dung dùng' },
+        { text: 'Đăng lúc 19 giờ thứ Ba và thứ Năm', proof: '6 bài · ER 6,3 đến 6,8% trong khung này', area: 'Nội dung', bot: 'Bot Nội dung dùng' },
+        { text: 'Khách hỏi sỉ: báo giá kèm luôn mức chiết khấu đại lý thì khách ít phải hỏi lại', proof: '11 cuộc chat', area: 'Chăm khách', bot: 'Bot CSKH dùng' }
+      ],
+      rejected: [
+        { text: 'Bài dài trên 200 chữ được chia sẻ nhiều hơn', proof: 'Thử 4 bài · tỷ lệ chia sẻ không khác bài ngắn', area: 'Nội dung', bot: 'Bác bỏ 20/11' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

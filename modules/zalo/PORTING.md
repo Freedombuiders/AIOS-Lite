@@ -164,3 +164,11 @@ Rules applied: DECISIONS §1 (drop care-fence), §2 (drop the AI path; daemon-ca
 
 - `src/modules/compat`: a `bindDaemonCompat(dbPath)` helper would remove `server/daemon-bind.ts` (the only file importing `src/core/*`). Until then the file stays and is documented.
 - `docs/dev/port/zalo.json`: entries above (customer-care-types, customer-care.test, zalo-outbox.test, ZaloAssignmentEditor) should be moved to `drop` so the manifest matches the module.
+
+## T05: chat-only by default
+
+- `marketingEnabled` defaults to `false` in `module.json`, in `index.ts` (`marketingOn`), in the supervisor env (read at every spawn) and in `daemon.ts` (only `ZALO_MARKETING_ENABLED=1` starts the workers). Installs from before the change that already hold marketing data keep it on (`adoptLegacyMarketingSetting`).
+- `ingest.ts` no longer imports `birthday.ts`: the birth-date hook is the optional `IngestContext.onContactSeen`, wired by `daemon.ts`.
+- `ZaloSender` takes `marketingEnabled`; with it off every `bulk` send is refused with `MARKETING_OFF`, which the three workers treat as a nick-level wait (rows stay pending).
+- Marketing routes are gated by `ZALO_MARKETING_PATHS` in `dashboard-routes.ts` (404 when off). `architecture.test.ts` fails if a chat-core file reaches a marketing file.
+

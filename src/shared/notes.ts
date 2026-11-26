@@ -107,10 +107,11 @@ export interface NotesService {
   /** Whole-file write (the note editor). Creates a missing file; an existing one needs an expectation or overwrite. */
   write(ref: NoteRef, content: string, opts: UpdateOpts): Note;
   /**
-   * Delete a note. Like write, it needs the version the caller saw (expectHash / expectMtimeMs) or overwrite: true.
-   * false when the file is already gone (and no expectation was given).
+   * Delete the note (indexed out, event, commit of the removal). Like write, it needs the version the caller
+   * saw (expectHash / expectMtimeMs) or overwrite: true. Already gone: NoteConflictError when an expectation was
+   * given (someone else deleted it), NoteNotFoundError otherwise. Past git commits keep the old content.
    */
-  remove(ref: NoteRef, opts: UpdateOpts): boolean;
+  remove(ref: NoteRef, opts: UpdateOpts): void;
   /** Notes in the same folder that link here with [[slug]] (from brain_links). */
   backlinks(ref: NoteRef): NoteRef[];
   /** Git history of the note, newest first; [] when the folder is not a git repo. */
@@ -477,15 +478,16 @@ export function createNotes(deps: NotesDeps): Notes {
         const r = resolve(ref);
         guardWrite(ref, r.rel);
         const cur = current(r.abs);
+        // gone: a conflict when the caller expected a version (deleted elsewhere), else not found
         checkExpected(cur, opts, ref);
-        if (!cur) return false;
-        // re-check right before unlinking: a change since we read it is a conflict
+        if (!cur) throw new NoteNotFoundError(ref);
+        // re-check right before unlinking: a symlinked parent or a change since we read it is refused
         checkSegments(r.root, r.rel);
         const now = current(r.abs);
-        if (!now || now.hash !== cur.hash) throw new NoteConflictError();
+        if (now?.hash !== cur.hash || now.st.mtimeMs !== cur.st.mtimeMs) throw new NoteConflictError();
         fs.unlinkSync(r.abs);
+        ownWrites.delete(ownKey(ref.folderId, r.rel));
         changed(ref, r, opts.message);
-        return true;
       },
 
       backlinks(ref) {

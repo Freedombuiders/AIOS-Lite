@@ -28,6 +28,7 @@
 |---|---|---|---|
 | GET | `/api/health` | — | `{ ok: true, version: string, uptimeSec: number }` |
 | GET | `/api/runtimes` | `?probe=1` để gửi thử "hello" | `{ items: (DoctorReport & { label: string; capabilities: RuntimeCapabilities })[] }` |
+| POST | `/api/runtimes/genbot/check` | `{ agentId?: string; runtimeOptions?: Record<string, string \| number \| boolean>; probe?: boolean }`: kiểm cấu hình GenBot của một agent (giá trị trên form thắng giá trị đã lưu); `probe` gửi một tin thật | `DoctorReport`; 404 nếu `agentId` lạ |
 | GET | `/api/stats` | — | `StatsService.overview()` |
 | GET | `/api/attention` | — | `{ items: AttentionItem[] }` |
 | POST | `/api/attention/:key/resolve` | — | `{ ok: true }` |

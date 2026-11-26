@@ -2,6 +2,7 @@
 // core/comments/analytics/shared; the handle comes from compat getDb(), never opened here.
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { applyMigrations } from '../../../src/core/db.js';
 import { getDb, _initTestDatabase as initCompatDatabase } from '../../../src/modules/compat/index.js';
 
 const db = new Proxy({} as ReturnType<typeof getDb>, {
@@ -11,10 +12,15 @@ const db = new Proxy({} as ReturnType<typeof getDb>, {
     return typeof v === 'function' ? (v as (...a: unknown[]) => unknown).bind(real) : v;
   },
 });
-/** Test helper: a fresh in-memory database with the core schema plus this module's tables. */
+/**
+ * Test helper: a database with the core schema plus this module's tables, every migration applied in
+ * name order like the module manager does. Opening an existing file again only applies what is missing.
+ */
 export function _initTestDatabase(databasePath = ':memory:'): void {
   initCompatDatabase(databasePath);
-  getDb().exec(fs.readFileSync(fileURLToPath(new URL('../migrations/001_init.sql', import.meta.url)), 'utf8'));
+  const dir = fileURLToPath(new URL('../migrations/', import.meta.url));
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith('.sql')).sort();
+  applyMigrations(getDb(), 'marketing', files.map((f) => ({ id: f.replace(/\.sql$/, ''), sql: fs.readFileSync(dir + f, 'utf8') })));
 }
 
 const nowSec = (): number => Math.floor(Date.now() / 1000);
@@ -105,6 +111,12 @@ export interface FbContentRow {
   feedback: string;
   source: string;
   origin: string;
+  /** Lineage: written once by insertFbContent, never by updateFbContentFields. */
+  idea_id: string | null;
+  formula_slug: string | null;
+  formula_version: number | null;
+  source_video_slug: string | null;
+  expected_ratio: number | null;
   created_at: number;
   updated_at: number;
 }
@@ -132,6 +144,10 @@ const FB_CONTENT_EDITABLE = new Set([
   'media_json', 'status', 'scheduled_at', 'published_at', 'fb_post_id', 'permalink', 'published_as', 'attempts',
   'next_attempt_at', 'last_error', 'feedback', 'source',
 ]);
+
+/** Lineage columns: accepted when a row is inserted, ignored by every update. */
+export const FB_CONTENT_LINEAGE_COLUMNS = ['idea_id', 'formula_slug', 'formula_version', 'source_video_slug', 'expected_ratio'] as const;
+const FB_CONTENT_INSERTABLE = new Set([...FB_CONTENT_EDITABLE, ...FB_CONTENT_LINEAGE_COLUMNS]);
 
 function fbSetClause(patch: Record<string, unknown>, allowed: Set<string>): { sql: string; values: unknown[] } {
   const keys = Object.keys(patch).filter((k) => allowed.has(k) && patch[k] !== undefined);
@@ -192,7 +208,7 @@ export function expireFbPagesForConnection(connectionId: string): string[] {
 
 export function insertFbContent(row: Partial<Omit<FbContentRow, 'id' | 'created_at' | 'updated_at'>>): number {
   const now = nowSec();
-  const keys = Object.keys(row).filter((k) => FB_CONTENT_EDITABLE.has(k) && (row as Record<string, unknown>)[k] !== undefined);
+  const keys = Object.keys(row).filter((k) => FB_CONTENT_INSERTABLE.has(k) && (row as Record<string, unknown>)[k] !== undefined);
   const cols = [...keys, 'created_at', 'updated_at'];
   const values = [...keys.map((k) => (row as Record<string, unknown>)[k]), now, now];
   const res = db.prepare(`INSERT INTO fb_content (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`).run(...values);
@@ -874,18 +890,39 @@ export interface FbPostMetricsRow {
   raw_json: string;
 }
 
-export function upsertFbPostMetrics(row: FbPostMetricsRow): void {
-  db.prepare(
-    `INSERT INTO fb_post_metrics (post_id, page_id, milestone, captured_at, reach, impressions, reactions, comments, shares,
-       clicks, video_views_3s, avg_watch_s, video_length_s, follows, saves, raw_json)
-     VALUES (@post_id, @page_id, @milestone, @captured_at, @reach, @impressions, @reactions, @comments, @shares,
-       @clicks, @video_views_3s, @avg_watch_s, @video_length_s, @follows, @saves, @raw_json)
-     ON CONFLICT(post_id, milestone) DO UPDATE SET
-       captured_at = excluded.captured_at, reach = excluded.reach, impressions = excluded.impressions,
-       reactions = excluded.reactions, comments = excluded.comments, shares = excluded.shares, clicks = excluded.clicks,
-       video_views_3s = excluded.video_views_3s, avg_watch_s = excluded.avg_watch_s, video_length_s = excluded.video_length_s,
-       follows = excluded.follows, saves = excluded.saves, raw_json = excluded.raw_json`,
-  ).run(row);
+const FB_METRIC_VALUE_COLUMNS = [
+  'reach', 'impressions', 'reactions', 'comments', 'shares', 'clicks', 'video_views_3s', 'avg_watch_s', 'video_length_s', 'follows', 'saves',
+] as const;
+
+/**
+ * Writes one snapshot (one row per post and milestone). When a metric value is new or
+ * different, a 'snapshot' feed event is appended in the same transaction; an upsert that
+ * only repeats the stored numbers (a later capture, same values) adds none. Returns
+ * whether the numbers changed.
+ */
+export function upsertFbPostMetrics(row: FbPostMetricsRow): boolean {
+  return db.transaction((): boolean => {
+    const prev = db.prepare(
+      `SELECT ${FB_METRIC_VALUE_COLUMNS.join(', ')} FROM fb_post_metrics WHERE post_id = ? AND milestone = ?`,
+    ).get(row.post_id, row.milestone) as Record<string, number | null> | undefined;
+    db.prepare(
+      `INSERT INTO fb_post_metrics (post_id, page_id, milestone, captured_at, reach, impressions, reactions, comments, shares,
+         clicks, video_views_3s, avg_watch_s, video_length_s, follows, saves, raw_json)
+       VALUES (@post_id, @page_id, @milestone, @captured_at, @reach, @impressions, @reactions, @comments, @shares,
+         @clicks, @video_views_3s, @avg_watch_s, @video_length_s, @follows, @saves, @raw_json)
+       ON CONFLICT(post_id, milestone) DO UPDATE SET
+         captured_at = excluded.captured_at, reach = excluded.reach, impressions = excluded.impressions,
+         reactions = excluded.reactions, comments = excluded.comments, shares = excluded.shares, clicks = excluded.clicks,
+         video_views_3s = excluded.video_views_3s, avg_watch_s = excluded.avg_watch_s, video_length_s = excluded.video_length_s,
+         follows = excluded.follows, saves = excluded.saves, raw_json = excluded.raw_json`,
+    ).run(row);
+    const changed = !prev || FB_METRIC_VALUE_COLUMNS.some((c) => (prev[c] ?? null) !== ((row as unknown as Record<string, number | null | undefined>)[c] ?? null));
+    if (changed) {
+      const owner = contentIdForPost(row.post_id);
+      if (owner !== undefined) appendFbContentFeed('snapshot', owner, row.post_id, row.milestone);
+    }
+    return changed;
+  })();
 }
 
 /** Every snapshot of the Page's posts published at or after `sinceSec`. */
@@ -1072,4 +1109,141 @@ export function getFbOverviewLastFetchAt(): number | null {
 /** Pages shown as zero-post rows in the overview: the connected ones. */
 export function listFbOverviewPages(): { id: string; name: string; enabled: number }[] {
   return db.prepare(`SELECT id, name, enabled FROM fb_pages ORDER BY name`).all() as { id: string; name: string; enabled: number }[];
+}
+
+// @fbstudio-db:lineage — reconciliation of a published post and the durable content feed (T14a)
+
+export type FbContentFeedKind = 'published' | 'snapshot';
+
+export interface FbContentFeedRow {
+  id: number;
+  kind: FbContentFeedKind;
+  content_id: number;
+  post_id: string | null;
+  milestone: string | null;
+  at: number;
+}
+
+/** The content row that holds a Facebook post id (fb_post_id is unique). */
+function contentIdForPost(postId: string): number | undefined {
+  return (db.prepare(`SELECT id FROM fb_content WHERE fb_post_id = ?`).get(postId) as { id: number } | undefined)?.id;
+}
+
+/** Appends one feed event. Callers run it inside the transaction that made the change. */
+function appendFbContentFeed(kind: FbContentFeedKind, contentId: number, postId: string | null, milestone: string | null): void {
+  db.prepare(`INSERT INTO fb_content_feed (kind, content_id, post_id, milestone, at) VALUES (?, ?, ?, ?, ?)`)
+    .run(kind, contentId, postId, milestone, nowSec());
+}
+
+/** Feed events with id > cursor, oldest first. */
+export function listFbContentFeedSince(cursor: number, limit: number): FbContentFeedRow[] {
+  return db.prepare(`SELECT * FROM fb_content_feed WHERE id > ? ORDER BY id ASC LIMIT ?`).all(cursor, limit) as FbContentFeedRow[];
+}
+
+/** A 'snapshot' event for the row's owner for every milestone already stored for the post. */
+function replayFbSnapshots(contentId: number, postId: string): void {
+  const rows = db.prepare(`SELECT milestone FROM fb_post_metrics WHERE post_id = ? ORDER BY captured_at, milestone`).all(postId) as Array<{ milestone: string }>;
+  for (const r of rows) appendFbContentFeed('snapshot', contentId, postId, r.milestone);
+}
+
+type FbPostIdClaim = { kind: 'free' } | { kind: 'merged'; fromId: number } | { kind: 'taken'; byId: number };
+
+/**
+ * Makes `postId` available to row `contentId`. When analytics imported the post before
+ * the studio row stored its id, the imported duplicate is deleted and its classification
+ * and permalink fill the original's empty fields. Snapshots are keyed by the Facebook post
+ * id, so the metrics recorded against the duplicate belong to the original from then on.
+ * Another studio row holding the id is never touched ('taken'). Run inside a transaction.
+ */
+function claimFbPostId(contentId: number, postId: string): FbPostIdClaim {
+  const dup = db.prepare(
+    `SELECT id, origin, pillar, hook_type, permalink, published_at FROM fb_content WHERE fb_post_id = ? AND id <> ?`,
+  ).get(postId, contentId) as { id: number; origin: string; pillar: string; hook_type: string; permalink: string; published_at: number | null } | undefined;
+  if (!dup) return { kind: 'free' };
+  if (dup.origin !== 'imported') return { kind: 'taken', byId: dup.id };
+  db.prepare(`DELETE FROM fb_content WHERE id = ?`).run(dup.id);
+  db.prepare(
+    `UPDATE fb_content SET pillar = CASE WHEN pillar = '' THEN ? ELSE pillar END,
+       hook_type = CASE WHEN hook_type = '' THEN ? ELSE hook_type END,
+       permalink = CASE WHEN permalink = '' THEN ? ELSE permalink END,
+       published_at = COALESCE(published_at, ?)
+     WHERE id = ?`,
+  ).run(dup.pillar, dup.hook_type, dup.permalink, dup.published_at, contentId);
+  return { kind: 'merged', fromId: dup.id };
+}
+
+export interface FbPublishedResult {
+  /** False when the row was no longer 'publishing' (nothing was written). */
+  saved: boolean;
+  /** The Facebook id stored on the row (null when unknown or held by another studio row). */
+  postId: string | null;
+  /** Id of the imported duplicate merged into this row, if any. */
+  mergedFrom: number | null;
+  /** Id of another studio row that already holds the Facebook id, if any. */
+  conflictWith: number | null;
+}
+
+/**
+ * Publisher success path, in one transaction: takes the Facebook id over from an imported
+ * duplicate if analytics got there first, marks the row published, and appends the
+ * 'published' event (plus a 'snapshot' event per milestone already measured, when a
+ * duplicate was merged). Only applies while the row is still 'publishing'.
+ */
+export function markFbContentPublished(
+  id: number,
+  done: { published_at: number; fb_post_id: string | null; permalink: string; published_as: string; last_error: string },
+): FbPublishedResult {
+  return db.transaction((): FbPublishedResult => {
+    const current = db.prepare(`SELECT status FROM fb_content WHERE id = ?`).get(id) as { status: string } | undefined;
+    if (current?.status !== 'publishing') return { saved: false, postId: null, mergedFrom: null, conflictWith: null };
+    let postId = done.fb_post_id;
+    let mergedFrom: number | null = null;
+    let conflictWith: number | null = null;
+    let lastError = done.last_error;
+    if (postId) {
+      const claim = claimFbPostId(id, postId);
+      if (claim.kind === 'merged') mergedFrom = claim.fromId;
+      if (claim.kind === 'taken') {
+        conflictWith = claim.byId;
+        postId = null;
+        lastError = `Đã đăng nhưng mã bài ${done.fb_post_id} trên Facebook đang gắn với bài #${claim.byId} trong Kho nội dung.`;
+      }
+    }
+    updateFbContentFields(id, { ...done, status: 'published', next_attempt_at: null, fb_post_id: postId, last_error: lastError }, ['publishing']);
+    appendFbContentFeed('published', id, postId, null);
+    if (mergedFrom !== null && postId) replayFbSnapshots(id, postId);
+    return { saved: true, postId, mergedFrom, conflictWith };
+  })();
+}
+
+/**
+ * Repairs rows left by versions before T14a: a studio post published with fb_post_id = null
+ * because analytics had already imported it. The id comes from the row's last successful
+ * publish log; the imported duplicate (if any) is merged into the original as above.
+ * Idempotent. Returns what was repaired.
+ */
+export function repairUnlinkedFbPublishes(): Array<{ contentId: number; postId: string; mergedFrom: number | null }> {
+  const rows = db.prepare(
+    `SELECT c.id,
+            (SELECT l.detail FROM fb_publish_log l
+              WHERE l.content_id = c.id AND l.action = 'publish' AND l.ok = 1 AND l.detail <> ''
+              ORDER BY l.created_at DESC, l.id DESC LIMIT 1) AS post_id
+       FROM fb_content c
+      WHERE c.status = 'published' AND c.fb_post_id IS NULL AND c.origin <> 'imported'
+      ORDER BY c.id`,
+  ).all() as Array<{ id: number; post_id: string | null }>;
+  const repaired: Array<{ contentId: number; postId: string; mergedFrom: number | null }> = [];
+  for (const r of rows) {
+    const postId = r.post_id;
+    if (!postId) continue;
+    const done = db.transaction(() => {
+      const claim = claimFbPostId(r.id, postId);
+      if (claim.kind === 'taken') return null;
+      db.prepare(`UPDATE fb_content SET fb_post_id = ?, updated_at = ? WHERE id = ? AND fb_post_id IS NULL`).run(postId, nowSec(), r.id);
+      if (claim.kind === 'merged') replayFbSnapshots(r.id, postId);
+      return { contentId: r.id, postId, mergedFrom: claim.kind === 'merged' ? claim.fromId : null };
+    })();
+    if (done) repaired.push(done);
+  }
+  return repaired;
 }

@@ -1,7 +1,7 @@
 {
   "id": "zalo",
   "name": "Zalo",
-  "description": "Kết nối nick Zalo cá nhân bằng QR, chống khoá nick, gửi tin hàng loạt (mẫu tin, gửi nhóm, gửi 1-1, sinh nhật) và cấp kênh Zalo cho hộp thư Chăm sóc khách hàng.",
+  "description": "Kết nối nick Zalo cá nhân bằng QR, nhận tin, đồng bộ lịch sử, gửi tin, chống khoá nick và cấp kênh Zalo cho hộp thư Chăm sóc khách hàng. Tính năng gửi tin hàng loạt (mẫu tin, gửi nhóm, gửi 1-1, sinh nhật) mặc định tắt.",
   "version": "0.1.0",
   "icon": "message-circle",
   "category": "sales",
@@ -34,10 +34,10 @@
   "skills": ["zalo-reply"],
   "settings": {
     "marketingEnabled": {
-      "label": "Cho phép chạy chiến dịch Zalo",
+      "label": "Cho phép chạy chiến dịch Zalo (marketing)",
       "type": "boolean",
-      "default": true,
-      "help": "Công tắc tổng cho gửi nhóm, gửi 1-1 và chúc mừng sinh nhật. Tắt thì các chiến dịch dừng ngay, không mất dữ liệu. Giờ nghỉ, ngân sách 60% và trần tin của từng nick vẫn luôn áp dụng khi bật."
+      "default": false,
+      "help": "Mặc định TẮT. Công tắc tổng cho mẫu tin, gửi nhóm, gửi 1-1 và chúc mừng sinh nhật; tắt thì các mục này ẩn khỏi menu và API trả 404. Tắt thì các chiến dịch dừng ngay, không mất dữ liệu: việc đang chờ giữ nguyên, không gửi, và chạy tiếp nếu bạn bật lại. Giờ nghỉ, ngân sách 60% và trần tin của từng nick vẫn luôn áp dụng khi bật."
     },
     "controlPort": {
       "label": "Cổng điều khiển nội bộ của dịch vụ Zalo",

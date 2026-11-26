@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Quảng cáo · Quản lý</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115;font-family:'Inter',system-ui,'Segoe UI',sans-serif}
+a{color:#8aa3ff}a:hover{color:#a9bbff}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #0f1115; color: #e6e8ee; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+<div style="flex: 0 0 232px"><dc-import name="Sidebar" active="ads" hint-size="232px,100vh"></dc-import></div>
+
+<div style="flex: 999 1 560px; min-width: 0; min-height: 100vh; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid #272c37">
+<h1 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 20px; font-weight: 700">Quảng cáo</h1>
+<nav aria-label="Cách xem quảng cáo" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #171a21; border: 1px solid #272c37; border-radius: 10px">
+<a href="Ads.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Tổng quan</a>
+<a href="AdsManage.dc.html" aria-current="page" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; background: #6d8dff; color: #0b1020; font-weight: 600; text-decoration: none">Quản lý</a>
+</nav>
+<span style="font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; border: 1px dashed #697386; color: #c9ced9">Số liệu minh họa</span>
+<span style="color: #9aa3b2">Máy soát chiến dịch theo luật, bạn quyết định có làm hay không.</span>
+</header>
+
+<main style="flex: 1 1 auto; box-sizing: border-box; padding: 18px 24px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+
+<section aria-labelledby="de-xuat" style="flex: 2 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 10px">
+<h2 id="de-xuat" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Đề xuất hôm nay</h2>
+<span style="background: rgba(240,178,74,0.16); color: #f0b24a; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px">3</span>
+<span style="margin-left: auto; font-size: 13px; color: #9aa3b2">Soát lại mỗi 55 phút · xét trên 7 và 14 ngày</span>
+</div>
+
+<sc-for list="{{items}}" as="it" hint-placeholder-count="3">
+<div style="background: #171a21; border: 1px solid #272c37; border-left: 3px solid {{it.edge}}; border-radius: 14px; padding: 14px 18px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+<span style="font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 6px; background: {{it.tagBg}}; color: {{it.tagFg}}">{{it.tag}}</span>
+<span style="font-weight: 600; font-size: 15px">{{it.name}}</span>
+</div>
+<span style="color: #c9ced9">{{it.why}}</span>
+<div style="display: flex; flex-wrap: wrap; gap: 18px; font-size: 13px">
+<span style="display: flex; flex-direction: column"><span style="color: #9aa3b2">Đã chi</span><span style="font-weight: 600; font-variant-numeric: tabular-nums">{{it.spend}}</span></span>
+<span style="display: flex; flex-direction: column"><span style="color: #9aa3b2">Khách</span><span style="font-weight: 600; font-variant-numeric: tabular-nums">{{it.res}}</span></span>
+<span style="display: flex; flex-direction: column"><span style="color: #9aa3b2">Giá mỗi khách</span><span style="font-weight: 600; font-variant-numeric: tabular-nums">{{it.cpl}}</span></span>
+<span style="display: flex; flex-direction: column"><span style="color: #9aa3b2">Nếu làm theo</span><span style="font-weight: 600">{{it.effect}}</span></span>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; padding-top: 2px">
+<button type="button" style="min-height: 44px; padding: 0 16px; border: 0; border-radius: 10px; background: #6d8dff; color: #0b1020; font: inherit; font-weight: 600; cursor: pointer">{{it.primary}}</button>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; background: transparent; color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer">Tôi đã tự xử lý</button>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; background: transparent; color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer">Bỏ qua 24 giờ</button>
+</div>
+</div>
+</sc-for>
+<span style="font-size: 13px; color: #9aa3b2">Đề xuất không ai đụng tới sẽ tự hết hạn sau 48 giờ. Chiến dịch chưa đặt giá mục tiêu thì máy không đề xuất gì.</span>
+</section>
+
+<div style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+
+<section aria-labelledby="quyen" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px">
+<h2 id="quyen" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">App được làm gì với quảng cáo</h2>
+<div role="group" aria-label="Quyền với quảng cáo" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; background: #0f1115; border: 1px solid #272c37; border-radius: 10px">
+<sc-for list="{{perms}}" as="p" hint-placeholder-count="2">
+<button type="button" aria-pressed="{{p.on}}" onClick="{{p.pick}}" style="min-height: 44px; padding: 0 6px; border: 0; border-radius: 7px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; background: {{p.bg}}; color: {{p.fg}}">{{p.label}}</button>
+</sc-for>
+</div>
+<span style="font-size: 13px; color: #c9ced9">{{permNote}}</span>
+<span style="font-size: 13px; color: #9aa3b2">Dù ở mức nào, app không bao giờ tự tắt hay tự tăng ngân sách khi bạn chưa bấm.</span>
+</section>
+
+<section aria-labelledby="muc-tieu" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
+<h2 id="muc-tieu" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Mục tiêu</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr)); gap: 12px">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Giá mục tiêu mỗi khách
+<input type="text" inputmode="numeric" value="100.000đ" style="min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #353c4a; border-radius: 10px; background: #0f1115; color: #e6e8ee; font: inherit; font-weight: 400">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Ngân sách mỗi tháng
+<input type="text" inputmode="numeric" value="9.000.000đ" style="min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #353c4a; border-radius: 10px; background: #0f1115; color: #e6e8ee; font: inherit; font-weight: 400">
+</label>
+</div>
+</section>
+
+<section aria-labelledby="luat" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 16px 20px; display: flex; flex-direction: column; gap: 4px">
+<h2 id="luat" style="margin: 0 0 6px; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Luật đang bật</h2>
+<sc-for list="{{rules}}" as="r" hint-placeholder-count="5">
+<label style="display: flex; align-items: flex-start; gap: 10px; min-height: 44px; padding: 6px 0; border-top: 1px solid #20242d"><input type="checkbox" checked style="margin-top: 3px"><span style="display: flex; flex-direction: column"><span style="font-weight: 600">{{r.name}}</span><span style="font-size: 13px; color: #9aa3b2">{{r.when}}</span></span></label>
+</sc-for>
+</section>
+
+</div>
+</main>
+
+<dc-import name="ChatBar" bot="Bot Trợ lý" ask="Ví dụ: nếu tắt video cũ thì tháng này tiết kiệm bao nhiêu?" hint-size="100%,72px"></dc-import>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var self = this;
+    var perm = (this.state && this.state.perm) || 'read';
+    var write = perm === 'write';
+    var bad = { edge: '#f0647a', tagBg: 'rgba(240,100,122,0.16)', tagFg: '#f0647a' };
+    var good = { edge: '#46c28a', tagBg: 'rgba(70,194,138,0.16)', tagFg: '#46c28a' };
+    function item(s, o) {
+      o.edge = s.edge; o.tagBg = s.tagBg; o.tagFg = s.tagFg;
+      o.primary = write ? o.doIt : 'Mở Ads Manager';
+      return o;
+    }
+    return {
+      permNote: write
+        ? 'Đang ở mức được áp dụng. Bấm nút là app tắt hoặc đổi ngân sách ngay, và ghi lại ai bấm, lúc nào. Mức này cần cấp thêm quyền quản lý quảng cáo khi kết nối.'
+        : 'Đang ở mức chỉ đọc. App chỉ nêu đề xuất, bạn sang Ads Manager tự làm rồi bấm "Tôi đã tự xử lý".',
+      perms: [{ id: 'read', label: 'Chỉ đọc và đề xuất' }, { id: 'write', label: 'Áp dụng khi tôi bấm' }].map(function (p) {
+        var on = p.id === perm;
+        return {
+          label: p.label, on: on,
+          bg: on ? '#6d8dff' : 'transparent',
+          fg: on ? '#0b1020' : '#c9ced9',
+          pick: function () { self.setState({ perm: p.id }); }
+        };
+      }),
+      items: [
+        item(bad, { tag: 'Tắt ngay', name: 'Thử nghiệm · Quà doanh nghiệp', why: 'Đã chi gấp 2,4 lần giá mục tiêu mà chưa có khách nào để lại số.', spend: '240.000đ', res: '0', cpl: '–', effect: 'Ngừng mất 15.000đ mỗi ngày', doIt: 'Tắt chiến dịch' }),
+        item(bad, { tag: 'Tắt', name: 'Trà sen Tây Hồ · video cũ', why: 'Giá mỗi khách cao gấp 1,7 lần mục tiêu. Tần suất 3,4 và CTR còn 0,8%, người xem đã chán mẫu này.', spend: '1.560.000đ', res: '9', cpl: '173.000đ', effect: 'Dồn tiền cho hai chiến dịch đang tốt', doIt: 'Tắt chiến dịch' }),
+        item(good, { tag: 'Tăng 20%', name: 'Quà Tết · Combo 3 hộp', why: 'Giá mỗi khách thấp hơn mục tiêu 25% suốt 3 ngày liền, trung bình 13 khách mỗi tuần.', spend: '3.900.000đ', res: '52', cpl: '75.000đ', effect: 'Ngân sách ngày 140.000đ lên 168.000đ', doIt: 'Tăng ngân sách 20%' })
+      ],
+      rules: [
+        { name: 'Tắt ngay', when: 'Đã chi từ 2 lần giá mục tiêu mà chưa có khách nào.' },
+        { name: 'Tắt', when: 'Đã chi từ 3 lần giá mục tiêu và giá mỗi khách cao hơn 1,5 lần mục tiêu.' },
+        { name: 'Làm mới mẫu quảng cáo', when: 'Tần suất trên 3 và CTR giảm hơn 30%.' },
+        { name: 'Tăng 20% ngân sách', when: 'Giá mỗi khách dưới 80% mục tiêu 3 ngày liền, có từ 10 khách mỗi tuần. Nhiều nhất 3 ngày một lần.' },
+        { name: 'Đang học thì giữ nguyên', when: 'Chiến dịch chưa đủ dữ liệu thì không đề xuất tăng giảm, trừ khi chạm luật Tắt ngay.' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

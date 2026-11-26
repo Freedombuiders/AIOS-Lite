@@ -45,6 +45,17 @@ const mediaSchema = z.object({
 const formatSchema = z.enum(['reel', 'video', 'photo', 'album', 'text', 'link']);
 const statusSchema = z.enum(['idea', 'draft', 'review', 'approved', 'scheduled', 'publishing', 'published', 'failed', 'missed', 'deleted']);
 
+// Lineage is accepted on create only; content.ts refuses it on update (409).
+const lineageSchema = z
+  .object({
+    ideaId: z.string().max(200).nullable(),
+    formulaSlug: z.string().max(200).nullable(),
+    formulaVersion: z.number().int().nonnegative().nullable(),
+    sourceVideoSlug: z.string().max(200).nullable(),
+    expectedRatio: z.number().finite().nullable(),
+  })
+  .partial();
+
 const contentSchema = z
   .object({
     pageId: z.string().min(1).max(64).nullable(),
@@ -60,6 +71,7 @@ const contentSchema = z
     media: z.array(mediaSchema),
     status: statusSchema,
     scheduledAt: z.number().int().nullable(),
+    lineage: lineageSchema,
   })
   .partial();
 

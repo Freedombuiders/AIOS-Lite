@@ -65,6 +65,9 @@ export interface AgentAccessResponse {
   access: AccessSnapshot;
   enforcement: AccessEnforcement;
   runtime: RuntimeId;
+  /** false: the runtime cannot be given MCP servers or integrations (GenBot) */
+  mcp?: boolean;
+  readsFiles?: boolean;
 }
 
 export interface DoctorCheck {
@@ -80,6 +83,9 @@ export interface RuntimeCapabilities {
   images: boolean;
   documents?: boolean;
   noTools: boolean;
+  mcp?: boolean;
+  readsFiles?: boolean;
+  maxPromptChars?: number;
   enforces: AccessEnforcement;
 }
 export interface RuntimeReport {

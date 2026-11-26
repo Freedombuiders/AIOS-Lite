@@ -1053,6 +1053,68 @@ export class CareOutboxStore {
   }
 
   /**
+   * T06: the bot must not speak in this conversation any more (customer handoff, timed pause, take-over, AI off).
+   * Withdraws what the BOT queued there and has not gone out, using the existing transitions:
+   *  - automatic replies (actor `auto`, care) that are pending / retry_wait / claimed without an attempt -> `cancelled`;
+   *  - with `drafts`: unapproved bot drafts (status `draft` with a source run) -> `discarded`;
+   *  - with `approved`: approved bot drafts not yet attempted (actor `approved` with a source run) -> `needs_review`
+   *    (an approval given before the handoff no longer stands; the owner can resend it with one click).
+   * Manual replies (a person typed them) are never touched. An auto reply whose attempt already reached the provider
+   * cannot be recalled and is reported as `underway`. `reason` is an UPPER_SNAKE code stored as the status reason.
+   * Safe inside the caller's transaction (becomes a savepoint).
+   */
+  withdrawBotIntents(
+    conversationId: string,
+    opts: { reason: string; drafts?: boolean; approved?: boolean; nowMs?: number },
+  ): { cancelled: string[]; discarded: string[]; review: string[]; underway: string[] } {
+    if (!ERROR_CODE.test(opts.reason)) err('INVALID_COMMAND', 'withdraw reason must be a short code', 400);
+    const now = opts.nowMs ?? Date.now();
+    const run = this.db.transaction(() => {
+      const out = { cancelled: [] as string[], discarded: [] as string[], review: [] as string[], underway: [] as string[] };
+      const rows = this.db
+        .prepare(
+          `SELECT id, actor, status, source_run_id FROM care_delivery_intents
+           WHERE conversation_id = ? AND purpose = 'care' AND actor IN ('auto','approved')
+             AND status IN ('draft','pending','retry_wait','sending','uncertain')
+           ORDER BY created_at ASC, id ASC`,
+        )
+        .all(conversationId) as Array<{ id: string; actor: 'auto' | 'approved'; status: OutboxStatus; source_run_id: string | null }>;
+      for (const r of rows) {
+        const notStarted = r.status === 'pending' || r.status === 'retry_wait' || (r.status === 'sending' && !this.hasOpenAttempt(r.id));
+        if (r.actor === 'auto') {
+          if (r.status === 'draft') continue; // an auto intent is never a draft; nothing to do
+          if (!notStarted) {
+            out.underway.push(r.id);
+            continue;
+          }
+          this.setStatusTx(r.id, 'cancelled', opts.reason, now);
+          this.emit(r.id, 'outbox.cancelled', { outcome: 'cancelled', errorCode: opts.reason });
+          out.cancelled.push(r.id);
+          continue;
+        }
+        // actor 'approved': a bot draft (approved or not yet). Without a source run it is not the bot's text.
+        if (r.source_run_id === null) continue;
+        if (r.status === 'draft') {
+          if (!opts.drafts) continue;
+          this.setStatusTx(r.id, 'discarded', opts.reason, now);
+          this.emit(r.id, 'outbox.discarded', { outcome: 'discarded', errorCode: opts.reason });
+          out.discarded.push(r.id);
+        } else if (opts.approved) {
+          if (!notStarted) {
+            out.underway.push(r.id);
+            continue;
+          }
+          this.setStatusTx(r.id, 'needs_review', opts.reason, now);
+          this.emit(r.id, 'outbox.needs_review', { outcome: 'needs_review', errorCode: opts.reason });
+          out.review.push(r.id);
+        }
+      }
+      return out;
+    });
+    return run.immediate();
+  }
+
+  /**
    * Locates the attempt a provider receipt / echo refers to. By (account, clientRequestId) the FIRST
    * attempt that is still unresolved wins (the original one), else the one with a matching native ID,
    * else the latest accepted one. By native ID alone, an exact match.

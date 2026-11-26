@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Mạng xã hội · Phân tích nội dung</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115;font-family:'Inter',system-ui,'Segoe UI',sans-serif}
+a{color:#8aa3ff}a:hover{color:#a9bbff}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #0f1115; color: #e6e8ee; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+<div style="flex: 0 0 232px"><dc-import name="Sidebar" active="social" hint-size="232px,100vh"></dc-import></div>
+
+<div style="flex: 999 1 560px; min-width: 0; min-height: 100vh; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid #272c37">
+<h1 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 20px; font-weight: 700">Mạng xã hội</h1>
+<nav aria-label="Kênh" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #171a21; border: 1px solid #272c37; border-radius: 10px">
+<a href="Social.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Tổng quan</a>
+<a href="SocialFacebook.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Facebook</a>
+<a href="SocialYoutube.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">YouTube</a>
+<a href="ContentLab.dc.html" aria-current="page" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; background: #6d8dff; color: #0b1020; font-weight: 600; text-decoration: none">Phân tích nội dung</a>
+</nav>
+<span style="font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; border: 1px dashed #697386; color: #c9ced9">Số liệu minh họa</span>
+<span style="color: #9aa3b2">Dạng bài nào đang hiệu quả · 24 bài trong 90 ngày</span>
+</header>
+
+<main style="flex: 1 1 auto; box-sizing: border-box; padding: 18px 24px; display: flex; flex-direction: column; gap: 16px">
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+
+<section aria-labelledby="ma-tran" style="flex: 1.6 1 520px; min-width: 0; background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h2 id="ma-tran" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Định dạng nào, chủ đề nào</h2>
+<span style="font-size: 13px; color: #9aa3b2">Mỗi ô là ER trung vị và số bài. Ô càng sáng càng hiệu quả, ô trống là chưa thử.</span>
+</div>
+<div style="display: grid; grid-template-columns: 110px repeat(4, minmax(0, 1fr)); gap: 2px; font-size: 12px; color: #9aa3b2">
+<span></span><span style="padding: 0 6px 4px">Cách pha, ướp</span><span style="padding: 0 6px 4px">Sản phẩm</span><span style="padding: 0 6px 4px">Chính sách đại lý</span><span style="padding: 0 6px 4px">Quà Tết</span>
+</div>
+<sc-for list="{{matrix}}" as="r" hint-placeholder-count="3">
+<div style="display: grid; grid-template-columns: 110px repeat(4, minmax(0, 1fr)); gap: 2px; align-items: stretch">
+<span style="display: flex; align-items: center; font-weight: 600">{{r.label}}</span>
+<div title="{{r.c1.tip}}" style="min-height: 58px; border-radius: 6px; padding: 8px 10px; background: {{r.c1.bg}}; border: {{r.c1.bd}}; display: flex; flex-direction: column; justify-content: center"><span style="font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 17px; font-weight: 600; color: {{r.c1.fg}}">{{r.c1.v}}</span><span style="font-size: 12px; color: {{r.c1.sub}}">{{r.c1.n}}</span></div>
+<div title="{{r.c2.tip}}" style="min-height: 58px; border-radius: 6px; padding: 8px 10px; background: {{r.c2.bg}}; border: {{r.c2.bd}}; display: flex; flex-direction: column; justify-content: center"><span style="font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 17px; font-weight: 600; color: {{r.c2.fg}}">{{r.c2.v}}</span><span style="font-size: 12px; color: {{r.c2.sub}}">{{r.c2.n}}</span></div>
+<div title="{{r.c3.tip}}" style="min-height: 58px; border-radius: 6px; padding: 8px 10px; background: {{r.c3.bg}}; border: {{r.c3.bd}}; display: flex; flex-direction: column; justify-content: center"><span style="font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 17px; font-weight: 600; color: {{r.c3.fg}}">{{r.c3.v}}</span><span style="font-size: 12px; color: {{r.c3.sub}}">{{r.c3.n}}</span></div>
+<div title="{{r.c4.tip}}" style="min-height: 58px; border-radius: 6px; padding: 8px 10px; background: {{r.c4.bg}}; border: {{r.c4.bd}}; display: flex; flex-direction: column; justify-content: center"><span style="font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 17px; font-weight: 600; color: {{r.c4.fg}}">{{r.c4.v}}</span><span style="font-size: 12px; color: {{r.c4.sub}}">{{r.c4.n}}</span></div>
+</div>
+</sc-for>
+<span style="font-size: 13px; color: #c9ced9">Mạnh nhất: video về cách pha, ướp (6,5%, 5 bài). Ô có 1 bài chỉ để tham khảo. Chưa thử: video về chính sách đại lý.</span>
+</section>
+
+<section aria-labelledby="dac-diem" style="flex: 1 1 320px; min-width: 0; background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h2 id="dac-diem" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Đặc điểm của bài hiệu quả</h2>
+<span style="font-size: 13px; color: #9aa3b2">Bot đọc từng bài rồi gắn nhãn, máy tính ER theo nhãn.</span>
+</div>
+<sc-for list="{{traits}}" as="g" hint-placeholder-count="2">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: #9aa3b2">{{g.name}}</span>
+<div style="display: flex; align-items: center; gap: 8px"><span style="flex: 0 0 120px">{{g.a.label}}</span><span aria-hidden="true" style="flex: 1 1 auto; height: 10px; border-radius: 4px; background: #272c37; display: flex"><span style="width: {{g.a.pct}}%; background: #6d8dff; border-radius: 4px"></span></span><span style="flex: 0 0 84px; text-align: right; font-variant-numeric: tabular-nums"><b>{{g.a.v}}</b> · {{g.a.n}}</span></div>
+<div style="display: flex; align-items: center; gap: 8px"><span style="flex: 0 0 120px">{{g.b.label}}</span><span aria-hidden="true" style="flex: 1 1 auto; height: 10px; border-radius: 4px; background: #272c37; display: flex"><span style="width: {{g.b.pct}}%; background: #6d8dff; border-radius: 4px"></span></span><span style="flex: 0 0 84px; text-align: right; font-variant-numeric: tabular-nums"><b>{{g.b.v}}</b> · {{g.b.n}}</span></div>
+<div style="display: flex; align-items: center; gap: 8px"><span style="flex: 0 0 120px">{{g.c.label}}</span><span aria-hidden="true" style="flex: 1 1 auto; height: 10px; border-radius: 4px; background: #272c37; display: flex"><span style="width: {{g.c.pct}}%; background: #6d8dff; border-radius: 4px"></span></span><span style="flex: 0 0 84px; text-align: right; font-variant-numeric: tabular-nums"><b>{{g.c.v}}</b> · {{g.c.n}}</span></div>
+</div>
+</sc-for>
+<a href="Playbook.dc.html" style="align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; font-weight: 600">Xem các bài học rút từ đây</a>
+</section>
+
+</div>
+
+<section aria-labelledby="tung-bai" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; overflow: hidden">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 20px; border-bottom: 1px solid #272c37">
+<h2 id="tung-bai" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Mỗi bài là một ghi chú</h2>
+<span style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; color: #9aa3b2">brain/tra-sen-viet/noi-dung/bai/</span>
+<span style="margin-left: auto; font-size: 13px; color: #9aa3b2">Cột là thuộc tính đầu file, sửa được trong Obsidian</span>
+</div>
+<div style="overflow-x: auto">
+<div role="table" aria-label="Các bài đã đăng" style="min-width: 960px; display: flex; flex-direction: column">
+<div role="row" style="display: grid; grid-template-columns: 2.4fr 1fr 0.9fr 1.2fr 1.1fr 0.7fr 0.8fr 0.6fr 1.3fr; column-gap: 12px; padding: 9px 20px; border-bottom: 1px solid #272c37; color: #9aa3b2; font-size: 12px; font-weight: 600; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace">
+<span role="columnheader">tieu_de</span><span role="columnheader">nen_tang</span><span role="columnheader">dinh_dang</span><span role="columnheader">tru_cot</span><span role="columnheader">mo_dau</span><span role="columnheader" style="text-align: right">do_dai</span><span role="columnheader" style="text-align: right">reach</span><span role="columnheader" style="text-align: right">er</span><span role="columnheader">Bot đánh giá</span>
+</div>
+<sc-for list="{{posts}}" as="p" hint-placeholder-count="5">
+<a role="row" href="ContentNote.dc.html" style="display: grid; grid-template-columns: 2.4fr 1fr 0.9fr 1.2fr 1.1fr 0.7fr 0.8fr 0.6fr 1.3fr; column-gap: 12px; align-items: center; padding: 9px 20px; border-bottom: 1px solid #20242d; text-decoration: none; color: #e6e8ee">
+<span role="cell" style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{p.title}}</span>
+<span role="cell" style="color: #c9ced9">{{p.where}}</span>
+<span role="cell" style="color: #c9ced9">{{p.format}}</span>
+<span role="cell" style="color: #c9ced9">{{p.pillar}}</span>
+<span role="cell" style="color: #c9ced9">{{p.hook}}</span>
+<span role="cell" style="text-align: right; font-variant-numeric: tabular-nums">{{p.len}}</span>
+<span role="cell" style="text-align: right; font-variant-numeric: tabular-nums">{{p.reach}}</span>
+<span role="cell" style="text-align: right; font-variant-numeric: tabular-nums">{{p.er}}</span>
+<span role="cell" style="color: {{p.vFg}}">{{p.verdict}}</span>
+</a>
+</sc-for>
+</div>
+</div>
+</section>
+
+</main>
+
+<dc-import name="ChatBar" bot="Bot Nội dung" ask="Ví dụ: vì sao video ướp trà hiệu quả hơn video mở hộp?" hint-size="100%,72px"></dc-import>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    function cell(v, n, rowLabel, colLabel) {
+      if (!n) return { v: '–', n: 'Chưa thử', bg: 'transparent', bd: '1px dashed #353c4a', fg: '#9aa3b2', sub: '#9aa3b2', tip: rowLabel + ' · ' + colLabel + ': chưa có bài nào' };
+      var a = 0.12 + (v - 2.0) / (6.5 - 2.0) * 0.88;
+      var strong = a > 0.6;
+      var txt = String(v).replace('.', ',') + '%';
+      return {
+        v: txt, n: n + ' bài',
+        bg: 'rgba(109,141,255,' + a.toFixed(2) + ')', bd: '1px solid transparent',
+        fg: strong ? '#0b1020' : '#e6e8ee', sub: strong ? '#0b1020' : '#c9ced9',
+        tip: rowLabel + ' · ' + colLabel + ': ER trung vị ' + txt + ', ' + n + ' bài'
+      };
+    }
+    var cols = ['Cách pha, ướp', 'Sản phẩm', 'Chính sách đại lý', 'Quà Tết'];
+    function row(label, vals) {
+      var o = { label: label };
+      vals.forEach(function (x, i) { o['c' + (i + 1)] = cell(x[0], x[1], label, cols[i]); });
+      return o;
+    }
+    function bar(label, v, n, max) { return { label: label, v: String(v).replace('.', ',') + '%', n: n + ' bài', pct: Math.round(v / max * 100) }; }
+    var good = '#46c28a', warn = '#f0b24a';
+    return {
+      matrix: [
+        row('Video ngắn', [[6.5, 5], [4.0, 3], [0, 0], [5.1, 1]]),
+        row('Ảnh', [[4.6, 2], [3.9, 6], [2.4, 1], [4.3, 3]]),
+        row('Chỉ có chữ', [[0, 0], [2.0, 1], [2.1, 2], [0, 0]])
+      ],
+      traits: [
+        { name: 'KIỂU MỞ ĐẦU', a: bar('Câu hỏi', 5.4, 7, 6.6), b: bar('Con số', 4.1, 6, 6.6), c: bar('Tên sản phẩm', 3.2, 11, 6.6) },
+        { name: 'ĐỘ DÀI VIDEO', a: bar('Dưới 45 giây', 6.6, 5, 6.6), b: bar('45 đến 90 giây', 4.3, 3, 6.6), c: bar('Trên 90 giây', 3.6, 1, 6.6) }
+      ],
+      posts: [
+        { title: 'Cách ướp trà sen Tây Hồ', where: 'Facebook', format: 'Video', pillar: 'Cách pha, ướp', hook: 'Câu hỏi', len: '38 giây', reach: '6.200', er: '7,1%', verdict: 'Tốt, làm tiếp dạng này', vFg: good },
+        { title: 'Ô long sen pha lạnh', where: 'Facebook', format: 'Video', pillar: 'Cách pha, ướp', hook: 'Câu hỏi', len: '42 giây', reach: '5.400', er: '6,3%', verdict: 'Tốt, làm tiếp dạng này', vFg: good },
+        { title: 'Trà sen Tây Hồ, hộp 100 g', where: 'Facebook', format: 'Ảnh', pillar: 'Sản phẩm', hook: 'Tên sản phẩm', len: '–', reach: '1.900', er: '4,4%', verdict: 'Trung bình', vFg: '#c9ced9' },
+        { title: 'Mở hộp ô long sen', where: 'YouTube', format: 'Video', pillar: 'Sản phẩm', hook: 'Tên sản phẩm', len: '1 phút 50', reach: '3.100', er: '3,5%', verdict: 'Dài, mở đầu chậm', vFg: warn },
+        { title: 'Chính sách cho đại lý mới', where: 'Facebook', format: 'Chữ', pillar: 'Chính sách đại lý', hook: 'Con số', len: '–', reach: '1.150', er: '2,1%', verdict: 'Thử đổi sang video', vFg: warn }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

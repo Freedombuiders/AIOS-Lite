@@ -8,5 +8,6 @@ import './styles/chat-v2.css';
 import './styles/second-brain.css';
 import './styles/sidebar-nav.css';
 import './styles/memory.css';
+import './styles/command-bar.css';
 
 render(<App />, document.getElementById('app')!);

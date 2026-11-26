@@ -4,9 +4,9 @@ import { createRuntimeRegistry } from './index.js';
 import { fixture } from './test-util.js';
 
 describe('createRuntimeRegistry', () => {
-  it('has the five adapters and honest capability tables', () => {
+  it('has the six adapters and honest capability tables', () => {
     const reg = createRuntimeRegistry();
-    expect(reg.list().map((r) => r.id).sort()).toEqual(['claude', 'codex', 'grok', 'hermes', 'mock']);
+    expect(reg.list().map((r) => r.id).sort()).toEqual(['claude', 'codex', 'genbot', 'grok', 'hermes', 'mock']);
     for (const r of reg.list()) {
       expect(r.capabilities.enforces.context).toBe('hard');
       expect(r.capabilities.noTools).toBe(true);
@@ -17,6 +17,9 @@ describe('createRuntimeRegistry', () => {
     expect(reg.get('codex').capabilities.images).toBe(true);
     expect(reg.get('claude').capabilities.systemPrompt).toBe('native');
     expect(reg.get('codex').capabilities.systemPrompt).toBe('inline');
+    expect(reg.get('genbot').capabilities).toMatchObject({ resume: false, systemPrompt: 'inline', reportsCost: false, noTools: true, mcp: false, readsFiles: false, maxPromptChars: 20_000 });
+    for (const id of ['claude', 'codex', 'grok', 'hermes', 'mock'] as const) expect(reg.get(id).capabilities).toMatchObject({ mcp: true, readsFiles: true });
+    expect(reg.get('genbot').capabilities.enforces.mcp).toBe('hard');
     for (const r of reg.list()) expect(r.capabilities.enforces.note ?? '').toMatch(/[ạăâêôơưđ]|Runtime|Codex|Chế/);
   });
 
@@ -63,6 +66,12 @@ describe('doctor', () => {
       expect(r.checks[0]).toMatchObject({ level: 'error' });
       expect(r.checks[0]!.message).toContain('Không tìm thấy');
     }
+  });
+
+  it('genbot doctor needs no binary and stays generic (agents are checked one by one elsewhere)', async () => {
+    const r = await createRuntimeRegistry().get('genbot').doctor();
+    expect(r.status).toBe('pass');
+    expect(r.checks[0]!.code).toBe('genbot.http');
   });
 
   it('mock is always healthy', async () => {

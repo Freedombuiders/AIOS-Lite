@@ -3,6 +3,8 @@
  * `ctx.modules.get('marketing')`). Neither module imports the other's code; this file is the only shared piece.
  * Marketing keeps its own rules: nothing created through the bridge is published directly.
  */
+import type { FbContentLineage } from './fb-types.js';
+
 export interface KolBridgePage {
   id: string;
   name: string;
@@ -47,6 +49,8 @@ export interface KolBridgeDraft {
   media: unknown[];
   /** Unix seconds the owner approved in KOL Studio; the row is scheduled for it. Without it the row waits in review. */
   scheduledAt?: number;
+  /** Where the post came from (e.g. the KOL video slug); stored once on the new row. */
+  lineage?: Partial<FbContentLineage>;
 }
 
 export interface MarketingKolBridge {

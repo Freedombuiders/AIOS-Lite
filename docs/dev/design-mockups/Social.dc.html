@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Mạng xã hội · Tổng quan</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115;font-family:'Inter',system-ui,'Segoe UI',sans-serif}
+a{color:#8aa3ff}a:hover{color:#a9bbff}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #0f1115; color: #e6e8ee; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+<div style="flex: 0 0 232px"><dc-import name="Sidebar" active="social" hint-size="232px,100vh"></dc-import></div>
+
+<div style="flex: 999 1 560px; min-width: 0; min-height: 100vh; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid #272c37">
+<h1 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 20px; font-weight: 700">Mạng xã hội</h1>
+<nav aria-label="Kênh" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #171a21; border: 1px solid #272c37; border-radius: 10px">
+<a href="Social.dc.html" aria-current="page" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; background: #6d8dff; color: #0b1020; font-weight: 600; text-decoration: none">Tổng quan</a>
+<a href="SocialFacebook.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Facebook</a>
+<a href="SocialYoutube.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">YouTube</a>
+<a href="ContentLab.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Phân tích nội dung</a>
+</nav>
+<span style="font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; border: 1px dashed #697386; color: #c9ced9">Số liệu minh họa</span>
+<label style="margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 13px; color: #9aa3b2">Khoảng
+<select style="min-height: 44px; padding: 0 10px; border: 1px solid #353c4a; border-radius: 10px; background: #12151a; color: #e6e8ee; font: inherit"><option>28 ngày qua</option><option>7 ngày qua</option><option>90 ngày qua</option></select>
+</label>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; background: #171a21; color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer">Lấy số liệu mới</button>
+</header>
+
+<main style="flex: 1 1 auto; box-sizing: border-box; padding: 18px 24px; display: flex; flex-direction: column; gap: 18px">
+
+<section aria-label="Các kênh của bạn" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 12px">
+<sc-for list="{{channels}}" as="c" hint-placeholder-count="4">
+<a href="{{c.href}}" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: #e6e8ee">
+<span style="display: flex; align-items: center; gap: 8px"><span style="flex: 1 1 auto; font-weight: 600; font-size: 15px">{{c.name}}</span><span style="font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: {{c.stBg}}; color: {{c.stFg}}">{{c.state}}</span></span>
+<span style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<span style="display: flex; flex-direction: column"><span style="font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums">{{c.v1}}</span><span style="font-size: 12px; color: #9aa3b2">{{c.l1}}</span></span>
+<span style="display: flex; flex-direction: column"><span style="font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums">{{c.v2}}</span><span style="font-size: 12px; color: #9aa3b2">{{c.l2}}</span></span>
+<span style="display: flex; flex-direction: column"><span style="font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums">{{c.v3}}</span><span style="font-size: 12px; color: #9aa3b2">{{c.l3}}</span></span>
+</span>
+</a>
+</sc-for>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start">
+
+<div style="flex: 2 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr)); gap: 12px">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 12px; color: #9aa3b2">{{k.label}}</span>
+<span style="font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums">{{k.value}}</span>
+<span style="font-size: 12px; color: {{k.dFg}}">{{k.delta}}</span>
+</div>
+</sc-for>
+</div>
+
+<section aria-labelledby="reach" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: baseline; gap: 10px">
+<h2 id="reach" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Reach mỗi ngày trên Facebook</h2>
+<span style="margin-left: auto; font-size: 13px; color: #9aa3b2">Cao nhất 2.140 người, thứ Ba 24/11, ngày đăng video ướp trà</span>
+</div>
+<div role="img" aria-label="Biểu đồ cột: số người thấy bài mỗi ngày trong 28 ngày, cao nhất 2.140 vào ngày 24 tháng 11" style="display: flex; align-items: flex-end; gap: 2px; height: 150px; border-bottom: 1px solid #353c4a">
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="28">
+<div title="{{b.tip}}" style="flex: 1 1 0; height: {{b.h}}%; background: {{b.c}}; border-radius: 4px 4px 0 0"></div>
+</sc-for>
+</div>
+<div style="display: flex; justify-content: space-between; font-size: 12px; color: #9aa3b2"><span>30/10</span><span>12/11</span><span>26/11</span></div>
+</section>
+</div>
+
+<div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+<section aria-labelledby="diem-nhan" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px">
+<h2 id="diem-nhan" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Điểm nhấn</h2>
+<div style="display: flex; flex-direction: column"><span style="font-size: 12px; color: #9aa3b2">Trụ nội dung hiệu quả nhất</span><span style="font-weight: 600">Cách pha và ướp trà · ER 6,3%</span></div>
+<div style="display: flex; flex-direction: column"><span style="font-size: 12px; color: #9aa3b2">Định dạng có ER cao nhất</span><span style="font-weight: 600">Video ngắn · 3 bài</span></div>
+<div style="display: flex; flex-direction: column"><span style="font-size: 12px; color: #9aa3b2">Người theo dõi ròng</span><span style="font-weight: 600">+96 trong 28 ngày</span></div>
+</section>
+<section aria-labelledby="tom-tat" style="background: #171a21; border: 1px solid rgba(199,155,255,0.35); border-radius: 14px; padding: 16px 20px; display: flex; flex-direction: column; gap: 8px">
+<h2 id="tom-tat" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Bot Nội dung tóm tắt</h2>
+<ol style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; color: #c9ced9">
+<li>Video hướng dẫn kéo reach gấp đôi bài ảnh sản phẩm.</li>
+<li>Bài đăng 19 giờ thứ Ba và thứ Năm có ER cao nhất.</li>
+<li>Bài chính sách đại lý ít người thấy nhưng nhiều người nhắn Zalo.</li>
+</ol>
+<span style="font-size: 12px; color: #9aa3b2">Bot chỉ giải thích. Mọi con số do máy tính từ số liệu đã lưu, chạy 7 giờ sáng mỗi ngày.</span>
+<a href="Content.dc.html" style="align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; font-weight: 600">Lên bài tuần sau theo gợi ý này</a>
+</section>
+</div>
+
+</div>
+</main>
+
+<dc-import name="ChatBar" bot="Bot Nội dung" ask="Ví dụ: tuần này kênh nào đang tốt lên?" hint-size="100%,72px"></dc-import>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var on = { state: 'Đã kết nối', stBg: 'rgba(70,194,138,0.16)', stFg: '#46c28a' };
+    var lim = { state: 'Chỉ đăng bài', stBg: 'rgba(255,255,255,0.07)', stFg: '#c9ced9' };
+    function ch(s, o) { o.state = s.state; o.stBg = s.stBg; o.stFg = s.stFg; return o; }
+    var raw = [820, 760, 910, 1180, 990, 870, 1320, 1010, 940, 880, 1460, 1120, 980, 900, 1250, 1090, 1380, 1210, 1040, 960, 1520, 1300, 1150, 1080, 1010, 2140, 1680, 1390];
+    var max = 2140;
+    var bars = raw.map(function (v, i) {
+      var d = new Date(2026, 9, 30 + i);
+      var label = d.getDate() + '/' + (d.getMonth() + 1);
+      return { h: Math.round(v / max * 100), c: v === max ? '#a9bbff' : '#6d8dff', tip: label + ': ' + v.toLocaleString('vi-VN') + ' người' };
+    });
+    var up = '#46c28a';
+    return {
+      bars: bars,
+      channels: [
+        ch(on, { name: 'Facebook Page', href: 'SocialFacebook.dc.html', v1: '4.280', l1: 'Theo dõi', v2: '38.400', l2: 'Reach', v3: '4,2%', l3: 'ER trung vị' }),
+        ch(on, { name: 'YouTube', href: 'SocialYoutube.dc.html', v1: '1.120', l1: 'Đăng ký', v2: '86.300', l2: 'Lượt xem', v3: '24', l3: 'Video' }),
+        ch(on, { name: 'Instagram', href: 'Connect.dc.html', v1: '2.050', l1: 'Theo dõi', v2: '61', l2: 'Bài viết', v3: '–', l3: 'Chưa có reach' }),
+        ch(lim, { name: 'TikTok', href: 'Connect.dc.html', v1: '–', l1: 'Theo dõi', v2: '–', l2: 'Lượt xem', v3: '–', l3: 'Chưa lấy số liệu' })
+      ],
+      kpis: [
+        { label: 'Người theo dõi', value: '4.280', delta: '▲ 96 so với 28 ngày trước', dFg: up },
+        { label: 'Reach 28 ngày', value: '38.400', delta: '▲ 18% so với kỳ trước', dFg: up },
+        { label: 'ER trung vị', value: '4,2%', delta: '▲ 0,6 điểm so với kỳ trước', dFg: up },
+        { label: 'Tổng tương tác', value: '1.930', delta: '▼ 4% so với kỳ trước', dFg: '#f0b24a' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

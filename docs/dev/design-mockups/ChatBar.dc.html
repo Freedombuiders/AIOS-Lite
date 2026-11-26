@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Thanh ra lệnh</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<form aria-label="Ra lệnh cho đội AI" style="box-sizing: border-box; margin: 0; background: #12151a; border-top: 1px solid #272c37; padding: 12px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; color: #e6e8ee; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; font-size: 14px">
+<button type="button" style="display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 12px; background: #171a21; color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: #46c28a"></span><span>{{bot}}</span><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+<button type="button" aria-label="Nói thay vì gõ" style="width: 48px; height: 48px; border: 1px solid #353c4a; border-radius: 999px; background: #171a21; color: #e6e8ee; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+<button type="button" aria-label="Đính kèm tệp" style="width: 48px; height: 48px; border: 1px solid #353c4a; border-radius: 12px; background: #171a21; color: #e6e8ee; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m21 12-8.5 8.5a5 5 0 0 1-7-7L14 5a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L15 8"/></svg></button>
+<input type="text" aria-label="Bạn muốn đội AI làm gì" placeholder="{{ask}}" style="flex: 1 1 240px; min-width: 0; min-height: 48px; box-sizing: border-box; padding: 0 16px; border: 1px solid #353c4a; border-radius: 12px; background: #0f1115; color: #e6e8ee; font: inherit; font-size: 15px">
+<button type="submit" aria-label="Gửi" style="width: 48px; height: 48px; border: 0; border-radius: 12px; background: #6d8dff; color: #0b1020; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+</form>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"bot":{"editor":"text","default":"Bot Trợ lý"},"ask":{"editor":"text","default":"Bạn muốn đội AI làm gì?"},"$preview":{"width":1208,"height":72}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      bot: this.props.bot || 'Bot Trợ lý',
+      ask: this.props.ask || 'Bạn muốn đội AI làm gì?'
+    };
+  }
+}
+</script>
+</body>
+</html>

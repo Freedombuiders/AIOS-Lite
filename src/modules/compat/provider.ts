@@ -23,7 +23,7 @@ export interface ProviderConfig {
 
 export const DEFAULT_PROVIDER: ProviderConfig = { type: 'claude' };
 
-const BY_RUNTIME: Record<string, ProviderType> = { claude: 'claude', codex: 'acp-codex', grok: 'harness', hermes: 'hermes-gateway', mock: 'harness' };
+const BY_RUNTIME: Record<string, ProviderType> = { claude: 'claude', codex: 'acp-codex', grok: 'harness', hermes: 'hermes-gateway', genbot: 'harness', mock: 'harness' };
 
 /** Provider of the "main" agent, derived from its AIOS-Lite runtime. */
 export function getMainProviderConfig(): ProviderConfig {

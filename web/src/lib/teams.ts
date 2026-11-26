@@ -1,7 +1,7 @@
 // Types and small helpers for Gói Team, Chợ Agent and Đề xuất cải tiến (docs/dev/API-teams.md).
 import type { RuntimeId } from '@core/types';
 
-export const RUNTIMES: RuntimeId[] = ['claude', 'codex', 'grok', 'hermes', 'mock'];
+export const RUNTIMES: RuntimeId[] = ['claude', 'codex', 'grok', 'hermes', 'genbot', 'mock'];
 
 export interface TeamInputDecl { key: string; label: string; description: string; kind: 'plain' | 'secret'; required: boolean; defaultValue: string }
 export interface TeamAgentDecl { id: string; name: string; description: string; runtime: RuntimeId | null; model: string | null; skills: string[]; fileCount: number }

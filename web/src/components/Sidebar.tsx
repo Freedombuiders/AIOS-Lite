@@ -2,17 +2,16 @@ import { ChevronDown, ChevronsLeft, ChevronsRight, Puzzle, Search, X } from 'luc
 import type { LucideIcon } from 'lucide-preact';
 import { useEffect, useState } from 'preact/hooks';
 import { Link, useLocation } from 'wouter-preact';
-import { AGENT_GROUPS, GROUP_ICON, GROUP_LABEL, GROUP_ORDER, HOME_NAV, SYSTEM_GROUP, WORK_GROUP, isActive } from '@/lib/nav';
-import type { CoreNavItem, NavGroupDef } from '@/lib/nav';
+import { ADVANCED_GROUP, GROUP_ICON, MORE_GROUP_ID, MORE_GROUP_LABEL, NAV_SECTIONS, bestMatch, moduleItemsFor } from '@/lib/nav';
+import type { CoreNavItem, NavGroupDef, NavSectionDef } from '@/lib/nav';
 import { modKeyLabel } from '@/lib/personalization';
 import { navOpen, paletteOpen } from '@/lib/palette';
 import { navItems, useBadge } from '@/module-host/host';
 import type { HostNavItem } from '@/module-host/host';
 import { sseConnected } from '@/lib/sse';
 
-// Module groups reuse the owner's section colours (sidebar-section-* in main.css).
-const GROUP_CLASS: Record<string, string> = { studio: 'intelligence', sales: 'care', marketing: 'marketing', finance: 'configure', ops: 'collaborate', other: 'intelligence' };
 const OPEN_KEY = 'aios.nav.open';
+const noop = () => undefined;
 
 type Item = CoreNavItem & { module?: HostNavItem };
 type Group = Omit<NavGroupDef, 'items'> & { items: Item[] };
@@ -42,10 +41,10 @@ function NavLink({ item, collapsed, active, badge, child }: { item: CoreNavItem;
 }
 
 /** A module nav row: polls its own badge and reports it so a closed group can show the total. */
-function ModuleLink({ item, collapsed, active, onBadge }: { item: Item; collapsed: boolean; active: boolean; onBadge: (path: string, n: number) => void }) {
+function ModuleLink({ item, collapsed, active, onBadge, child }: { item: Item; collapsed: boolean; active: boolean; onBadge: (path: string, n: number) => void; child?: boolean }) {
   const badge = useBadge(item.module!);
   useEffect(() => onBadge(item.path, badge ?? 0), [badge]);
-  return <NavLink item={item} collapsed={collapsed} active={active} badge={badge} child />;
+  return <NavLink item={item} collapsed={collapsed} active={active} badge={badge} child={child} />;
 }
 
 /** Keeps polling badges while the group is closed (renders nothing). */
@@ -57,15 +56,15 @@ function BadgeProbe({ item, onBadge }: { item: HostNavItem; onBadge: (path: stri
 
 function NavGroup(props: {
   group: Group;
-  loc: string;
+  activePath: string | undefined;
   collapsed: boolean;
   open: boolean;
   onToggle: (id: string) => void;
 }) {
-  const { group, loc, collapsed, open, onToggle } = props;
+  const { group, activePath, collapsed, open, onToggle } = props;
   const [counts, setCounts] = useState<Record<string, number>>({});
   const onBadge = (path: string, n: number) => setCounts((c) => (c[path] === n ? c : { ...c, [path]: n }));
-  const hasActive = group.items.some((i) => isActive(loc, i));
+  const hasActive = group.items.some((i) => i.path === activePath);
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
   const Icon = group.icon;
   const panelId = `snav-group-${group.id}`;
@@ -88,9 +87,9 @@ function NavGroup(props: {
         <div class="snav-children" id={panelId}>
           {group.items.map((i) =>
             i.module ? (
-              <ModuleLink key={i.path} item={i} collapsed={collapsed} active={isActive(loc, i)} onBadge={onBadge} />
+              <ModuleLink key={i.path} item={i} collapsed={collapsed} active={i.path === activePath} onBadge={onBadge} child />
             ) : (
-              <NavLink key={i.path} item={i} collapsed={collapsed} active={isActive(loc, i)} child />
+              <NavLink key={i.path} item={i} collapsed={collapsed} active={i.path === activePath} child />
             ),
           )}
         </div>
@@ -132,15 +131,22 @@ export function Sidebar() {
     navOpen.value = false;
   }, [loc]);
 
-  const moduleGroups = GROUP_ORDER.map((g) => {
-    const items: Item[] = navItems.value
-      .filter((i) => i.group === g)
-      .map((i) => ({ label: i.label, path: i.path, icon: (i.icon as unknown as LucideIcon | undefined) ?? Puzzle, match: i.match, module: i }));
-    return { id: g, label: GROUP_LABEL[g] ?? g, icon: GROUP_ICON[g] ?? Puzzle, items, cls: GROUP_CLASS[g] };
-  }).filter((g) => g.items.length > 0);
+  const toItem = (i: HostNavItem): Item => ({ label: i.label, path: i.path, icon: (i.icon as unknown as LucideIcon | undefined) ?? Puzzle, match: i.match, module: i });
+  const moduleNav = navItems.value;
+  const sections = NAV_SECTIONS.map((sec) => ({ sec, modules: moduleItemsFor(sec.id, moduleNav).map(toItem) }))
+    .filter((x) => x.sec.items.length + x.modules.length > 0);
+  const moreGroup: Group = {
+    id: MORE_GROUP_ID, label: MORE_GROUP_LABEL, icon: GROUP_ICON[MORE_GROUP_ID] ?? Puzzle,
+    items: moduleItemsFor('more', moduleNav).map(toItem),
+  };
+  const advanced: Group = ADVANCED_GROUP;
+  // One owner per page, so /brain/graph lights only "Đồ thị" and not "Second Brain" as well.
+  const activePath = bestMatch(loc, [
+    ...NAV_SECTIONS.flatMap((x) => x.items), ...advanced.items, ...moduleNav.map(toItem),
+  ])?.path;
 
   // A group is open when the viewer opened it, or when it holds the current page.
-  const isOpen = (g: Group) => remembered[g.id] ?? (g.defaultOpen === true || g.items.some((i) => isActive(loc, i)));
+  const isOpen = (g: Group) => remembered[g.id] ?? (g.defaultOpen === true || g.items.some((i) => i.path === activePath));
   const toggle = (g: Group) => {
     if (collapsed) {
       // Icon rail: expand the sidebar and open the clicked group.
@@ -151,7 +157,22 @@ export function Sidebar() {
     setRemembered((r) => ({ ...r, [g.id]: !isOpen(g) }));
   };
   const renderGroup = (g: Group) => (
-    <NavGroup key={g.id} group={g} loc={loc} collapsed={collapsed} open={isOpen(g)} onToggle={() => toggle(g)} />
+    <NavGroup key={g.id} group={g} activePath={activePath} collapsed={collapsed} open={isOpen(g)} onToggle={() => toggle(g)} />
+  );
+  const renderSection = ({ sec, modules }: { sec: NavSectionDef; modules: Item[] }, first: boolean) => (
+    <div key={sec.id} class={`sidebar-section sidebar-section-${sec.tone} snav-section${sec.id === 'top' ? ' snav-section-home' : ''}`} style={first ? { borderTop: 0, marginTop: 0 } : undefined} data-nav-section={sec.id}>
+      {sec.label && <div class="snav-caption">{sec.label}</div>}
+      <div class="sidebar-section-items">
+        {sec.items.map((i) => <NavLink key={i.path} item={i} collapsed={collapsed} active={i.path === activePath} />)}
+        {modules.map((i) => <ModuleLink key={i.path} item={i} collapsed={collapsed} active={i.path === activePath} onBadge={noop} />)}
+        {sec.id === 'system' && (
+          <>
+            {renderGroup(advanced)}
+            {moreGroup.items.length > 0 && renderGroup(moreGroup)}
+          </>
+        )}
+      </div>
+    </div>
   );
 
   return (
@@ -183,32 +204,7 @@ export function Sidebar() {
       </div>
 
       <nav class="sidebar-navigation snav" aria-label="Điều hướng chính">
-        <div class="sidebar-section sidebar-section-workspace snav-section snav-section-home" style={{ borderTop: 0, marginTop: 0 }}>
-          <div class="sidebar-section-items">
-            <NavLink item={HOME_NAV} collapsed={collapsed} active={isActive(loc, HOME_NAV)} />
-          </div>
-        </div>
-        <div class="sidebar-section sidebar-section-workspace snav-section">
-          <div class="snav-caption">WORKSPACE</div>
-          <div class="sidebar-section-items">{renderGroup(WORK_GROUP)}</div>
-        </div>
-        {moduleGroups.length > 0 && (
-          <div class="sidebar-section snav-section">
-            <div class="snav-caption">NGHIỆP VỤ</div>
-            {moduleGroups.map((g) => (
-              <div key={g.id} class={`sidebar-section-${g.cls}`}>
-                <div class="sidebar-section-items">{renderGroup(g)}</div>
-              </div>
-            ))}
-          </div>
-        )}
-        <div class="sidebar-section sidebar-section-intelligence snav-section">
-          <div class="snav-caption">AGENTS &amp; TRI THỨC</div>
-          <div class="sidebar-section-items">{AGENT_GROUPS.map(renderGroup)}</div>
-        </div>
-        <div class="sidebar-section sidebar-section-configure snav-section">
-          <div class="sidebar-section-items">{renderGroup(SYSTEM_GROUP)}</div>
-        </div>
+        {sections.map((x, i) => renderSection(x, i === 0))}
       </nav>
 
       <div class="sidebar-footer">

@@ -1,6 +1,7 @@
 import { defineModule } from '../../../src/modules/sdk.js';
 import { registerCareRoutes } from './api/index.js';
 import { createCareSchema } from './persistence/schema.js';
+import { createCustomersApi, type CareCustomersApi } from './customers-service.js';
 import { careState, startCare, stopCare } from './module-runtime.js';
 
 export default defineModule({
@@ -27,9 +28,17 @@ export default defineModule({
   start: (ctx) => startCare(ctx),
   stop: (ctx) => stopCare(ctx),
 
-  provides: (ctx) => ({
-    get careChannels() {
-      return careState(ctx).channels;
-    },
-  }),
+  provides: (ctx) => {
+    let customers: CareCustomersApi | undefined;
+    return {
+      get careChannels() {
+        return careState(ctx).channels;
+      },
+      /** read-only, decrypted customer data + the durable change feed (customers-service.ts); modules only, no HTTP */
+      get customers(): CareCustomersApi {
+        customers ??= createCustomersApi(ctx.db, () => careState(ctx).stores);
+        return customers;
+      },
+    };
+  },
 });

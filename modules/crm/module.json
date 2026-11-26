@@ -1,0 +1,19 @@
+{
+  "id": "crm",
+  "name": "Khách hàng (ghi chú)",
+  "description": "Mỗi khách trong Chăm sóc khách hàng có một ghi chú khach-hang/<ten>.md trong Second Brain, máy tự cập nhật từ cơ sở dữ liệu (một chiều). Bạn ghi chú tự do ngoài các khối máy quản lý.",
+  "version": "0.1.0",
+  "icon": "contact",
+  "category": "sales",
+  "requires": {
+    "modules": ["care"]
+  },
+  "tables": ["crm_note_index", "crm_sync_state"],
+  "settings": {
+    "folderId": {
+      "label": "Thư mục Second Brain cho ghi chú khách",
+      "type": "string",
+      "help": "Mã thư mục (id trong config/brain.yaml), ví dụ cong-ty-a. Để trống thì máy chưa xuất ghi chú nào."
+    }
+  }
+}

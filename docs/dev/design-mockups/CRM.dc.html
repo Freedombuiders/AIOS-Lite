@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Khách hàng</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115;font-family:'Inter',system-ui,'Segoe UI',sans-serif}
+a{color:#8aa3ff}a:hover{color:#a9bbff}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #0f1115; color: #e6e8ee; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+<div style="flex: 0 0 232px"><dc-import name="Sidebar" active="crm" hint-size="232px,100vh"></dc-import></div>
+
+<div style="flex: 999 1 560px; min-width: 0; min-height: 100vh; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid #272c37">
+<h1 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 20px; font-weight: 700">Khách hàng</h1>
+<nav aria-label="Cách xem khách hàng" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #171a21; border: 1px solid #272c37; border-radius: 10px">
+<a href="CRM.dc.html" aria-current="page" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; background: #6d8dff; color: #0b1020; font-weight: 600; text-decoration: none">Giai đoạn</a>
+<a href="CustomerList.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Tất cả khách</a>
+<a href="CustomerTop.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Khách tốt nhất</a>
+</nav>
+<input type="search" aria-label="Tìm khách" placeholder="Tên, số điện thoại, thẻ" style="margin-left: auto; flex: 0 1 240px; min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #353c4a; border-radius: 10px; background: #12151a; color: #e6e8ee; font: inherit">
+<button type="button" style="min-height: 44px; padding: 0 16px; border: 0; border-radius: 10px; background: #6d8dff; color: #0b1020; font: inherit; font-weight: 600; cursor: pointer">Thêm khách</button>
+</header>
+
+<main style="flex: 1 1 auto; box-sizing: border-box; padding: 20px 24px; display: flex; flex-direction: column; gap: 20px">
+
+<section aria-labelledby="cham" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 10px">
+<h2 id="cham" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Cần chăm hôm nay</h2>
+<span style="background: rgba(240,178,74,0.16); color: #f0b24a; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px">3</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 12px">
+<sc-for list="{{today}}" as="t" hint-placeholder-count="3">
+<div style="border: 1px solid #272c37; border-radius: 12px; background: #12151a; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-weight: 600">{{t.name}}</span>
+<span style="font-size: 13px; color: #9aa3b2">{{t.why}}</span>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; padding-top: 4px">
+<a href="Inbox.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; background: rgba(109,141,255,0.18); color: #a9bbff; font-weight: 600; text-decoration: none">{{t.act}}</a>
+<button type="button" style="min-height: 44px; padding: 0 12px; border: 1px solid #353c4a; border-radius: 10px; background: transparent; color: #e6e8ee; font: inherit; cursor: pointer">Để mai</button>
+</div>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section aria-label="Bảng giai đoạn" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 12px; align-items: start">
+
+<div style="background: #12151a; border: 1px solid #272c37; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 8px"><h2 style="margin: 0; font-size: 14px; font-weight: 600">Mới</h2><span style="font-size: 13px; color: #9aa3b2">2</span></div>
+<sc-for list="{{colNew}}" as="k" hint-placeholder-count="2">
+<a href="Customer.dc.html" style="background: #171a21; border: 1px solid #272c37; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: #e6e8ee"><span style="font-weight: 600">{{k.name}}</span><span style="font-size: 13px; color: #9aa3b2">{{k.note}}</span><span style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px"><span style="padding: 1px 8px; border-radius: 999px; background: rgba(255,255,255,0.07); color: #c9ced9">{{k.channel}}</span><span style="padding: 1px 8px; border-radius: 999px; background: {{k.nextBg}}; color: {{k.nextFg}}; font-weight: 600">{{k.next}}</span></span></a>
+</sc-for>
+</div>
+
+<div style="background: #12151a; border: 1px solid #272c37; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 8px"><h2 style="margin: 0; font-size: 14px; font-weight: 600">Đang tư vấn</h2><span style="font-size: 13px; color: #9aa3b2">3</span></div>
+<sc-for list="{{colTalk}}" as="k" hint-placeholder-count="3">
+<a href="Customer.dc.html" style="background: #171a21; border: 1px solid #272c37; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: #e6e8ee"><span style="font-weight: 600">{{k.name}}</span><span style="font-size: 13px; color: #9aa3b2">{{k.note}}</span><span style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px"><span style="padding: 1px 8px; border-radius: 999px; background: rgba(255,255,255,0.07); color: #c9ced9">{{k.channel}}</span><span style="padding: 1px 8px; border-radius: 999px; background: {{k.nextBg}}; color: {{k.nextFg}}; font-weight: 600">{{k.next}}</span></span></a>
+</sc-for>
+</div>
+
+<div style="background: #12151a; border: 1px solid #272c37; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 8px"><h2 style="margin: 0; font-size: 14px; font-weight: 600">Đã báo giá</h2><span style="font-size: 13px; color: #9aa3b2">2</span></div>
+<sc-for list="{{colQuote}}" as="k" hint-placeholder-count="2">
+<a href="Customer.dc.html" style="background: #171a21; border: 1px solid #272c37; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: #e6e8ee"><span style="font-weight: 600">{{k.name}}</span><span style="font-size: 13px; color: #9aa3b2">{{k.note}}</span><span style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px"><span style="padding: 1px 8px; border-radius: 999px; background: rgba(255,255,255,0.07); color: #c9ced9">{{k.channel}}</span><span style="padding: 1px 8px; border-radius: 999px; background: {{k.nextBg}}; color: {{k.nextFg}}; font-weight: 600">{{k.next}}</span></span></a>
+</sc-for>
+</div>
+
+<div style="background: #12151a; border: 1px solid #272c37; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 8px"><h2 style="margin: 0; font-size: 14px; font-weight: 600">Đặt cọc</h2><span style="font-size: 13px; color: #9aa3b2">1</span></div>
+<sc-for list="{{colDeposit}}" as="k" hint-placeholder-count="1">
+<a href="Customer.dc.html" style="background: #171a21; border: 1px solid #272c37; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: #e6e8ee"><span style="font-weight: 600">{{k.name}}</span><span style="font-size: 13px; color: #9aa3b2">{{k.note}}</span><span style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px"><span style="padding: 1px 8px; border-radius: 999px; background: rgba(255,255,255,0.07); color: #c9ced9">{{k.channel}}</span><span style="padding: 1px 8px; border-radius: 999px; background: {{k.nextBg}}; color: {{k.nextFg}}; font-weight: 600">{{k.next}}</span></span></a>
+</sc-for>
+</div>
+
+<div style="background: #12151a; border: 1px solid #272c37; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 8px"><h2 style="margin: 0; font-size: 14px; font-weight: 600">Đã chốt gần đây</h2><span style="font-size: 13px; color: #9aa3b2">2</span></div>
+<sc-for list="{{colWon}}" as="k" hint-placeholder-count="2">
+<a href="Customer.dc.html" style="background: #171a21; border: 1px solid #272c37; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: #e6e8ee"><span style="font-weight: 600">{{k.name}}</span><span style="font-size: 13px; color: #9aa3b2">{{k.note}}</span><span style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px"><span style="padding: 1px 8px; border-radius: 999px; background: rgba(255,255,255,0.07); color: #c9ced9">{{k.channel}}</span><span style="padding: 1px 8px; border-radius: 999px; background: {{k.nextBg}}; color: {{k.nextFg}}; font-weight: 600">{{k.next}}</span></span></a>
+</sc-for>
+</div>
+
+</section>
+<span style="font-size: 13px; color: #9aa3b2">AI chỉ đề xuất chuyển giai đoạn. Kéo thẻ sang cột khác là việc của bạn, trừ khi bạn bật cho AI tự chuyển.</span>
+</main>
+
+<dc-import name="ChatBar" ask="Ví dụ: ai báo giá rồi mà chưa trả lời quá 3 ngày?" hint-size="100%,72px"></dc-import>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var due = { nextBg: 'rgba(240,178,74,0.16)', nextFg: '#f0b24a' };
+    var soon = { nextBg: 'rgba(109,141,255,0.18)', nextFg: '#a9bbff' };
+    var none = { nextBg: 'rgba(255,255,255,0.07)', nextFg: '#c9ced9' };
+    var ok = { nextBg: 'rgba(70,194,138,0.16)', nextFg: '#46c28a' };
+    function card(s, o) { o.nextBg = s.nextBg; o.nextFg = s.nextFg; return o; }
+    return {
+      today: [
+        { name: 'Anh Minh', why: 'Đã báo giá 3 ngày, chưa trả lời. AI soạn sẵn tin hỏi thăm.', act: 'Xem tin nháp' },
+        { name: 'Chị Lan', why: 'Hỏi giá sỉ 60 hộp ô long sen. Tin trả lời đang chờ bạn duyệt.', act: 'Mở cuộc chat' },
+        { name: 'Chị Hoa', why: 'Nhắn Zalo hỏi Combo Tết. Chưa ai trả lời.', act: 'Mở cuộc chat' }
+      ],
+      colNew: [
+        card(due, { name: 'Chị Hoa', note: 'Nhắn Zalo hỏi Combo Tết', channel: 'Chưa kết bạn', next: 'Hôm nay' }),
+        card(none, { name: 'Anh Tuấn', note: 'Xin bảng giá sỉ, AI đã gửi', channel: 'Bạn bè Zalo', next: 'Chưa có việc' })
+      ],
+      colTalk: [
+        card(due, { name: 'Chị Lan', note: 'Chủ cửa hàng, hỏi 60 hộp ô long sen', channel: 'Bạn bè Zalo', next: 'Hôm nay' }),
+        card(soon, { name: 'Cửa hàng An Nhiên', note: 'Hỏi thời gian giao, muốn lấy thử 10 hộp', channel: 'Bạn bè Zalo', next: 'Gọi lại 28/11' }),
+        card(none, { name: 'Chị Thu', note: 'Hỏi quà tặng cho công ty', channel: 'Bạn bè Zalo', next: 'Chưa có việc' })
+      ],
+      colQuote: [
+        card(due, { name: 'Anh Minh', note: 'Báo giá 200 hộp trà sen Tây Hồ', channel: 'Bạn bè Zalo', next: 'Quá 3 ngày' }),
+        card(soon, { name: 'Cô Hạnh', note: 'Báo giá đại lý cấp 2', channel: 'Bạn bè Zalo', next: 'Hỏi lại 30/11' })
+      ],
+      colDeposit: [
+        card(soon, { name: 'Anh Dũng', note: 'Cọc đơn 80 hộp, chờ xác nhận ngày giao', channel: 'Bạn bè Zalo', next: 'Xác nhận 27/11' })
+      ],
+      colWon: [
+        card(ok, { name: 'Trà quán Mộc', note: 'Đại lý cấp 1 từ quý 3', channel: 'Bạn bè Zalo', next: 'Chăm định kỳ' }),
+        card(ok, { name: 'Chị Ngân', note: 'Mua lẻ 2 combo', channel: 'Bạn bè Zalo', next: 'Đã giao' })
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -11,8 +11,10 @@
  * Order (cheapest and most absolute first), every step recorded in `care_agent_runs`:
  *   begin idempotent run -> Telegram AI hard block -> assignment -> eligibility (kill switches,
  *   account, message gates, pause, human reply, quotas, quiet hours) -> boundary check -> build
- *   stateless context -> runner (timeout) -> tool-use check -> strict parse/sanitize ->
- *   post-run revalidation (human replied / context changed / switches flipped) -> draft sink.
+ *   stateless context (T06: within the runtime's prompt budget, else `prompt_too_long`) -> attachments the runtime can
+ *   read (T06: a customer burst with no usable text whose attachments the model cannot see goes to the owner,
+ *   `media_needs_owner`) -> runner (timeout) -> tool-use check -> strict parse/sanitize -> post-run revalidation
+ *   (human replied / context changed / switches flipped / paused / taken over) -> draft sink.
  */
 
 import type Database from 'better-sqlite3';
@@ -29,7 +31,7 @@ import {
 } from '../policy/eligibility.js';
 import type { AutoDelayRange } from '../policy/policy-ext.js';
 import { toGateMessage, type GateMessage } from '../policy/message-gates.js';
-import { matchKeywordAtWordStart, stripQuotedReply } from '../policy/text-heuristics.js';
+import { isChatNoise, matchKeywordAtWordStart, stripQuotedReply } from '../policy/text-heuristics.js';
 import {
   AgentRunnerError,
   createAgentBoundary,
@@ -101,7 +103,19 @@ export interface AgentTurnDeps {
   turnMedia?: TurnMediaSource;
   /** Module setting: fixed auto-send delay in seconds, applied when set (null/absent => the rule's own delay). */
   autoDelaySeconds?: () => number | null;
+  /**
+   * T06: the most characters the agent's runtime accepts in one prompt (null/absent => no limit known). The transcript
+   * is fitted into what is left after the fixed parts; a prompt still over the limit is never sent (`prompt_too_long`).
+   */
+  promptLimit?: (agentId: string) => number | null;
 }
+
+/** Customer turn skip reasons that need the owner (the module raises attention for them). */
+export const OWNER_SKIP_REASONS: ReadonlySet<string> = new Set(['media_needs_owner', 'prompt_too_long']);
+/** Room kept between the fitted transcript and the runtime limit (the transcript is measured approximately). */
+const PROMPT_MARGIN_CHARS = 200;
+/** Below this many characters of transcript a reply would be guesswork: the turn goes to the owner instead. */
+const MIN_TRANSCRIPT_CHARS = 400;
 
 export interface AgentTurnRequest {
   conversationId: string;
@@ -298,7 +312,7 @@ export class CareAgentTurn {
       account,
       trigger,
       reader: this.reader,
-      limits: this.cfg.contextLimits,
+      limits: this.cfg.contextLimits as Partial<ContextLimits>,
       // reaching here for Telegram means the per-group gate above already said yes (it skips otherwise)
       ...(account.channel === 'telegram' ? { telegramBotGroupOpen: this.telegramBotAi(account, conversation)?.allowed === true } : {}),
     };
@@ -328,17 +342,35 @@ export class CareAgentTurn {
     }
     if (!report.enforced) return fail('boundary_unenforced', { unenforceable: [...(report.unenforceable ?? [])] });
 
+    // T06 prompt budget: the transcript gets what the runtime limit leaves after the fixed parts of the prompt.
+    const skill = this.deps.skillFor?.(rule.agentId) ?? null;
+    const limit = this.promptLimitFor(rule.agentId);
+    if (limit !== null) {
+      const fixed = buildAgentPrompt({ account, conversation, rule, context: { ...context, transcript: '' }, skill, attachments: true }).length;
+      const room = limit - fixed - PROMPT_MARGIN_CHARS;
+      if (room < MIN_TRANSCRIPT_CHARS) return skip('prompt_too_long', { limitChars: limit, fixedChars: fixed });
+      contextInput.limits = { ...this.cfg.contextLimits, maxChars: Math.min(room, this.cfg.contextLimits.maxChars ?? room) };
+    }
+    const fitted = limit !== null ? buildAgentContext(contextInput) : context;
+
     // Attachments are fetched only for a turn that will call the model; the transcript then names what travels along.
-    const media = await this.turnMedia(rule.agentId, context);
+    const media = await this.turnMedia(rule.agentId, fitted);
     const attached = media.attached.size > 0;
-    const prompt = buildAgentPrompt({
-      account,
-      conversation,
-      rule,
-      context: attached ? buildAgentContext({ ...contextInput, attached: media.attached }) : context,
-      skill: this.deps.skillFor?.(rule.agentId) ?? null,
-      attachments: attached,
-    });
+
+    // T06: a customer burst with no usable text (only images / files) whose attachments the model cannot see is never
+    // answered blind: the owner gets it.
+    const blind = this.mediaOnlyUnreadable(account, context, media.attached);
+    if (blind) {
+      media.cleanup();
+      return skip('media_needs_owner', blind);
+    }
+
+    const promptContext = attached ? buildAgentContext({ ...contextInput, attached: media.attached }) : fitted;
+    const prompt = buildAgentPrompt({ account, conversation, rule, context: promptContext, skill, attachments: attached });
+    if (limit !== null && prompt.length > limit) {
+      media.cleanup();
+      return skip('prompt_too_long', { limitChars: limit, promptChars: prompt.length });
+    }
 
     // The model call. Everything from here on is untrusted output.
     const abort = new AbortController();
@@ -385,7 +417,7 @@ export class CareAgentTurn {
     }
 
     const parsed = parseAgentOutput(output.text, {
-      validRefs: new Set(context.refs.keys()),
+      validRefs: new Set(promptContext.refs.keys()),
       maxReplyChars: this.cfg.maxReplyChars,
       maxReplies: this.cfg.maxReplies,
     });
@@ -419,21 +451,30 @@ export class CareAgentTurn {
         },
       }),
     );
-    if (!post.eligible) {
+    // T06: a take-over (a customer handoff is one) or AI off that happened while the model was thinking also discards it.
+    const controlAfter = triggerKind !== 'manual' ? this.deps.conversationControl?.(conversation.id) : null;
+    const postReason = !post.eligible
+      ? post.reason
+      : controlAfter?.takenOver
+        ? 'conversation_taken_over'
+        : controlAfter?.aiMode === 'off'
+          ? 'ai_mode_off'
+          : null;
+    if (postReason) {
       return {
         status: 'skipped',
         run: finish({
           status: 'skipped',
-          skipReason: post.reason,
+          skipReason: postReason,
           decision: { discarded: true, detail: post.detail ?? null, decision: decisionForStorage(decision) },
           ...meta,
         }),
-        reason: post.reason,
+        reason: postReason,
         effects: [],
       };
     }
 
-    const proposal = this.buildProposal({ runId, account, conversation, trigger, context, rule, decision, adjustment: post.adjustment ?? null, actor, contextRevision });
+    const proposal = this.buildProposal({ runId, account, conversation, trigger, context: promptContext, rule, decision, adjustment: post.adjustment ?? null, actor, contextRevision });
     let draftRef: string;
     try {
       draftRef = (await this.deps.draftSink.propose(proposal)).draftRef;
@@ -474,6 +515,30 @@ export class CareAgentTurn {
     } catch {
       return NO_TURN_MEDIA;
     }
+  }
+
+  private promptLimitFor(agentId: string): number | null {
+    let v: number | null | undefined;
+    try {
+      v = this.deps.promptLimit?.(agentId);
+    } catch {
+      v = null;
+    }
+    return typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : null;
+  }
+
+  /**
+   * Chat only. The customer messages of the burst carry no usable text (empty or a bare "ok") but do carry attachments,
+   * and none of those attachments travels with the prompt (the runtime cannot read that kind, or the fetch failed).
+   * Returns a detail for the skipped run (counts only, no customer content), or null when the turn may go ahead.
+   */
+  private mediaOnlyUnreadable(account: CareAccountRecord, context: AgentContext, attached: ReadonlyMap<string, string>): Record<string, unknown> | null {
+    if (account.channel === 'email') return null;
+    const customer = context.burst.filter((m) => m.senderRole === 'customer' && !m.isDeleted && !m.tombstone);
+    if (customer.some((m) => m.text.trim() !== '' && !isChatNoise(m.text))) return null;
+    const keys = customer.flatMap((m) => (m.metadata.attachments ?? []).map((_, i) => `${m.id}:${i}`));
+    if (keys.length === 0 || keys.some((k) => attached.has(k))) return null;
+    return { attachments: keys.length };
   }
 
   private chatSenderKey(m: CareMessageRecord): string | null {

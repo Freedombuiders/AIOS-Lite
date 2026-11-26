@@ -82,6 +82,7 @@ export function bootstrap(opts: BootstrapOptions = {}): AppDeps {
     // integrations bridge (MCP server `aios-integrations`): calls back into this API with a per-task token
     apiUrl: `http://${config.host}:${config.port}`,
     integrationToken: (agentId, taskId) => integrationServiceFor(lazy.deps!).createRunToken(agentId, taskId),
+    runtimeCapabilities: (id) => runtimes.get(id).capabilities,
   });
 
   // every machine write to a brain folder that is a git repo becomes a commit (coalesced per folder, ~2 s)

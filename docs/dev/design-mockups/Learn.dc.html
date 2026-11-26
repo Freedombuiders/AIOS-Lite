@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Brain · AI tự học</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115;font-family:'Inter',system-ui,'Segoe UI',sans-serif}
+a{color:#8aa3ff}a:hover{color:#a9bbff}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #0f1115; color: #e6e8ee; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+<div style="flex: 0 0 232px"><dc-import name="Sidebar" active="learn" hint-size="232px,100vh"></dc-import></div>
+
+<div style="flex: 999 1 560px; min-width: 0; min-height: 100vh; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid #272c37">
+<h1 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 20px; font-weight: 700">Vòng học</h1>
+<nav aria-label="Các phần của vòng học" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #171a21; border: 1px solid #272c37; border-radius: 10px">
+<a href="Loop.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Tổng quan</a>
+<a href="Playbook.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Sổ bài học</a>
+<a href="Learn.dc.html" aria-current="page" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; background: #6d8dff; color: #0b1020; font-weight: 600; text-decoration: none">Chờ duyệt · 2</a>
+<a href="Weekly.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Tổng kết tuần</a>
+</nav>
+<span style="color: #9aa3b2">Bạn quyết định điều gì được vào brain.</span>
+<button type="button" style="margin-left: auto; min-height: 44px; padding: 0 16px; border: 1px solid #353c4a; border-radius: 10px; background: #171a21; color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer">Học ngay một lượt</button>
+</header>
+
+<main style="flex: 1 1 auto; box-sizing: border-box; padding: 20px 24px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+
+<div style="flex: 2 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+
+<section aria-labelledby="cho-duyet" style="display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 10px">
+<h2 id="cho-duyet" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Chờ bạn duyệt</h2>
+<span style="background: rgba(199,155,255,0.16); color: #c79bff; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px">2</span>
+</div>
+
+<div style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+<span style="font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 6px; background: rgba(240,100,122,0.16); color: #f0647a">Brain còn thiếu</span>
+<span style="font-size: 13px; color: #9aa3b2">Bot CSKH · từ 5 cuộc chat tuần này</span>
+</div>
+<span style="font-size: 16px; font-weight: 600">Khách hay hỏi phí ship cho đơn dưới 10 hộp, brain chưa có câu trả lời.</span>
+<span style="font-size: 13px; color: #9aa3b2">Sẽ ghi vào chinh-sach/giao-hang-doi-tra.md. Trong lúc chờ, AI đang trả lời "để em hỏi lại shop".</span>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #9aa3b2">Câu trả lời của bạn
+<input type="text" placeholder="[PHÍ SHIP CỦA BẠN]" style="min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #353c4a; border-radius: 10px; background: #0f1115; color: #e6e8ee; font: inherit; font-size: 14px">
+</label>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" style="min-height: 44px; padding: 0 16px; border: 0; border-radius: 10px; background: #6d8dff; color: #0b1020; font: inherit; font-weight: 600; cursor: pointer">Ghi vào brain</button>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; background: transparent; color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer">Xem 5 cuộc chat</button>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; background: transparent; color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer">Bỏ qua</button>
+</div>
+</div>
+
+<div style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+<span style="font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 6px; background: rgba(240,178,74,0.16); color: #f0b24a">Ghi chú khách</span>
+<span style="font-size: 13px; color: #9aa3b2">Bot CSKH · cuộc chat với chị Lan, 09:44</span>
+</div>
+<span style="font-size: 16px; font-weight: 600">Chị Lan có cửa hàng riêng, hợp gói đại lý cấp 2.</span>
+<span style="font-size: 13px; color: #9aa3b2">Sẽ ghi vào khach-hang/chi-lan.md và gắn thẻ "hỏi sỉ" trong Khách hàng.</span>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" style="min-height: 44px; padding: 0 16px; border: 0; border-radius: 10px; background: #6d8dff; color: #0b1020; font: inherit; font-weight: 600; cursor: pointer">Đồng ý</button>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; background: transparent; color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer">Sửa rồi ghi</button>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; background: transparent; color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer">Bỏ qua</button>
+</div>
+</div>
+</section>
+
+<section aria-labelledby="da-hoc" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-bottom: 1px solid #272c37">
+<h2 id="da-hoc" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Đã ghi vào brain</h2>
+<span style="margin-left: auto; font-size: 13px; color: #9aa3b2">Mỗi dòng là một commit git, hoàn tác được</span>
+</div>
+<sc-for list="{{history}}" as="h" hint-placeholder-count="4">
+<div style="display: flex; align-items: center; gap: 12px; padding: 10px 20px; border-bottom: 1px solid #20242d">
+<div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span>{{h.what}}</span><span style="font-size: 12px; color: #9aa3b2">{{h.who}}</span></div>
+<button type="button" style="min-height: 44px; padding: 0 12px; border: 1px solid #353c4a; border-radius: 10px; background: transparent; color: #e6e8ee; font: inherit; cursor: pointer">Hoàn tác</button>
+</div>
+</sc-for>
+</section>
+</div>
+
+<aside aria-labelledby="cach-hoc" style="flex: 1 1 320px; min-width: 0; background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px">
+<h2 id="cach-hoc" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Cách AI học</h2>
+<label style="display: flex; align-items: center; gap: 10px; min-height: 44px"><input type="checkbox" checked><span>Tự rút kinh nghiệm sau mỗi cuộc chat</span></label>
+<fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 4px">
+<legend style="padding: 0; font-weight: 600; margin-bottom: 6px">Khi có điều mới</legend>
+<label style="display: flex; align-items: center; gap: 10px; min-height: 44px"><input type="radio" name="ghi" checked><span>Chờ tôi duyệt rồi mới ghi</span></label>
+<label style="display: flex; align-items: center; gap: 10px; min-height: 44px"><input type="radio" name="ghi"><span>Tự ghi vào nho/ và khach-hang/</span></label>
+</fieldset>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-weight: 600">AI không bao giờ tự sửa</span>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<span style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; padding: 3px 10px; border-radius: 999px; background: rgba(255,255,255,0.07)">san-pham/</span>
+<span style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; padding: 3px 10px; border-radius: 999px; background: rgba(255,255,255,0.07)">chinh-sach/</span>
+<span style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; padding: 3px 10px; border-radius: 999px; background: rgba(255,255,255,0.07)">giong-noi.md</span>
+</div>
+<span style="font-size: 13px; color: #9aa3b2">Giá và chính sách là lời hứa với khách, nên chỉ bạn được đổi.</span>
+</div>
+<div style="border-top: 1px solid #272c37; padding-top: 14px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-weight: 600">Sao lưu brain</span>
+<span style="font-size: 13px; color: #9aa3b2">Chưa nối kho GitHub riêng. Brain hiện chỉ nằm trên máy này.</span>
+<a href="Settings.dc.html" style="align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; font-weight: 600">Nối kho sao lưu</a>
+</div>
+</aside>
+
+</main>
+
+<dc-import name="ChatBar" ask="Dặn AI nhớ một điều, ví dụ: từ nay xưng em với khách" hint-size="100%,72px"></dc-import>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      history: [
+        { what: 'Thêm ghi chú khách Cửa hàng An Nhiên', who: 'Bot CSKH tự ghi · 09:02 hôm nay' },
+        { what: 'Nhớ: khách đại lý thích nhận bảng giá dạng ảnh', who: 'Bot CSKH, bạn đã duyệt · hôm qua' },
+        { what: 'Thêm trụ cột nội dung "Quà Tết"', who: 'Bot Nội dung, bạn đã duyệt · 23/11' },
+        { what: 'Sửa cách xưng hô: gọi khách là anh, chị', who: 'Bạn dặn trong Trò chuyện · 21/11' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

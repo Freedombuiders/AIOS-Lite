@@ -26,6 +26,7 @@ function toForm(a: AgentDetailDto): AgentFormValue {
   return {
     id: a.id, name: a.name, description: a.description, runtime: a.runtime, model: a.model ?? '', permission: a.permission, context: a.context, reportsTo: a.reportsTo ?? '',
     canDelegate: a.canDelegate, maxConcurrent: a.maxConcurrent, budget: a.budgetUsdMonth === undefined ? '' : String(a.budgetUsdMonth), enabled: a.enabled, persona: a.persona,
+    runtimeOptions: { ...a.runtimeOptions },
   };
 }
 

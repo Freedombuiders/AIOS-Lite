@@ -18,7 +18,7 @@ async function readStdin() {
 
 function record(kind, stdin) {
   if (!process.env.FAKE_RECORD) return;
-  const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => /^(CLAUDE|AIOS_|COMPOSIO|HERMES_|GROK_|GRANTED_|MCP_|EXTRA_|OPENAI)/.test(k)));
+  const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => /^(CLAUDE|AIOS_|COMPOSIO|HERMES_|GROK_|GRANTED_|MCP_|EXTRA_|OPENAI|GENBOT_|BOTKEY_)/.test(k)));
   appendFileSync(process.env.FAKE_RECORD, `${JSON.stringify({ kind, argv: process.argv.slice(2), stdin, env, cwd: process.cwd() })}\n`);
 }
 

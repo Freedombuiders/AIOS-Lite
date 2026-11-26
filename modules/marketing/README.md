@@ -10,7 +10,7 @@ Soạn, lên lịch và đăng bài lên Fanpage; phân tích hiệu quả; tự
 
 ## Màn hình (nhóm Marketing)
 
-Pages · Kho nội dung · Lịch đăng · Phân tích (Hiệu quả kênh, Bài đã đăng) · Bình luận AI · Quy tắc bình luận, tất cả dưới `/m/marketing/...`. Bảng điều khiển có widget "Bài sắp đăng".
+Pages · Kho nội dung · Lịch đăng · Mạng xã hội (Tổng quan) · Facebook · Phân tích (Hiệu quả kênh, Bài đã đăng) · Bình luận AI · Quy tắc bình luận, tất cả dưới `/m/marketing/...`. "Mạng xã hội" (`/social`) và "Facebook" (`/social/facebook`) chỉ đọc API phân tích sẵn có (`/analytics/channel`, `/analytics/posts`), chỉ có Facebook; YouTube, Instagram, TikTok là thẻ "chưa hỗ trợ ở bản này". Bảng điều khiển có widget "Bài sắp đăng".
 
 ## Quyết định giữ nguyên
 
@@ -36,6 +36,17 @@ Cấp trong `agent.yaml`, mục `access.modules.marketing`. Agent trả lời b�
 ## Cho module khác (`provides`)
 
 `topPosts(pageId?, days)` trả bài organic kèm reach, reactions, comments, shares; `pageInfo(pageId)` trả `{ id, name, timezone, status }`. Module `ads` lấy qua `ctx.modules.get('marketing')`.
+
+`contentFeed` (hợp đồng ở `modules/_lib/content-feed.ts`) là luồng bền của bài đã đăng và số đo:
+
+- `since(cursor, limit)` trả các sự kiện `published` (bài vừa lên Facebook) và `snapshot` (số đo một mốc của bài vừa đổi) theo thứ tự, kèm con trỏ mới. Module đọc tự giữ con trỏ và gọi lại lúc khởi động để đọc bù. Không dùng `ctx.events`: SDK tự thêm tiền tố id module của bên nghe, và sự kiện trong bộ nhớ mất khi khởi động lại.
+- `get(contentId)` trả bài kèm dòng dõi và mọi số đo theo mốc. Trả `undefined` khi bài đã bị xoá hoặc là bản nhập trùng đã gộp vào bài gốc.
+
+Sự kiện được ghi vào bảng `fb_content_feed` trong cùng giao dịch với thay đổi. Lần ghi số đo không đổi con số nào thì không sinh sự kiện.
+
+**Dòng dõi** (`idea_id`, `formula_slug`, `formula_version`, `source_video_slug`, `expected_ratio`) chỉ đặt lúc tạo bài, qua `POST /content` (trường `lineage`) hoặc `kolBridge.createContent`. Sửa bài không đổi được dòng dõi, và lệnh của agent không có cờ nào cho nó.
+
+**Đối soát:** nếu bộ phân tích nhập bài từ Facebook trước khi bộ đăng bài kịp lưu mã bài, bộ đăng bài gộp bản nhập vào dòng gốc trong một giao dịch: dòng gốc giữ dòng dõi, người tạo và nhận mã bài; số đo gắn theo mã bài nên đi theo. Dòng trùng do bản cũ để lại được sửa mỗi lần module khởi động, dựa vào mã bài trong nhật ký đăng.
 
 ## Thông báo
 

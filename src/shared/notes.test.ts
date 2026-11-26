@@ -6,7 +6,7 @@ import type { ConnectionsService } from '../access/contracts.js';
 import type { SkillLibrary } from './contracts.js';
 import { parseFrontmatter } from './frontmatter.js';
 import { readBlock } from './note-blocks.js';
-import { createNotes, hashOf, NoteAccessError, NoteConflictError, NoteInputError, NoteSchemaError, type Notes } from './notes.js';
+import { createNotes, hashOf, NoteAccessError, NoteConflictError, NoteInputError, NoteNotFoundError, NoteSchemaError, type Notes } from './notes.js';
 import { sampleBrain, tempRegistry, testLog, tmpDir, writeFile } from './test-kit.js';
 
 const KH = { loai: 'khach-hang', id: 'cus_01', ten: 'Chị Lan', giai_doan: 'dang-tu-van', the: ['hoi-si'] };
@@ -183,15 +183,29 @@ describe('notes: remove and the system principal', () => {
     expect(fs.existsSync(file('khach-hang/xoa.md'))).toBe(true);
     // an agent that may read but not write danh-muc-tra-sen.md cannot delete it
     expect(() => notes.forAgent('bot-cham').remove(ref('danh-muc-tra-sen.md'), { message: 'x', overwrite: true })).toThrow(NoteAccessError);
-    expect(sys.remove(ref('khach-hang/xoa.md'), { message: 'xoá', expectHash: created.hash })).toBe(true);
+    sys.remove(ref('khach-hang/xoa.md'), { message: 'xoá', expectHash: created.hash });
     expect(fs.existsSync(file('khach-hang/xoa.md'))).toBe(false);
     expect(sys.read(ref('khach-hang/xoa.md'))).toBeUndefined();
     expect(sb.brain.search('cus_01', { folders: ['cong-ty-b'] }).some((h) => h.path === 'khach-hang/xoa.md')).toBe(false);
-    // already gone: false without an expectation, conflict with one
-    expect(sys.remove(ref('khach-hang/xoa.md'), { message: 'xoá', overwrite: true })).toBe(false);
+    // already gone: not found without an expectation, conflict with one
+    expect(() => sys.remove(ref('khach-hang/xoa.md'), { message: 'xoá', overwrite: true })).toThrow(NoteNotFoundError);
     expect(() => sys.remove(ref('khach-hang/xoa.md'), { message: 'xoá', expectHash: created.hash })).toThrow(NoteConflictError);
     fs.symlinkSync(file('danh-muc-tra-sen.md'), file('alias.md'));
     expect(() => sys.remove(ref('alias.md'), { message: 'x', overwrite: true })).toThrow(NoteInputError);
     expect(fs.existsSync(file('danh-muc-tra-sen.md'))).toBe(true);
+  });
+});
+
+describe('notes: remove', () => {
+  it('deletes a note it was shown, takes it out of the index, and refuses a stale or forbidden delete', () => {
+    const m = notes.forModule('crm');
+    const created = m.create(ref('khach-hang/chi-lan.md'), KH, BODY, { message: 'tạo khách' });
+    expect(() => m.remove(ref('khach-hang/chi-lan.md'), { message: 'xoá' })).toThrow(NoteInputError); // no expectation
+    expect(() => m.remove(ref('khach-hang/chi-lan.md'), { message: 'xoá', expectHash: 'x' })).toThrow(NoteConflictError);
+    expect(() => notes.forAgent('bot-cham').remove(ref('ho-so.md'), { message: 'xoá', overwrite: true })).toThrow(NoteAccessError);
+    m.remove(ref('khach-hang/chi-lan.md'), { message: 'xoá khách', expectHash: created.hash });
+    expect(fs.existsSync(file('khach-hang/chi-lan.md'))).toBe(false);
+    expect(sb.brain.search('đừng gọi sau', { folders: ['cong-ty-b'] }).map((h) => h.path)).not.toContain('khach-hang/chi-lan.md');
+    expect(() => m.remove(ref('khach-hang/chi-lan.md'), { message: 'xoá', overwrite: true })).toThrow(/Không tìm thấy/);
   });
 });

@@ -47,7 +47,8 @@ export interface GateMessage {
   /** Customer-provided text (email: the full body, quoted history is stripped by the gate). */
   text: string;
   isDeleted: boolean;
-  contentKind: 'text' | 'image' | 'other';
+  /** `image` / `document` (PDF): a chat message with no text that carries one (T06: routed to the owner when unreadable). */
+  contentKind: 'text' | 'image' | 'document' | 'other';
   /** Chat group/topic: exact @mention of the account or quote of its message. */
   directedAtAccount: boolean;
   /** Chat: carries an @all mention. */
@@ -70,6 +71,7 @@ export function toGateMessage(m: CareMessageRecord, chatSenderKey: string | null
   const meta = m.metadata;
   let contentKind: GateMessage['contentKind'] = m.text.trim() !== '' ? 'text' : 'other';
   if (meta.type === 'chat' && m.text.trim() === '' && (meta.attachments ?? []).some((a) => a.mimeType.startsWith('image/'))) contentKind = 'image';
+  else if (meta.type === 'chat' && m.text.trim() === '' && (meta.attachments ?? []).some(isPdfDescriptor)) contentKind = 'document';
   return {
     id: m.id,
     origin: m.origin,
@@ -95,6 +97,12 @@ export function toGateMessage(m: CareMessageRecord, chatSenderKey: string | null
         }
       : {}),
   };
+}
+
+/** A PDF by declared type or name (Zalo sends files as application/octet-stream). Voice notes never count. */
+function isPdfDescriptor(a: { mimeType?: string; fileName?: string; isVoice?: boolean } | null | undefined): boolean {
+  if (!a || a.isVoice === true) return false;
+  return (a.mimeType ?? '').toLowerCase() === 'application/pdf' || /\.pdf$/i.test(a.fileName ?? '');
 }
 
 export interface MessageGateInput {
@@ -135,7 +143,8 @@ export function isDirectedByTrigger(policy: EffectivePolicy, m: GateMessage): bo
 function evaluateChat(input: MessageGateInput): MessageGateResult {
   const { policy, burst, conversationKind } = input;
   const texts = burst.filter((m) => m.contentKind === 'text' && m.text.trim() !== '');
-  const hasImage = burst.some((m) => m.contentKind === 'image');
+  // An image or a PDF with no text still asks something; the agent turn decides whether the model can see it.
+  const hasImage = burst.some((m) => m.contentKind === 'image' || m.contentKind === 'document');
   if (texts.length === 0 && !hasImage) return fail('unsupported_type');
   const isGroup = conversationKind !== 'direct';
   if (isGroup && policy.groupTrigger !== 'smart' && !burst.some((m) => isDirectedByTrigger(policy, m))) return fail('not_directed');

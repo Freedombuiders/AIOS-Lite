@@ -5,6 +5,25 @@ import type { RunService } from './contracts.js';
 
 const toRun = (row: Record<string, unknown> | undefined): Run | undefined => camelRow<Run>(row);
 
+/** Start of the calendar day of `now` in `timeZone`, as a UTC ISO string (comparable with runs.started_at). */
+export function dayStartIso(timeZone: string, now = new Date()): string {
+  let parts: Record<string, number>;
+  try {
+    parts = Object.fromEntries(
+      new Intl.DateTimeFormat('en-US', { timeZone, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        .formatToParts(now)
+        .filter((p) => p.type !== 'literal')
+        .map((p) => [p.type, Number(p.value)]),
+    );
+  } catch {
+    return dayStartIso('UTC', now); // unknown zone: count by UTC day
+  }
+  // offset of the zone at `now`, then local midnight back to UTC
+  const localAsUtc = Date.UTC(parts.year!, parts.month! - 1, parts.day!, parts.hour!, parts.minute!, parts.second!);
+  const offset = localAsUtc - Math.floor(now.getTime() / 1000) * 1000;
+  return new Date(Date.UTC(parts.year!, parts.month! - 1, parts.day!) - offset).toISOString();
+}
+
 export function createRunService({ db, bus }: { db: DB; bus: EventBus }): RunService {
   const get = (id: number): Run | undefined => toRun(db.prepare('SELECT * FROM runs WHERE id = ?').get(id) as Record<string, unknown> | undefined);
 
@@ -79,6 +98,11 @@ export function createRunService({ db, bus }: { db: DB; bus: EventBus }): RunSer
       const start = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1)).toISOString();
       const row = db.prepare('SELECT SUM(cost_usd) AS s FROM runs WHERE agent_id = ? AND started_at >= ? AND cost_usd IS NOT NULL').get(agentId, start) as { s: number | null };
       return row.s ?? 0;
+    },
+
+    dayCount(agentId, timeZone, now = new Date()) {
+      const row = db.prepare('SELECT COUNT(*) AS n FROM runs WHERE agent_id = ? AND started_at >= ?').get(agentId, dayStartIso(timeZone, now)) as { n: number };
+      return row.n;
     },
 
     failOrphans(reason) {

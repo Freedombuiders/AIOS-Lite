@@ -10,7 +10,7 @@ import type { Composio } from '@composio/core';
 import type { Hono } from 'hono';
 import type { DB } from '../core/db.js';
 import type { Logger } from '../core/log.js';
-import type { AgentConfig, BrainHit, Memory, Run, Task, Usage } from '../core/types.js';
+import type { AgentConfig, BrainHit, ErrorFamily, Memory, Run, Task, Usage } from '../core/types.js';
 import type { CreateTaskInput } from '../work/contracts.js';
 import type { ModuleNotes } from '../shared/notes.js';
 import type { IntegrationDefinition } from '../integrations/types.js';
@@ -30,7 +30,7 @@ export interface ModuleManifest {
   version: string;
   icon?: string;
   /** sidebar group for the module's pages */
-  category: 'studio' | 'sales' | 'marketing' | 'finance' | 'ops' | 'other';
+  category: 'studio' | 'sales' | 'care' | 'brain' | 'marketing' | 'finance' | 'ops' | 'other';
   requires?: {
     /** modules that must be added first */
     modules?: string[];
@@ -73,6 +73,10 @@ export interface LeanRunResult {
   taskId: number;
   runId: number | null;
   error?: string;
+  /** why it failed (auth, quota, access, timeout…), so a module can wait, pause or ask the owner */
+  family?: ErrorFamily;
+  /** ISO time after which a retry makes sense (quota windows) */
+  retryAfter?: string;
   usage?: Usage;
 }
 
@@ -100,6 +104,11 @@ export interface ModuleContext {
     runLean(input: LeanRunInput): Promise<LeanRunResult>;
     /** which attachments the agent's runtime can actually read (false for an unknown agent) */
     attachments(agentId: string): { images: boolean; documents: boolean };
+    /**
+     * Most characters the agent's runtime accepts in one prompt (`RuntimeCapabilities.maxPromptChars`), null when the
+     * runtime states none or the agent is unknown. Optional so test doubles need not implement it.
+     */
+    promptLimit?(agentId: string): number | null;
   };
   access: {
     /** scope of THIS module, e.g. can('sales-a', 'reply.send') */

@@ -221,7 +221,7 @@ describe('group broadcast worker', () => {
     expect(latestRun(b.id)).toMatchObject({ state: 'partial', sent_count: 2, failed_count: 1 });
   });
 
-  it.each(['QUIET_HOURS', 'BULK_BUDGET', 'RATE_LIMITED', 'NOT_CONNECTED', 'CHAT_DISABLED', 'LOCKED'] as const)(
+  it.each(['QUIET_HOURS', 'BULK_BUDGET', 'MARKETING_OFF', 'RATE_LIMITED', 'NOT_CONNECTED', 'CHAT_DISABLED', 'LOCKED'] as const)(
     'stops the run on %s and leaves the remaining groups pending, not failed',
     async (code) => {
       const h = harness();

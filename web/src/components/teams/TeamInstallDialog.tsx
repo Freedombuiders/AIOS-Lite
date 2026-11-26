@@ -126,7 +126,7 @@ export function TeamInstallDialog({ team, onClose, onInstalled }: { team: TeamSu
               </div>
               {plan.schedules.length > 0 && <div><div class="section-title mb-1">Lịch (tạo ở trạng thái tắt)</div><ul class="m-0 list-disc pl-5">{plan.schedules.map((s) => <li key={s.id}>{s.name} · <span class="mono">{s.cron}</span> · {s.tz}{s.skipReason && <span class="hint"> ({s.skipReason})</span>}</li>)}</ul></div>}
               {plan.skills.length > 0 && <div><div class="section-title mb-1">Skill</div><ul class="m-0 list-disc pl-5">{plan.skills.map((s) => <li key={s.id}><span class="mono">{s.id}</span> {s.exists ? '· đã có, giữ bản hiện tại' : s.bundled ? '· thêm vào thư viện' : '· thiếu trong thư viện'}</li>)}</ul></div>}
-              <p class="hint m-0">Agent mới ở chế độ an toàn và chưa có quyền nào (Second Brain, kết nối, module). Không có khoá hay token nào được ghi.</p>
+              <p class="hint m-0">Agent mới ở chế độ an toàn. Gói tải từ ngoài không tự cấp quyền nào; gói có sẵn trong AIOS có thể cấp sẵn quyền đọc brain và quyền module ghi trong mô tả gói. Không có khoá hay token nào được ghi.</p>
               {plan.warnings.map((w) => <div key={w} class="text-[var(--color-status-review)]">{w}</div>)}
               {plan.blockers.map((b) => <div key={b} class="text-[var(--color-status-failed)]">{b}</div>)}
             </>

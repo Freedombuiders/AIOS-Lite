@@ -63,7 +63,7 @@ export class ZaloSendError extends Error {
     readonly code:
       | 'NOT_CONNECTED' | 'CHAT_DISABLED' | 'RATE_LIMITED' | 'API_ERROR' | 'INVALID'
       // Marketing sends (bulk: true) only:
-      | 'QUIET_HOURS' | 'BULK_BUDGET'
+      | 'QUIET_HOURS' | 'BULK_BUDGET' | 'MARKETING_OFF'
       // Nick auto-locked after repeated Zalo rejections:
       | 'LOCKED',
   ) {
@@ -125,6 +125,11 @@ export interface ZaloSenderOptions {
   /** Pause between the steps of one message; replaced in tests. */
   sleep?: (ms: number) => Promise<void>;
   limiter?: ZaloLimiter;
+  /**
+   * Marketing switch. When given and it returns false, every `bulk: true` send is refused with MARKETING_OFF
+   * (rows stay queued, nothing is sent). Omitted = no switch (tests); the daemon always passes one.
+   */
+  marketingEnabled?: () => boolean;
 }
 
 interface FailureState {
@@ -141,10 +146,12 @@ export class ZaloSender {
   /** Consecutive Zalo rejections per nick (cleared by any successful send). */
   private failures = new Map<string, FailureState>();
   private draining = false;
+  private readonly marketingEnabled?: () => boolean;
 
   constructor(private readonly pool: ZaloSessionPool, opts: ZaloSenderOptions = {}) {
     this.limiter = opts.limiter ?? pool.limiter ?? new ZaloLimiter();
     this.notify = opts.notify;
+    this.marketingEnabled = opts.marketingEnabled;
     this.sleep = opts.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
   }
 
@@ -193,6 +200,10 @@ export class ZaloSender {
     }
     if (!acc.chat_enabled) throw new ZaloSendError('Nick đang ở chế độ chỉ nhận tin (đã tắt gửi)', 'CHAT_DISABLED');
     if (opts.bulk) {
+      // Last line of defence: whatever queued the marketing send, with the switch off nothing leaves the nick.
+      if (this.marketingEnabled && !this.marketingEnabled()) {
+        throw new ZaloSendError('Marketing Zalo đang tắt, tin marketing không được gửi', 'MARKETING_OFF');
+      }
       const settings = getZaloProtectionSettings();
       if (isQuietHours(new Date(), settings)) {
         throw new ZaloSendError(`Đang trong giờ nghỉ (${settings.quietHours.start}–${settings.quietHours.end}), tin marketing chờ đến giờ hoạt động`, 'QUIET_HOURS');

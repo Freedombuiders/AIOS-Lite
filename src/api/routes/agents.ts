@@ -92,6 +92,7 @@ export function agentsRoutes(app: Hono, deps: AppDeps): void {
   app.get('/api/agents/:id/access', (c) => {
     const agent = found(deps.agents.get(c.req.param('id')), 'agent');
     const access = deps.access.snapshot(deps.access.resolve(agent));
-    return c.json({ access, enforcement: deps.runtimes.get(agent.runtime).capabilities.enforces, runtime: agent.runtime });
+    const caps = deps.runtimes.get(agent.runtime).capabilities;
+    return c.json({ access, enforcement: caps.enforces, runtime: agent.runtime, mcp: caps.mcp, readsFiles: caps.readsFiles });
   });
 }

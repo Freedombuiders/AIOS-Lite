@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Brain · Tệp</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115;font-family:'Inter',system-ui,'Segoe UI',sans-serif}
+a{color:#8aa3ff}a:hover{color:#a9bbff}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #0f1115; color: #e6e8ee; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+<div style="flex: 0 0 232px"><dc-import name="Sidebar" active="files" hint-size="232px,100vh"></dc-import></div>
+
+<div style="flex: 999 1 560px; min-width: 0; min-height: 100vh; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid #272c37">
+<h1 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 20px; font-weight: 700">Tệp</h1>
+<span style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; color: #9aa3b2">brain/tra-sen-viet/san-pham/danh-muc-tra-sen.md</span>
+<button type="button" style="margin-left: auto; min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; background: #171a21; color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer">Mở bằng Obsidian</button>
+<button type="button" style="min-height: 44px; padding: 0 16px; border: 0; border-radius: 10px; background: #6d8dff; color: #0b1020; font: inherit; font-weight: 600; cursor: pointer">Sửa</button>
+</header>
+
+<div style="flex: 1 1 auto; display: flex; flex-wrap: wrap">
+
+<section aria-label="Cây thư mục" style="flex: 1 1 250px; max-width: 320px; min-width: 0; box-sizing: border-box; border-right: 1px solid #272c37; padding: 16px 12px; display: flex; flex-direction: column; gap: 12px">
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #9aa3b2">Tìm ghi chú
+<input type="search" placeholder="Tên hoặc nội dung" style="min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #353c4a; border-radius: 10px; background: #12151a; color: #e6e8ee; font: inherit; font-size: 14px">
+</label>
+<div style="display: flex; flex-direction: column; gap: 1px">
+<sc-for list="{{tree}}" as="f" hint-placeholder-count="12">
+<a href="#tai-lieu" style="display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 8px 0 {{f.pad}}; border-radius: 8px; text-decoration: none; background: {{f.bg}}; color: {{f.fg}}; font-weight: {{f.weight}}"><span style="flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{f.label}}</span><span style="font-size: 12px; color: {{f.hintFg}}; font-weight: 400">{{f.hint}}</span></a>
+</sc-for>
+</div>
+</section>
+
+<section id="tai-lieu" aria-label="Ghi chú đang mở" style="flex: 2.6 1 420px; min-width: 0; box-sizing: border-box; padding: 28px 40px; display: flex; flex-direction: column; gap: 16px">
+<article style="max-width: 720px; display: flex; flex-direction: column; gap: 14px; font-size: 16px; line-height: 1.65">
+<h2 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -0.01em">Danh mục sản phẩm Trà Sen Việt</h2>
+<ul style="margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px">
+<li>Trà sen Tây Hồ, hộp 100 g, giá sỉ 180 nghìn đồng.</li>
+<li>Trà ô long sen, hộp 200 g, giá sỉ 260 nghìn đồng.</li>
+<li>Combo quà tặng Tết, 3 hộp, giá bán lẻ 790 nghìn đồng.</li>
+</ul>
+<p style="margin: 0">Đơn từ 50 hộp được giảm 8%. Giao hàng toàn quốc trong 3 ngày. Xem thêm <a href="#tai-lieu">[[chinh-sach-dai-ly]]</a> và <a href="#tai-lieu">[[giao-hang-doi-tra]]</a>.</p>
+</article>
+<div style="max-width: 720px; border: 1px dashed rgba(240,100,122,0.6); border-radius: 12px; padding: 14px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+<div style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 2px">
+<span style="font-weight: 600; color: #f0647a">Khách hỏi mà ghi chú này chưa có</span>
+<span style="font-size: 13px; color: #c9ced9">Trà sen Tây Hồ có hộp nhỏ hơn 100 g không? (3 lần tuần này)</span>
+</div>
+<a href="Learn.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; color: #e6e8ee; font-weight: 600; text-decoration: none">Bổ sung</a>
+</div>
+</section>
+
+<aside aria-label="Thông tin ghi chú" style="flex: 1 1 280px; min-width: 0; box-sizing: border-box; border-left: 1px solid #272c37; padding: 20px 16px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 15px; font-weight: 600">Bot nào đang dùng</h2>
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600">Bot CSKH</span><span style="font-size: 13px; color: #9aa3b2">Đọc khi khách hỏi giá · hôm nay 7 lần</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600">Bot Nội dung</span><span style="font-size: 13px; color: #9aa3b2">Đọc khi viết bài "Combo quà tặng Tết"</span></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h2 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 15px; font-weight: 600">Quyền ghi</h2>
+<span style="align-self: flex-start; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: rgba(255,255,255,0.07); color: #c9ced9">Chỉ bạn</span>
+<span style="font-size: 13px; color: #9aa3b2">Bot không được sửa thư mục san-pham/ và chinh-sach/. Muốn đổi thì AI gửi đề xuất sang AI tự học.</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h2 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 15px; font-weight: 600">Ghi chú nối tới đây</h2>
+<sc-for list="{{backlinks}}" as="b" hint-placeholder-count="4">
+<a href="#tai-lieu" style="display: flex; align-items: center; gap: 8px; min-height: 40px; text-decoration: none; color: #e6e8ee"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: {{b.c}}"></span><span style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 13px">{{b.path}}</span></a>
+</sc-for>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h2 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 15px; font-weight: 600">Lịch sử</h2>
+<span style="font-size: 13px; color: #9aa3b2">Bạn sửa giá sỉ ô long sen · 24/11</span>
+<span style="font-size: 13px; color: #9aa3b2">Tạo ghi chú · 12/11</span>
+</div>
+</aside>
+
+</div>
+
+<dc-import name="ChatBar" ask="Hỏi về ghi chú này, hoặc nhờ AI viết thêm" hint-size="100%,72px"></dc-import>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    function row(label, hint, opt) {
+      opt = opt || {};
+      return {
+        label: label, hint: hint || '',
+        pad: opt.child ? '28px' : '8px',
+        bg: opt.active ? 'rgba(109,141,255,0.16)' : 'transparent',
+        fg: opt.active ? '#a9bbff' : '#e6e8ee',
+        weight: (opt.active || opt.dir) ? 600 : 400,
+        hintFg: opt.warn ? '#f0647a' : '#9aa3b2'
+      };
+    }
+    return {
+      tree: [
+        row('ho-so.md', 'Công ty là ai'),
+        row('giong-noi.md', 'Cách xưng hô'),
+        row('san-pham/', '', { dir: true }),
+        row('danh-muc-tra-sen.md', 'Thiếu 1 ý', { child: true, active: true, warn: true }),
+        row('chinh-sach/', '', { dir: true }),
+        row('chinh-sach-dai-ly.md', '', { child: true }),
+        row('giao-hang-doi-tra.md', 'Thiếu 1 ý', { child: true, warn: true }),
+        row('noi-dung/', '', { dir: true }),
+        row('tru-cot-noi-dung.md', '', { child: true }),
+        row('khach-hang/', 'AI ghi', { dir: true }),
+        row('nho/', 'AI ghi', { dir: true }),
+        row('MEMORY.md', '', { child: true })
+      ],
+      backlinks: [
+        { path: 'chinh-sach/chinh-sach-dai-ly.md', c: '#46c28a' },
+        { path: 'noi-dung/tru-cot-noi-dung.md', c: '#c79bff' },
+        { path: 'khach-hang/chi-lan.md', c: '#f0b24a' },
+        { path: 'khach-hang/anh-minh.md', c: '#f0b24a' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

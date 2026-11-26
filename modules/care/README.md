@@ -25,11 +25,20 @@ Agent mẫu `cskh` chỉ có `inbox.read`, `customers.read`, `reply.draft`. Mu�
 ## Cài đặt (module.json `settings`)
 
 - **Cho agent trả lời khách** (`aiEnabled`): công tắc dừng khẩn cấp.
-- **Cho phép chế độ Tự động gửi** (`autoSendEnabled`): tắt thì mọi thứ dừng ở nháp.
+- **Cho phép chế độ Tự động gửi** (`autoSendEnabled`, **mặc định tắt**): tắt thì mọi thứ dừng ở nháp chờ bạn duyệt, kể cả quy tắc đặt chế độ Tự động. Cài đặt đã lưu từ trước giữ nguyên giá trị; máy chưa từng lưu cài đặt này sẽ chỉ soạn nháp.
 - **Giờ nghỉ** (`quietHoursStart` / `quietHoursEnd`, mặc định 22:00–07:00): trong giờ nghỉ, Tự động quay về nháp.
 - **Độ trễ khi tự gửi** (`autoDelaySeconds`, mặc định 10): khoảng thời gian bạn còn **Huỷ** được.
+- **Cụm từ khách đòi gặp người thật** (`handoffKeywords`, mặc định "gặp nhân viên, gặp người thật, khiếu nại") và **thời gian tạm dừng** (`handoffPauseMinutes`, mặc định 60): xem dưới.
+- **Chờ khách nhắn xong** (`turnDebounceSeconds`, mặc định 3): khách gửi nhiều tin liền nhau thì agent chạy một lượt cho cả loạt, sau tin cuối chừng này giây.
 
 Tiếp quản một hội thoại (người thật nhận) dừng mọi lượt tự động của agent ở hội thoại đó; "Nhờ agent soạn" vẫn luôn tạo nháp. Người thật vừa trả lời thì agent nhường 30 phút. Các quy tắc khác (từ khoá cần duyệt, trần số câu trả lời…) nằm ở màn hình **Quy tắc**.
+
+### Khách đòi gặp người, tạm dừng, tiếp quản, tắt AI
+
+- **Khách đòi gặp người.** Tin của khách có một cụm trong `handoffKeywords` (không phân biệt hoa thường, có dấu hay không) thì ngay lúc lưu tin, trong cùng một giao dịch: không có lượt agent nào, hội thoại bị tạm dừng `handoffPauseMinutes` phút và chuyển sang **tiếp quản** (bạn nhận), tin tự động agent đang chờ gửi bị huỷ, nháp agent chưa duyệt bị bỏ, nháp đã duyệt mà chưa gửi quay về chờ xem lại, và bạn nhận một mục cần chú ý. Lượt agent đang chạy dở bị bỏ kết quả. Chỉ bạn trả lại được cho agent (tắt tiếp quản), việc đó cũng gỡ tạm dừng.
+- **Tạm dừng có hạn** (`PUT /conversations/:id/pause` với `{ "minutes": 30 | 120 | null }`, `null` là tới khi bật lại; `DELETE /conversations/:id/pause` để chạy lại): agent không chạy, không gửi ở hội thoại đó. Tin tự động đang chờ gửi bị huỷ, không để dành gửi sau.
+- **Tiếp quản** và **tắt AI ở hội thoại**: dừng hẳn tới khi bạn đổi lại; tin tự động đang chờ cũng bị huỷ.
+- Tin chỉ có ảnh hoặc PDF mà agent không đọc được (ví dụ runtime chỉ nhận chữ): agent không trả lời mò, bạn nhận một mục cần chú ý. Prompt dài quá giới hạn của runtime cũng vậy.
 
 ## Cách agent trả lời
 

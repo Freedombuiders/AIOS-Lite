@@ -39,6 +39,44 @@ interface Runtime {
 
 const runtimes = new WeakMap<ModuleContext, Runtime>();
 
+/** Zalo marketing (templates, group and list broadcasts, birthday) is off unless the operator switched it on. */
+export function marketingOn(ctx: ModuleContext): boolean {
+  return ctx.settings.get<boolean>('marketingEnabled', false) === true;
+}
+
+/** True when the module has marketing data an operator must have created (or birthday greetings switched on). */
+function hasMarketingData(ctx: ModuleContext): boolean {
+  const count = (table: string): number => {
+    try {
+      return Number((ctx.db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number } | undefined)?.n ?? 0);
+    } catch { return 0; }
+  };
+  if (['zalo_templates', 'zalo_broadcasts', 'zalo_list_broadcasts', 'zalo_birthday_greetings'].some((t) => count(t) > 0)) return true;
+  try {
+    return Number((ctx.db.prepare(`SELECT COUNT(*) AS n FROM zalo_birthday_config WHERE enabled = 1`).get() as { n: number } | undefined)?.n ?? 0) > 0;
+  } catch { return false; }
+}
+
+/**
+ * The default of `marketingEnabled` changed from true to false. An install from before that change that never saved the
+ * setting and already has marketing data was running marketing through the old default: keep it on, so nothing changes
+ * for it. A fresh install (no data) and any install that saved a value of its own keep what they have.
+ */
+export function adoptLegacyMarketingSetting(ctx: ModuleContext): boolean {
+  try {
+    const row = ctx.db.prepare(`SELECT settings FROM modules WHERE id = ?`).get(ctx.id) as { settings?: string } | undefined;
+    const stored = row?.settings ? (JSON.parse(row.settings) as Record<string, unknown>) : {};
+    if (Object.prototype.hasOwnProperty.call(stored, 'marketingEnabled')) return false;
+    if (!hasMarketingData(ctx)) return false;
+    ctx.settings.set('marketingEnabled', true);
+    ctx.log.info('zalo: existing marketing data found with no saved switch; keeping Zalo marketing on as before');
+    return true;
+  } catch (err) {
+    ctx.log.warn({ err: String(err) }, 'zalo: could not check the legacy marketing setting; marketing stays off');
+    return false;
+  }
+}
+
 function isFileDb(ctx: ModuleContext): boolean {
   return Boolean(ctx.db.name) && ctx.db.name !== ':memory:' && !ctx.db.memory;
 }
@@ -55,7 +93,8 @@ function runtime(ctx: ModuleContext): Runtime {
     dbPath: ctx.db.name,
     port,
     log: ctx.log,
-    env: { ZALO_MARKETING_ENABLED: ctx.settings.get<boolean>('marketingEnabled', true) ? '1' : '0' },
+    // Read at every spawn, so a daemon restarted after the operator changed the switch starts with the current value.
+    env: () => ({ ZALO_MARKETING_ENABLED: marketingOn(ctx) ? '1' : '0' }),
   });
   const people = createCareProfiles();
   const connector = new ZaloCareConnector({
@@ -101,7 +140,7 @@ function syncCareLink(ctx: ModuleContext, rt: Runtime): void {
 async function pushConfig(ctx: ModuleContext, rt: Runtime): Promise<void> {
   const pid = rt.supervisor.pid();
   if (pid === null) return;
-  const want = { pid, marketingEnabled: ctx.settings.get<boolean>('marketingEnabled', true), careLinked: rt.linked };
+  const want = { pid, marketingEnabled: marketingOn(ctx), careLinked: rt.linked };
   const last = rt.pushed;
   if (last && last.pid === want.pid && last.marketingEnabled === want.marketingEnabled && last.careLinked === want.careLinked) return;
   const res = await callZaloDaemon('POST', '/config', { body: { marketingEnabled: want.marketingEnabled, careLinked: want.careLinked }, timeoutMs: 3_000 });
@@ -124,11 +163,17 @@ export default defineModule({
     registerZaloRoutes(app, {
       supervisor: rt.supervisor,
       agentIds: () => ctx.agents.list().map((a) => a.id),
-      runLean: (input) => ctx.agents.runLean(input),
+      // Template variants are marketing: with the switch off this never reaches the model.
+      runLean: (input) => {
+        if (!marketingOn(ctx)) throw new Error('Marketing Zalo đang tắt');
+        return ctx.agents.runLean(input);
+      },
+      marketingEnabled: () => marketingOn(ctx),
     });
   },
 
   start(ctx) {
+    adoptLegacyMarketingSetting(ctx);
     const rt = runtime(ctx);
     fs.mkdirSync(ctx.dataDir, { recursive: true, mode: 0o700 });
     syncCareLink(ctx, rt);

@@ -18,6 +18,8 @@ export const CODEX_CAPABILITIES: RuntimeCapabilities = {
   images: true,
   documents: false,
   noTools: true,
+  mcp: true,
+  readsFiles: true,
   enforces: {
     context: 'hard',
     mcp: 'hard',

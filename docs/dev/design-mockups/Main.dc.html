@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Hôm nay</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115;font-family:'Inter',system-ui,'Segoe UI',sans-serif}
+a{color:#8aa3ff}a:hover{color:#a9bbff}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #0f1115; color: #e6e8ee; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+<div style="flex: 0 0 232px"><dc-import name="Sidebar" active="home" hint-size="232px,100vh"></dc-import></div>
+
+<div style="flex: 999 1 560px; min-width: 0; min-height: 100vh; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid #272c37">
+<h1 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 20px; font-weight: 700">Hôm nay</h1>
+<span style="color: #9aa3b2">Thứ Năm, 26/11 · AI đã tự xử lý 4 việc, còn 4 việc chờ bạn</span>
+<span style="margin-left: auto; display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 12px; border: 1px solid #272c37; border-radius: 999px; background: #171a21; font-size: 13px"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: #c79bff"></span>Chế độ: AI soạn nháp, bạn duyệt</span>
+</header>
+
+<main style="flex: 1 1 auto; box-sizing: border-box; padding: 20px 24px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+
+<div style="flex: 2 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+<section aria-labelledby="can-ban" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-bottom: 1px solid #272c37">
+<h2 id="can-ban" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Cần bạn</h2>
+<span style="background: rgba(240,178,74,0.16); color: #f0b24a; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px">4</span>
+<span style="margin-left: auto; font-size: 13px; color: #9aa3b2">Việc gì AI chưa được tự làm đều dừng ở đây</span>
+</div>
+<sc-for list="{{approvals}}" as="item" hint-placeholder-count="4">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 12px 20px; border-bottom: 1px solid #20242d">
+<span style="flex: 0 0 88px; box-sizing: border-box; text-align: center; font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 6px; background: {{item.bg}}; color: {{item.fg}}">{{item.kind}}</span>
+<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-weight: 600">{{item.title}}</span>
+<span style="font-size: 13px; color: #9aa3b2">{{item.sub}}</span>
+</div>
+<a href="{{item.href}}" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; text-decoration: none; color: #e6e8ee; font-weight: 600; background: #1e222b">{{item.action}}</a>
+</div>
+</sc-for>
+</section>
+
+<section aria-labelledby="ai-da-lam" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-bottom: 1px solid #272c37">
+<h2 id="ai-da-lam" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">AI đã tự làm</h2>
+<span style="margin-left: auto; font-size: 13px; color: #9aa3b2">Bấm từng dòng để xem lại hoặc hoàn tác</span>
+</div>
+<sc-for list="{{log}}" as="row" hint-placeholder-count="4">
+<div style="display: flex; align-items: center; gap: 14px; padding: 12px 20px; border-bottom: 1px solid #20242d">
+<span style="flex: 0 0 48px; font-size: 13px; color: #9aa3b2; font-variant-numeric: tabular-nums">{{row.time}}</span>
+<span style="flex: 1 1 auto; min-width: 0">{{row.text}}</span>
+<span style="font-size: 12px; color: #9aa3b2">{{row.bot}}</span>
+</div>
+</sc-for>
+</section>
+</div>
+
+<div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+<section aria-labelledby="doi-ai-h" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 16px 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: baseline; gap: 8px">
+<h2 id="doi-ai-h" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Đội AI</h2>
+<span style="font-size: 13px; color: #9aa3b2">chạy trên GenBot</span>
+<a href="Bots.dc.html" style="margin-left: auto; font-size: 13px">Xem cả đội</a>
+</div>
+<sc-for list="{{bots}}" as="bot" hint-placeholder-count="3">
+<div style="display: flex; align-items: flex-start; gap: 12px">
+<span aria-hidden="true" style="flex: 0 0 36px; height: 36px; border-radius: 10px; background: rgba(109,141,255,0.16); color: #a9bbff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px">{{bot.short}}</span>
+<div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-weight: 600">{{bot.name}}</span>
+<span style="font-size: 13px; color: #9aa3b2">{{bot.doing}}</span>
+</div>
+<span style="font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: {{bot.bg}}; color: {{bot.fg}}">{{bot.state}}</span>
+</div>
+</sc-for>
+</section>
+
+<section aria-labelledby="kenh-h" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: baseline; gap: 8px">
+<h2 id="kenh-h" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Kênh đã nối</h2>
+<a href="Connect.dc.html" style="margin-left: auto; font-size: 13px">Nối thêm</a>
+</div>
+<sc-for list="{{channels}}" as="ch" hint-placeholder-count="5">
+<div style="display: flex; align-items: center; gap: 10px">
+<span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: {{ch.dot}}"></span>
+<span style="flex: 1 1 auto">{{ch.name}}</span>
+<span style="font-size: 13px; color: #9aa3b2">{{ch.note}}</span>
+</div>
+</sc-for>
+</section>
+
+<section aria-labelledby="brain-h" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 16px 20px; display: flex; flex-direction: column; gap: 8px">
+<h2 id="brain-h" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Brain hôm nay</h2>
+<span style="font-size: 13px; color: #c9ced9">AI đọc 31 ghi chú để làm việc. Có 2 chỗ brain chưa đủ ý để trả lời khách.</span>
+<a href="Graph.dc.html" style="align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; font-weight: 600">Xem trên đồ thị</a>
+</section>
+</div>
+
+</main>
+
+<dc-import name="ChatBar" hint-size="100%,72px"></dc-import>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var amber = { bg: 'rgba(240,178,74,0.16)', fg: '#f0b24a' };
+    var blue = { bg: 'rgba(109,141,255,0.18)', fg: '#a9bbff' };
+    var violet = { bg: 'rgba(199,155,255,0.16)', fg: '#c79bff' };
+    var green = { bg: 'rgba(70,194,138,0.16)', fg: '#46c28a' };
+    var grey = { bg: 'rgba(255,255,255,0.07)', fg: '#c9ced9' };
+    function mk(c, o) { o.bg = c.bg; o.fg = c.fg; return o; }
+    return {
+      approvals: [
+        mk(amber, { kind: 'Tin nháp', title: 'Chị Lan hỏi giá sỉ 60 hộp ô long sen', sub: 'Zalo · AI đã soạn câu trả lời, chờ bạn bấm gửi', action: 'Xem và gửi', href: 'Inbox.dc.html' }),
+        mk(blue, { kind: 'Bài đăng', title: 'Combo quà tặng Tết', sub: 'Facebook, Zalo, Instagram, TikTok · lịch 19:00 thứ Sáu', action: 'Duyệt bài', href: 'Content.dc.html' }),
+        mk(green, { kind: 'Nhắc chăm', title: 'Anh Minh chưa trả lời báo giá 3 ngày', sub: 'Zalo · bot đề xuất nhắn hỏi thăm', action: 'Mở khách', href: 'CRM.dc.html' }),
+        mk(violet, { kind: 'Brain', title: 'AI muốn ghi nhớ: khách hay hỏi phí ship đơn dưới 10 hộp', sub: 'Chưa có trong chính sách giao hàng', action: 'Xem đề xuất', href: 'Learn.dc.html' })
+      ],
+      log: [
+        { time: '08:12', text: 'Trả lời 6 khách hỏi thời gian giao hàng', bot: 'Bot CSKH · Zalo' },
+        { time: '08:40', text: 'Đăng bài "Trà sen Tây Hồ" theo lịch', bot: 'Bot Nội dung · Facebook, Instagram' },
+        { time: '09:05', text: 'Gắn thẻ "hỏi sỉ" cho 2 khách mới', bot: 'Bot CSKH · Khách hàng' },
+        { time: '09:30', text: 'Tạo nhắc gọi lại Cửa hàng An Nhiên ngày 28/11', bot: 'Bot Trợ lý · Khách hàng' }
+      ],
+      bots: [
+        mk(green, { short: 'CS', name: 'Bot CSKH', doing: 'Trực hộp thư Zalo, soạn nháp khi chưa chắc', state: 'Đang trực' }),
+        mk(blue, { short: 'ND', name: 'Bot Nội dung', doing: 'Viết bài tuần này từ Brain', state: 'Đang viết' }),
+        mk(grey, { short: 'TL', name: 'Bot Trợ lý', doing: 'Nhắc việc chăm khách, tổng kết cuối ngày', state: 'Chờ lịch' })
+      ],
+      channels: [
+        { name: 'Zalo cá nhân', note: 'Đang nhận tin', dot: '#46c28a' },
+        { name: 'Facebook Page', note: 'Bài đăng + số liệu', dot: '#46c28a' },
+        { name: 'Instagram', note: 'Bài đăng', dot: '#46c28a' },
+        { name: 'TikTok', note: 'Bài đăng', dot: '#46c28a' },
+        { name: 'YouTube', note: 'Video + số liệu', dot: '#46c28a' },
+        { name: 'Meta Ads', note: 'Số liệu, chỉ đọc', dot: '#46c28a' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

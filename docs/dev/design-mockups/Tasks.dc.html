@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Đội AI · Việc</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115;font-family:'Inter',system-ui,'Segoe UI',sans-serif}
+a{color:#8aa3ff}a:hover{color:#a9bbff}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #0f1115; color: #e6e8ee; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+<div style="flex: 0 0 232px"><dc-import name="Sidebar" active="tasks" hint-size="232px,100vh"></dc-import></div>
+
+<div style="flex: 999 1 560px; min-width: 0; min-height: 100vh; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid #272c37">
+<h1 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 20px; font-weight: 700">Việc</h1>
+<span style="color: #9aa3b2">Giao mục tiêu bằng lời ở thanh bên dưới. AI tự chia việc, chạy nền và chỉ gọi bạn khi cần duyệt.</span>
+</header>
+
+<main style="flex: 1 1 auto; box-sizing: border-box; padding: 20px 24px; display: flex; flex-direction: column; gap: 20px">
+
+<section aria-label="Bảng việc" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 12px; align-items: start">
+
+<div style="background: #12151a; border: 1px solid #272c37; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: #8b93a5"></span><h2 style="margin: 0; font-size: 14px; font-weight: 600">Chờ chạy</h2><span style="font-size: 13px; color: #9aa3b2">2</span></div>
+<sc-for list="{{queued}}" as="k" hint-placeholder-count="2">
+<div style="background: #171a21; border: 1px solid #272c37; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-weight: 600">{{k.title}}</span><span style="font-size: 13px; color: #9aa3b2">{{k.note}}</span><span style="font-size: 12px; color: #c9ced9">{{k.bot}}</span></div>
+</sc-for>
+</div>
+
+<div style="background: #12151a; border: 1px solid #272c37; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: #5fa8ff; box-shadow: 0 0 8px #5fa8ff"></span><h2 style="margin: 0; font-size: 14px; font-weight: 600">Đang chạy</h2><span style="font-size: 13px; color: #9aa3b2">2</span></div>
+<sc-for list="{{running}}" as="k" hint-placeholder-count="2">
+<div style="background: #171a21; border: 1px solid #272c37; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-weight: 600">{{k.title}}</span><span style="font-size: 13px; color: #9aa3b2">{{k.note}}</span><span style="font-size: 12px; color: #c9ced9">{{k.bot}}</span></div>
+</sc-for>
+</div>
+
+<div style="background: #12151a; border: 1px solid rgba(240,178,74,0.4); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: #f0b24a"></span><h2 style="margin: 0; font-size: 14px; font-weight: 600">Chờ bạn duyệt</h2><span style="font-size: 13px; color: #9aa3b2">2</span></div>
+<sc-for list="{{review}}" as="k" hint-placeholder-count="2">
+<div style="background: #171a21; border: 1px solid #272c37; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-weight: 600">{{k.title}}</span><span style="font-size: 13px; color: #9aa3b2">{{k.note}}</span><span style="font-size: 12px; color: #c9ced9">{{k.bot}}</span><a href="{{k.href}}" style="align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; margin-top: 4px; border-radius: 10px; background: rgba(240,178,74,0.16); color: #f0b24a; font-weight: 600; text-decoration: none">{{k.act}}</a></div>
+</sc-for>
+</div>
+
+<div style="background: #12151a; border: 1px solid #272c37; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: #46c28a"></span><h2 style="margin: 0; font-size: 14px; font-weight: 600">Xong hôm nay</h2><span style="font-size: 13px; color: #9aa3b2">3</span></div>
+<sc-for list="{{done}}" as="k" hint-placeholder-count="3">
+<div style="background: #171a21; border: 1px solid #272c37; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-weight: 600">{{k.title}}</span><span style="font-size: 13px; color: #9aa3b2">{{k.note}}</span><span style="font-size: 12px; color: #c9ced9">{{k.bot}}</span></div>
+</sc-for>
+</div>
+
+</section>
+
+<section aria-labelledby="lap" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-bottom: 1px solid #272c37">
+<h2 id="lap" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Việc lặp lại</h2>
+<span style="margin-left: auto; font-size: 13px; color: #9aa3b2">Lịch chạy do GenBot giữ, máy bật là chạy</span>
+</div>
+<sc-for list="{{routines}}" as="r" hint-placeholder-count="3">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 10px 20px; border-bottom: 1px solid #20242d">
+<span style="flex: 0 0 150px; font-variant-numeric: tabular-nums; color: #c9ced9">{{r.when}}</span>
+<span style="flex: 1 1 240px; min-width: 0; font-weight: 600">{{r.title}}</span>
+<span style="font-size: 13px; color: #9aa3b2">{{r.bot}}</span>
+<label style="display: flex; align-items: center; gap: 8px; min-height: 44px"><input type="checkbox" checked><span style="font-size: 13px">Bật</span></label>
+</div>
+</sc-for>
+</section>
+
+</main>
+
+<dc-import name="ChatBar" ask="Giao một mục tiêu, ví dụ: tuần sau lên 5 bài về quà Tết" hint-size="100%,72px"></dc-import>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      queued: [
+        { title: 'Tổng kết hộp thư cuối ngày', note: 'Chạy lúc 21:00', bot: 'Bot Trợ lý' },
+        { title: 'Soạn tin chúc Tết cho đại lý', note: 'Chờ bài Combo Tết được duyệt', bot: 'Bot CSKH' }
+      ],
+      running: [
+        { title: 'Bài về giá sỉ cho cửa hàng', note: 'Đang đọc chinh-sach-dai-ly.md', bot: 'Bot Nội dung · bắt đầu 10:02' },
+        { title: 'Trực hộp thư', note: 'Đang theo 3 cuộc chat', bot: 'Bot CSKH · chạy liên tục' }
+      ],
+      review: [
+        { title: 'Trả lời chị Lan về giá sỉ 60 hộp', note: 'Có con số giảm giá nên dừng lại hỏi bạn', bot: 'Bot CSKH', act: 'Xem tin nháp', href: 'Inbox.dc.html' },
+        { title: 'Bài Combo quà tặng Tết', note: 'Viết xong, 4 nền tảng, lịch 19:00 thứ Sáu', bot: 'Bot Nội dung', act: 'Duyệt bài', href: 'Content.dc.html' }
+      ],
+      done: [
+        { title: 'Đăng bài "Trà sen Tây Hồ"', note: 'Facebook, Instagram · 08:40', bot: 'Bot Nội dung' },
+        { title: 'Nhắc khách báo giá quá 3 ngày', note: 'Tìm thấy 1 khách: anh Minh', bot: 'Bot Trợ lý' },
+        { title: 'Gắn thẻ khách mới', note: '2 khách được gắn "hỏi sỉ"', bot: 'Bot CSKH' }
+      ],
+      routines: [
+        { when: 'Mỗi ngày 09:00', title: 'Nhắc khách đã báo giá mà chưa trả lời quá 3 ngày', bot: 'Bot Trợ lý' },
+        { when: 'Thứ Hai 08:00', title: 'Lên 5 bài cho tuần từ trụ cột nội dung', bot: 'Bot Nội dung' },
+        { when: 'Mỗi ngày 21:00', title: 'Tổng kết hộp thư và việc còn dở', bot: 'Bot Trợ lý' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

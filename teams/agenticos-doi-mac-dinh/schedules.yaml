@@ -1,0 +1,10 @@
+schedules:
+  - id: tom-tat-dau-ngay
+    agent: bot-tro-ly
+    cron: "30 7 * * *"
+    tz: Asia/Ho_Chi_Minh
+    policy:
+      concurrency: skip
+      catchUp: skip_missed
+    prompt: |
+      Tóm tắt đầu ngày cho chủ {{input.SHOP_NAME}}: việc còn mở, lịch cần nhớ hôm nay, và điều gì trong brain vừa đổi mà chủ nên biết. Viết ngắn, tiếng Việt, mỗi ý một dòng. Chỗ nào không có thông tin thì nói chưa có, không đoán.

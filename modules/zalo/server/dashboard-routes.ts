@@ -21,6 +21,7 @@ import {
   getZaloMessages,
   getZaloProtectionSettings,
   getZaloThread,
+  countZaloOutboundSince,
   listZaloAccounts,
   listZaloOutbox,
   listZaloThreads,
@@ -41,7 +42,9 @@ import {
   effectiveLimit,
   effectiveMessageCap,
   isQuietHours,
+  localDay,
   parseNickOverrides,
+  startOfLocalDayMs,
   warmupWeek,
   ZALO_OP_CATEGORIES,
   ZaloLimiter,
@@ -122,9 +125,30 @@ function kickOutbox(): void {
 
 export interface ZaloRouteDeps extends TemplateRouteEnv {
   supervisor: Pick<ZaloSupervisor, 'pid' | 'restart'>;
+  /** The module setting `marketingEnabled`, read on every request. Omitted = off. */
+  marketingEnabled?: () => boolean;
 }
 
+/** Every path that belongs to the marketing feature set (templates and their media, broadcasts, birthday). */
+export const ZALO_MARKETING_PATHS = [
+  '/templates', '/templates/*',
+  '/media', '/media/*',
+  '/group-broadcasts', '/group-broadcasts/*',
+  '/list-broadcasts', '/list-broadcasts/*',
+  '/birthday', '/birthday/*',
+  '/threads/:id/birth-date',
+] as const;
+
 export function registerZaloRoutes(app: Hono, deps: ZaloRouteDeps): void {
+  // With marketing off these paths do not exist: 404 before any handler (or model call) runs.
+  const marketingOn = deps.marketingEnabled ?? (() => false);
+  for (const path of ZALO_MARKETING_PATHS) {
+    app.use(path, async (c, next) => {
+      if (marketingOn()) return next();
+      return c.json({ error: 'Tính năng marketing Zalo đang tắt' }, 404);
+    });
+  }
+
   // Marketing feature routes (each in its own file).
   registerZaloTemplateRoutes(app, deps);
   registerZaloGroupBroadcastRoutes(app);
@@ -262,6 +286,25 @@ export function registerZaloRoutes(app: Hono, deps: ZaloRouteDeps): void {
     } catch (err) {
       return daemonError(c, err);
     }
+  });
+
+  // Messages the nick sent today against its cap (phone, agent, operator, marketing: the same count the sender enforces).
+  app.get('/accounts/:id/usage', (c) => {
+    const account = getZaloAccount(c.req.param('id'));
+    if (!account) return c.json({ error: 'Không tìm thấy tài khoản' }, 404);
+    const now = new Date();
+    const protection = getZaloProtectionSettings();
+    const week = warmupWeek(account, now, protection.warmupSchedule);
+    const burst = effectiveLimit(account, 'message', now, protection);
+    const cap = effectiveMessageCap(account, now, protection);
+    return c.json({
+      accountId: account.id,
+      day: localDay(now, protection.timezone),
+      sentToday: countZaloOutboundSince(account.id, startOfLocalDayMs(now, protection.timezone)),
+      cap,
+      burst: { limit: burst.burst, windowSec: Math.round(burst.windowMs / 1000) },
+      warmup: { enabled: account.warmup_enabled === 1, week, schedule: protection.warmupSchedule },
+    });
   });
 
   app.post('/accounts/:id/:action', async (c) => {

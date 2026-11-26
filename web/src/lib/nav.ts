@@ -1,8 +1,9 @@
 import {
-  Bot, Brain, Briefcase, Calendar, Cable, ClipboardList, Handshake, LayoutDashboard, Library, Megaphone, MessageSquare, Puzzle,
-  ScrollText, Settings, Sparkles, Workflow, Wand2, Landmark, Gauge, Wallet, Store, Package, Lightbulb, CircleDollarSign, Boxes,
+  Bot, Boxes, Brain, Cable, CircleDollarSign, ClipboardList, Calendar, House, Library, Lightbulb, MessageSquare, Mic, Network, Package,
+  Puzzle, ScrollText, Settings, Sparkles, Store, Wallet, Gauge, Wrench, Handshake, Megaphone, Landmark, Workflow, Wand2,
 } from 'lucide-preact';
 import type { LucideIcon } from 'lucide-preact';
+import type { NavGroup } from '@/module-host/contracts';
 
 export interface CoreNavItem {
   label: string;
@@ -11,50 +12,76 @@ export interface CoreNavItem {
   match?: string[];
 }
 
+/** Pages the app has no screen for yet: they open a placeholder that says so (pages/ComingSoon.tsx). */
+export const PLACEHOLDER_PATHS = ['/voice', '/brain/graph'] as const;
+
+const HOME: CoreNavItem = { label: 'Hôm nay', path: '/', icon: House };
+const VOICE: CoreNavItem = { label: 'Gọi trợ lý', path: '/voice', icon: Mic };
+const CHAT: CoreNavItem = { label: 'Trò chuyện', path: '/chat', icon: MessageSquare };
+const GRAPH: CoreNavItem = { label: 'Đồ thị', path: '/brain/graph', icon: Network };
+const BRAIN: CoreNavItem = { label: 'Second Brain', path: '/brain', icon: Brain, match: ['/brain/search', '/brain/all'] };
+const PACKS: CoreNavItem = { label: 'Kho dữ liệu', path: '/packs', icon: Boxes };
+const AGENTS: CoreNavItem = { label: 'Agents', path: '/agents', icon: Bot };
+const TASKS: CoreNavItem = { label: 'Công việc', path: '/tasks', icon: ClipboardList };
+const SCHEDULES: CoreNavItem = { label: 'Lịch định kỳ', path: '/schedules', icon: Calendar };
+const MARKET: CoreNavItem = { label: 'Chợ Agent', path: '/agent-market', icon: Store };
+const TEAMS: CoreNavItem = { label: 'Gói Team', path: '/teams', icon: Package };
+const SKILLS: CoreNavItem = { label: 'Skills', path: '/skills', icon: Sparkles };
+const MEMORY: CoreNavItem = { label: 'Bộ nhớ', path: '/memory', icon: Library };
+const RECOS: CoreNavItem = { label: 'Đề xuất cải tiến', path: '/recos', icon: Lightbulb };
+const USAGE: CoreNavItem = { label: 'Chi phí AI', path: '/usage', icon: Gauge };
+const BUDGETS: CoreNavItem = { label: 'Ngân sách AI', path: '/budgets', icon: Wallet };
+const MODULES: CoreNavItem = { label: 'Module', path: '/modules', icon: Puzzle };
+const CONNECTIONS: CoreNavItem = { label: 'Kết nối', path: '/connections', icon: Cable };
+const AUDIT: CoreNavItem = { label: 'Nhật ký', path: '/audit', icon: ScrollText };
+const SETTINGS: CoreNavItem = { label: 'Cài đặt', path: '/settings', icon: Settings };
+
+/** The rarely used core pages. Folded into "Nâng cao" (closed until opened); no route is removed. */
+export const ADVANCED_NAV: CoreNavItem[] = [MARKET, TEAMS, SKILLS, MEMORY, RECOS, USAGE, BUDGETS, AUDIT, MODULES];
+
+/** Every core page that has a route, for the breadcrumb and the quick-search palette. */
 export const CORE_NAV: CoreNavItem[] = [
-  { label: 'Tổng quan', path: '/', icon: LayoutDashboard },
-  { label: 'Agents', path: '/agents', icon: Bot },
-  { label: 'Công việc', path: '/tasks', icon: ClipboardList },
-  { label: 'Lịch định kỳ', path: '/schedules', icon: Calendar },
-  { label: 'Trò chuyện', path: '/chat', icon: MessageSquare },
-  { label: 'Second Brain', path: '/brain', icon: Brain },
-  { label: 'Bộ nhớ', path: '/memory', icon: Library },
-  { label: 'Kho dữ liệu', path: '/packs', icon: Boxes },
-  { label: 'Skills', path: '/skills', icon: Sparkles },
-  { label: 'Chợ Agent', path: '/agent-market', icon: Store },
-  { label: 'Gói Team', path: '/teams', icon: Package },
-  { label: 'Đề xuất cải tiến', path: '/recos', icon: Lightbulb },
-  { label: 'Chi phí AI', path: '/usage', icon: Gauge },
-  { label: 'Ngân sách AI', path: '/budgets', icon: Wallet },
+  HOME, VOICE, CHAT, GRAPH, BRAIN, PACKS, AGENTS, TASKS, SCHEDULES, CONNECTIONS, SETTINGS, ...ADVANCED_NAV.filter((i) => i !== AUDIT && i !== MODULES),
 ];
 
-/** Overview sits alone at the top of the sidebar, without a caption. */
-export const HOME_NAV: CoreNavItem = CORE_NAV[0]!;
-export const WORK_NAV: CoreNavItem[] = CORE_NAV.slice(1);
+/** Kept for the palette, which lists these under "Hệ thống". */
+export const BOTTOM_NAV: CoreNavItem[] = [MODULES, AUDIT];
 
-export const BOTTOM_NAV: CoreNavItem[] = [
-  { label: 'Module', path: '/modules', icon: Puzzle },
-  { label: 'Kết nối', path: '/connections', icon: Cable },
-  { label: 'Nhật ký', path: '/audit', icon: ScrollText },
-  { label: 'Cài đặt', path: '/settings', icon: Settings },
-];
+export const HOME_NAV = HOME;
 
-export const GROUP_LABEL: Record<string, string> = {
-  studio: 'AI Studio',
-  sales: 'Sales',
-  marketing: 'Marketing',
-  finance: 'Finance',
-  ops: 'Vận hành',
-  other: 'Khác',
+// ---------------------------------------------------------------- sidebar layout
+
+export type SectionId = 'top' | 'brain' | 'care' | 'marketing' | 'system';
+
+/** Where a module's `group` is shown. The six original groups stay valid; `care` and `brain` are the new ones. */
+export const GROUP_SECTION: Record<NavGroup, SectionId | 'more'> = {
+  brain: 'brain',
+  care: 'care',
+  sales: 'care',
+  marketing: 'marketing',
+  studio: 'marketing',
+  finance: 'more',
+  ops: 'more',
+  other: 'more',
 };
-export const GROUP_ORDER = ['studio', 'sales', 'marketing', 'finance', 'ops', 'other'] as const;
 
-export function isActive(current: string, item: { path: string; match?: string[] }): boolean {
-  const hit = (p: string) => (p === '/' ? current === '/' : current === p || current.startsWith(`${p}/`));
-  return hit(item.path) || (item.match ?? []).some(hit);
+export interface NavSectionDef {
+  id: SectionId;
+  /** caption; the top section has none */
+  label?: string;
+  /** core pages, always shown */
+  items: CoreNavItem[];
+  /** start of the section's colour (sidebar-section-* in main.css) */
+  tone: string;
 }
 
-// ---------------------------------------------------------------- collapsible sidebar groups
+export const NAV_SECTIONS: NavSectionDef[] = [
+  { id: 'top', items: [HOME, VOICE, CHAT], tone: 'workspace' },
+  { id: 'brain', label: 'BRAIN', items: [GRAPH, BRAIN, PACKS], tone: 'intelligence' },
+  { id: 'care', label: 'CHĂM KHÁCH', items: [], tone: 'care' },
+  { id: 'marketing', label: 'MARKETING', items: [], tone: 'marketing' },
+  { id: 'system', label: 'ĐỘI AI VÀ HỆ THỐNG', items: [AGENTS, TASKS, SCHEDULES, CONNECTIONS, SETTINGS], tone: 'collaborate' },
+];
 
 export interface NavGroupDef {
   id: string;
@@ -65,18 +92,53 @@ export interface NavGroupDef {
   defaultOpen?: boolean;
 }
 
-const byPath = (path: string): CoreNavItem => CORE_NAV.find((i) => i.path === path)!;
+/** Closed by default: opens by itself while the current page is inside. */
+export const ADVANCED_GROUP: NavGroupDef = { id: 'advanced', label: 'Nâng cao', icon: Wrench, items: ADVANCED_NAV };
 
-/** Core groups under the WORKSPACE / AGENTS captions; module groups (sales, marketing…) are added between them. */
-export const WORK_GROUP: NavGroupDef = {
-  id: 'work', label: 'Làm việc', icon: Briefcase, defaultOpen: true,
-  items: [byPath('/tasks'), byPath('/schedules'), byPath('/chat')],
+/** Module pages of the finance / ops / other groups. */
+export const MORE_GROUP_ID = 'more';
+export const MORE_GROUP_LABEL = 'Khác';
+
+/** Captions, for the quick-search palette. Keep every key of NavGroup. */
+export const GROUP_LABEL: Record<string, string> = {
+  brain: 'Brain',
+  care: 'Chăm khách',
+  sales: 'Chăm khách',
+  marketing: 'Marketing',
+  studio: 'Marketing',
+  finance: MORE_GROUP_LABEL,
+  ops: MORE_GROUP_LABEL,
+  other: MORE_GROUP_LABEL,
 };
-export const AGENT_GROUPS: NavGroupDef[] = [
-  { id: 'agents', label: 'Đội agent', icon: Bot, defaultOpen: true, items: [byPath('/agents'), byPath('/skills'), byPath('/agent-market'), byPath('/teams'), byPath('/recos')] },
-  { id: 'costs', label: 'Chi phí AI', icon: CircleDollarSign, items: [byPath('/usage'), byPath('/budgets')] },
-  { id: 'knowledge', label: 'Tri thức', icon: Brain, items: [byPath('/brain'), byPath('/memory'), byPath('/packs')] },
-];
-export const SYSTEM_GROUP: NavGroupDef = { id: 'system', label: 'Hệ thống', icon: Settings, items: BOTTOM_NAV };
 
-export const GROUP_ICON: Record<string, LucideIcon> = { studio: Wand2, sales: Handshake, marketing: Megaphone, finance: Landmark, ops: Workflow, other: Puzzle };
+export const GROUP_ICON: Record<string, LucideIcon> = {
+  brain: Brain, care: Handshake, sales: Handshake, marketing: Megaphone, studio: Wand2, finance: Landmark, ops: Workflow, other: Puzzle,
+  [MORE_GROUP_ID]: CircleDollarSign,
+};
+
+export function isActive(current: string, item: { path: string; match?: string[] }): boolean {
+  const hit = (p: string) => (p === '/' ? current === '/' : current === p || current.startsWith(`${p}/`));
+  return hit(item.path) || (item.match ?? []).some(hit);
+}
+
+/** The one item that owns `current`: the longest matching path, so /brain/graph does not also light up /brain. */
+export function bestMatch<T extends { path: string; match?: string[] }>(current: string, items: readonly T[]): T | undefined {
+  const score = (i: T) => Math.max(...[i.path, ...(i.match ?? [])].filter((p) => isActive(current, { path: p })).map((p) => p.length), -1);
+  let best: T | undefined;
+  let bestScore = -1;
+  for (const i of items) {
+    const sc = score(i);
+    if (sc > bestScore) { best = i; bestScore = sc; }
+  }
+  return best;
+}
+
+/** The module nav items shown in one section (or the "Khác" group), in their own order. */
+export function moduleItemsFor<T extends { group: NavGroup }>(section: SectionId | 'more', items: readonly T[]): T[] {
+  return items.filter((i) => GROUP_SECTION[i.group] === section);
+}
+
+/** Every path the sidebar can reach on its own, for tests: top-level items plus everything in "Nâng cao". */
+export function reachableCorePaths(): string[] {
+  return [...NAV_SECTIONS.flatMap((s) => s.items), ...ADVANCED_GROUP.items].map((i) => i.path);
+}

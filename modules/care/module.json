@@ -31,6 +31,7 @@
     "care_conversation_state",
     "care_conversations",
     "care_credentials",
+    "care_customer_changes",
     "care_customers",
     "care_cutover_log",
     "care_delivery_attempts",
@@ -74,8 +75,26 @@
     "autoSendEnabled": {
       "label": "Cho phép chế độ Tự động gửi",
       "type": "boolean",
-      "default": true,
-      "help": "Tắt thì mọi câu trả lời của agent chỉ dừng ở bước nháp chờ duyệt."
+      "default": false,
+      "help": "Mặc định tắt: mọi câu trả lời của agent chỉ dừng ở bước nháp chờ bạn duyệt. Bật thì những cuộc trò chuyện đặt chế độ Tự động mới tự gửi."
+    },
+    "handoffKeywords": {
+      "label": "Cụm từ khách đòi gặp người thật",
+      "type": "string",
+      "default": "gặp nhân viên, gặp người thật, khiếu nại",
+      "help": "Cách nhau bằng dấu phẩy, không phân biệt hoa thường hay có dấu. Khách nhắn một cụm này thì agent dừng ngay ở cuộc trò chuyện đó, các tin agent định gửi bị huỷ và bạn được báo. Chỉ bạn trả lại được cho agent. Để trống là tắt."
+    },
+    "handoffPauseMinutes": {
+      "label": "Tạm dừng agent khi khách đòi gặp người (phút)",
+      "type": "number",
+      "default": 60,
+      "help": "Khoảng tạm dừng ghi trên cuộc trò chuyện. Agent vẫn không trả lời cho tới khi bạn trả lại cuộc trò chuyện."
+    },
+    "turnDebounceSeconds": {
+      "label": "Chờ khách nhắn xong (giây)",
+      "type": "number",
+      "default": 3,
+      "help": "Khách gửi nhiều tin liền nhau thì agent chờ chừng này giây sau tin cuối rồi trả lời một lần cho cả loạt. 0 là trả lời từng tin ngay."
     },
     "quietHoursStart": {
       "label": "Giờ nghỉ bắt đầu (HH:MM)",

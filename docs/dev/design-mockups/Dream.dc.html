@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Dream 100 · Kênh theo dõi</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115;font-family:'Inter',system-ui,'Segoe UI',sans-serif}
+a{color:#8aa3ff}a:hover{color:#a9bbff}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #0f1115; color: #e6e8ee; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+<div style="flex: 0 0 232px"><dc-import name="Sidebar" active="dream" hint-size="232px,100vh"></dc-import></div>
+
+<div style="flex: 999 1 560px; min-width: 0; min-height: 100vh; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid #272c37">
+<h1 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 20px; font-weight: 700">Dream 100</h1>
+<nav aria-label="Các phần của Dream 100" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #171a21; border: 1px solid #272c37; border-radius: 10px">
+<a href="Dream.dc.html" aria-current="page" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; background: #6d8dff; color: #0b1020; font-weight: 600; text-decoration: none">Kênh theo dõi</a>
+<a href="DreamFeed.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Video nổi bật</a>
+<a href="Formulas.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Công thức</a>
+<a href="DailyIdeas.dc.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Đề xuất hôm nay<span style="background: rgba(240,178,74,0.16); color: #f0b24a; font-size: 12px; padding: 1px 8px; border-radius: 999px">3</span></a>
+</nav>
+<span style="font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; border: 1px dashed #697386; color: #c9ced9">Số liệu minh họa</span>
+<span style="color: #9aa3b2">Những kênh bạn muốn học theo. Bot xem giúp mỗi ngày.</span>
+</header>
+
+<main style="flex: 1 1 auto; box-sizing: border-box; padding: 18px 24px; display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start">
+
+<div style="flex: 3 1 620px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+
+<form style="margin: 0; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 14px 16px">
+<div style="display: flex; flex-direction: column; margin-right: 6px">
+<span style="font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums">37<span style="font-size: 15px; font-weight: 500; color: #9aa3b2"> / 100 kênh</span></span>
+<span style="font-size: 12px; color: #9aa3b2">YouTube 14 · TikTok 12 · Facebook 7 · Instagram 4</span>
+</div>
+<label style="flex: 1 1 300px; display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #9aa3b2">Dán link kênh, hoặc dán cả danh sách mỗi dòng một link
+<input type="text" placeholder="https://www.youtube.com/@ten-kenh" style="min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #353c4a; border-radius: 10px; background: #0f1115; color: #e6e8ee; font: inherit; font-size: 14px">
+</label>
+<button type="submit" style="min-height: 44px; padding: 0 16px; border: 0; border-radius: 10px; background: #6d8dff; color: #0b1020; font: inherit; font-weight: 600; cursor: pointer">Thêm kênh</button>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; background: transparent; color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer">Nhờ bot gợi ý kênh cùng ngành</button>
+</form>
+
+<section aria-labelledby="ds-kenh" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; overflow: hidden">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 20px; border-bottom: 1px solid #272c37">
+<h2 id="ds-kenh" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Kênh đang theo dõi</h2>
+<span style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; color: #9aa3b2">brain/tra-sen-viet/dream-100/kenh/</span>
+<span style="margin-left: auto; font-size: 13px; color: #9aa3b2">Sắp theo số video nổi bật tuần này</span>
+</div>
+<div style="overflow-x: auto">
+<div role="table" aria-label="Kênh đang theo dõi" style="min-width: 900px; display: flex; flex-direction: column">
+<div role="row" style="display: grid; grid-template-columns: 2.2fr 1fr 1.5fr 0.9fr 0.9fr 0.9fr 1fr 1.3fr; column-gap: 12px; padding: 9px 20px; border-bottom: 1px solid #272c37; color: #9aa3b2; font-size: 12px; font-weight: 600">
+<span role="columnheader">Kênh</span><span role="columnheader">Nền tảng</span><span role="columnheader">Học gì ở kênh này</span><span role="columnheader" style="text-align: right">Theo dõi</span><span role="columnheader" style="text-align: right">Video/tuần</span><span role="columnheader" style="text-align: right">Nổi bật</span><span role="columnheader">Lấy bằng</span><span role="columnheader">Lần quét gần nhất</span>
+</div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+<div role="row" style="display: grid; grid-template-columns: 2.2fr 1fr 1.5fr 0.9fr 0.9fr 0.9fr 1fr 1.3fr; column-gap: 12px; align-items: center; padding: 9px 20px; border-bottom: 1px solid #20242d">
+<span role="cell"><a href="DreamFeed.dc.html" style="display: flex; flex-direction: column; text-decoration: none; color: #e6e8ee"><span style="font-weight: 600">{{r.name}}</span><span style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; color: #9aa3b2">{{r.file}}</span></a></span>
+<span role="cell" style="color: #c9ced9">{{r.where}}</span>
+<span role="cell" style="color: #c9ced9; font-size: 13px">{{r.why}}</span>
+<span role="cell" style="text-align: right; font-variant-numeric: tabular-nums">{{r.subs}}</span>
+<span role="cell" style="text-align: right; font-variant-numeric: tabular-nums">{{r.pace}}</span>
+<span role="cell" style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums">{{r.hot}}</span>
+<span role="cell" style="color: #c9ced9">{{r.via}}</span>
+<span role="cell" style="color: {{r.stFg}}; font-size: 13px">{{r.status}}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</section>
+</div>
+
+<div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+
+<section aria-labelledby="cach-lay" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px">
+<h2 id="cach-lay" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Cách lấy dữ liệu</h2>
+<sc-for list="{{sources}}" as="s" hint-placeholder-count="4">
+<div style="display: flex; align-items: flex-start; gap: 10px; padding-top: 8px; border-top: 1px solid #20242d">
+<span aria-hidden="true" style="flex: 0 0 8px; height: 8px; margin-top: 6px; border-radius: 999px; background: {{s.dot}}"></span>
+<div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column"><span style="font-weight: 600">{{s.name}}</span><span style="font-size: 13px; color: #9aa3b2">{{s.use}}</span></div>
+<span style="font-size: 12px; color: {{s.stFg}}; white-space: nowrap">{{s.state}}</span>
+</div>
+</sc-for>
+<a href="Connect.dc.html" style="align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; font-weight: 600">Mở Kết nối</a>
+</section>
+
+<section aria-labelledby="lich-quet" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px">
+<h2 id="lich-quet" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Lịch quét</h2>
+<label style="display: flex; align-items: center; gap: 10px; min-height: 44px"><input type="checkbox" checked><span>Quét mỗi ngày lúc 06:00, đề xuất có trước 07:00</span></label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Chỉ tải video về máy khi lượt xem gấp
+<select style="min-height: 44px; padding: 0 10px; border: 1px solid #353c4a; border-radius: 10px; background: #0f1115; color: #e6e8ee; font: inherit; font-weight: 400"><option>3 lần trung vị của kênh đó</option><option>2 lần</option><option>5 lần</option></select>
+</label>
+<span style="font-size: 13px; color: #9aa3b2">Hôm nay: quét 37 kênh, thấy 84 video mới, tải 4 video nổi bật để mổ xẻ. File video bị xoá sau khi phân tích, chỉ giữ số đo.</span>
+<span style="font-size: 13px; color: #f0b24a">Ước tính với đủ 100 kênh: khoảng 300 kết quả mỗi ngày, tốn chừng 0,6 đến 1,8 USD mỗi ngày nếu lấy bằng Apify.</span>
+</section>
+
+<span style="font-size: 13px; color: #9aa3b2; padding: 0 4px">Chỉ đọc video công khai. Bot học cấu trúc và nhịp, không chép lời, hình hay nhạc của kênh khác.</span>
+</div>
+
+</main>
+
+<dc-import name="ChatBar" bot="Bot Phân tích" ask="Ví dụ: thêm 10 kênh TikTok về trà và quà tặng có trên 50 nghìn người theo dõi" hint-size="100%,72px"></dc-import>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var ok = '#9aa3b2', bad = '#f0647a', good = '#46c28a', off = '#c9ced9';
+    return {
+      rows: [
+        { name: 'Bếp Nhà Mộc', file: 'bep-nha-moc.md', where: 'TikTok', why: 'Video hướng dẫn ngắn, mở đầu', subs: '412.000', pace: '6', hot: '2', via: 'Apify', status: '06:02 hôm nay', stFg: ok },
+        { name: 'The Tea Lab', file: 'the-tea-lab.md', where: 'YouTube', why: 'Giải thích lỗi sai khi pha trà', subs: '188.000', pace: '3', hot: '1', via: 'Tự tải', status: '06:04 hôm nay', stFg: ok },
+        { name: 'Trà Việt Mỗi Ngày', file: 'tra-viet-moi-ngay.md', where: 'Facebook', why: 'Kể chuyện hậu trường làm nghề', subs: '96.000', pace: '4', hot: '1', via: 'Apify', status: '06:05 hôm nay', stFg: ok },
+        { name: 'Quán Nhỏ Ven Hồ', file: 'quan-nho-ven-ho.md', where: 'Instagram', why: 'Ảnh sản phẩm, bài quà tặng', subs: '54.000', pace: '5', hot: '1', via: 'Apify', status: '06:05 hôm nay', stFg: ok },
+        { name: 'Chuyện Trà Chuyện Đời', file: 'chuyen-tra-chuyen-doi.md', where: 'YouTube', why: 'Video dài, cách giữ người xem', subs: '71.000', pace: '1', hot: '0', via: 'RSSHub', status: '06:03 hôm nay', stFg: ok },
+        { name: 'Kể Chuyện Nghề', file: 'ke-chuyen-nghe.md', where: 'TikTok', why: 'Mở đầu bằng một câu chuyện', subs: '230.000', pace: '7', hot: '0', via: 'Apify', status: '06:02 hôm nay', stFg: ok },
+        { name: 'Shop Quà Quê', file: 'shop-qua-que.md', where: 'Facebook', why: 'Cách bán sỉ qua bài đăng', subs: '38.000', pace: '9', hot: '0', via: 'Apify', status: 'Lỗi: trang yêu cầu đăng nhập', stFg: bad },
+        { name: 'Matcha Daily', file: 'matcha-daily.md', where: 'Instagram', why: 'Bố cục ảnh', subs: '120.000', pace: '4', hot: '0', via: 'Apify', status: 'Tạm dừng theo dõi', stFg: off }
+      ],
+      sources: [
+        { name: 'Apify', use: 'TikTok, Instagram, Facebook. Tính tiền theo kết quả.', state: 'Đã nối', stFg: good, dot: good },
+        { name: 'Tự tải về máy', use: 'Chỉ video nổi bật, để đo nhịp cắt và đọc 3 giây đầu.', state: 'Sẵn sàng', stFg: good, dot: good },
+        { name: 'RSSHub', use: 'Danh sách video mới của kênh YouTube, miễn phí.', state: 'Đã nối', stFg: good, dot: good },
+        { name: 'treg', use: 'Bạn nhắc tới nguồn này. Chưa có trong máy.', state: 'Chưa nối', stFg: off, dot: '#697386' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

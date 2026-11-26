@@ -20,7 +20,7 @@ export function RuntimeBadge({ runtime }: { runtime: AgentSummary['runtime'] }) 
   return <Pill tone={runtime === 'mock' ? 'neutral' : 'accent'}>{RUNTIME_LABEL[runtime]}</Pill>;
 }
 
-const TONE: Record<AgentSummary['runtime'], string> = { claude: 'coral', codex: 'blue', grok: 'slate', hermes: 'plum', mock: 'sand' };
+const TONE: Record<AgentSummary['runtime'], string> = { claude: 'coral', codex: 'blue', grok: 'slate', hermes: 'plum', genbot: 'cyan', mock: 'sand' };
 
 function AgentCard({ a }: { a: AgentSummary }) {
   const budget = a.budgetUsdMonth;

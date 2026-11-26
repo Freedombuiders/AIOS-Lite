@@ -13,6 +13,7 @@ import {
   insertFbPublishLog,
   listDueFbContent,
   listStuckFbPublishing,
+  markFbContentPublished,
   releaseFbContentClaim,
   setFbPageStatus,
   updateFbContentFields,
@@ -251,24 +252,19 @@ export async function runAttempt(id: number, backTo: FbContentStatus = 'schedule
 
     const result = await publishToFacebook(row, page, media);
     tool = result.tool;
-    const done = {
-      status: 'published',
+    // One transaction: if analytics imported this very post before we got here, the imported
+    // duplicate is merged into this row (which keeps lineage and authorship), and the
+    // 'published' feed event is written with the change.
+    const saved = markFbContentPublished(id, {
       published_at: nowSec(),
       fb_post_id: result.postId,
       permalink: result.permalink,
       published_as: result.publishedAs,
-      next_attempt_at: null,
       last_error: result.postId ? '' : 'Đã đăng nhưng không đọc được ID bài từ Facebook, kiểm tra trên Fanpage.',
-    };
-    let saved = false;
-    try {
-      saved = updateFbContentFields(id, done, ['publishing']);
-    } catch (err) {
-      // fb_post_id is unique: if analytics imported this very post first, keep the row without the id.
-      logger.warn({ err: String(err), id }, 'fbstudio: saving fb_post_id failed, retrying without it');
-      saved = updateFbContentFields(id, { ...done, fb_post_id: null }, ['publishing']);
-    }
-    if (!saved) logger.warn({ id }, 'fbstudio: published post but the row was no longer publishing');
+    });
+    if (!saved.saved) logger.warn({ id }, 'fbstudio: published post but the row was no longer publishing');
+    if (saved.mergedFrom !== null) logger.info({ id, mergedFrom: saved.mergedFrom, postId: saved.postId }, 'fbstudio: merged the imported copy of a published post');
+    if (saved.conflictWith !== null) logger.warn({ id, conflictWith: saved.conflictWith, postId: result.postId }, 'fbstudio: Facebook post id already held by another studio row');
     insertFbPublishLog({ content_id: id, page_id: row.page_id, action: 'publish', tool, ok: true, detail: result.postId ?? '', duration_ms: Date.now() - started });
     logger.info({ id, tool, durationMs: Date.now() - started }, 'fbstudio post published');
   } catch (err) {
