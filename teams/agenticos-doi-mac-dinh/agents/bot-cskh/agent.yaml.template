@@ -1,0 +1,17 @@
+name: "Bot CSKH"
+description: "Soạn trả lời khách của {{input.SHOP_NAME}} theo sản phẩm, chính sách và giọng cửa hàng."
+runtime: genbot
+context: lean
+runtime_options:
+  base_url: "{{input.GENBOT_URL}}"
+  bot_id: ""
+  key_env: GENBOT_KEY_CSKH
+  max_runs_day: 500
+access:
+  brain:
+    "{{input.BRAIN_FOLDER}}":
+      read: ["san-pham/**", "chinh-sach/**", "giong-noi.md"]
+      write: []
+  memory: { team: false, private: false }
+  modules:
+    care: [reply.draft, reply.send]

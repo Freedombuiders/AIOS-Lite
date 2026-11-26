@@ -62,11 +62,11 @@ beforeEach(() => {
 afterEach(() => fs.rmSync(root, { recursive: true, force: true }));
 
 describe('team catalog', () => {
-  it('loads the two shipped packages without problems', () => {
+  it('loads the three shipped packages without problems', () => {
     const { svc } = setup();
     const l = svc.list();
     expect(l.problems).toEqual([]);
-    expect(l.items.map((t) => t.slug).sort()).toEqual(['cskh-zalo-email', 'fb-content-studio']);
+    expect(l.items.map((t) => t.slug).sort()).toEqual(['agenticos-doi-mac-dinh', 'cskh-zalo-email', 'fb-content-studio']);
   });
 });
 
@@ -94,6 +94,60 @@ describe('install', () => {
     expect(scheduler.rows[0]!.enabled).toBe(false);
     expect(scheduler.rows[0]!.prompt).toContain('Hoa Sen');
     expect(svc.list().history[0]!.slug).toBe('cskh-zalo-email');
+  });
+
+  it('the AgenticOS default team installs three valid GenBot agents with their context, options and grants', () => {
+    const { svc, scheduler, agentsDir } = setup();
+    const ref = { kind: 'catalog', id: 'agenticos-doi-mac-dinh' } as const;
+    const plan = svc.preview(ref, {});
+    expect(plan.missingInputs.sort()).toEqual(['BRAIN_FOLDER', 'SHOP_NAME']);
+    expect(plan.warnings.filter((w) => w.includes('không dùng trong AIOS-Lite'))).toEqual([]);
+    const res = svc.install(ref, { inputs: { SHOP_NAME: 'Trà Sen Việt', BRAIN_FOLDER: 'tra-sen-viet' } });
+    expect(res.agents.map((a) => a.id).sort()).toEqual(['bot-cskh', 'bot-noi-dung', 'bot-tro-ly']);
+    expect(res.agents.every((a) => a.runtime === 'genbot')).toBe(true);
+    // a fresh registry re-reads agent.yaml through src/agents/schema.ts: all three must load without errors
+    const fresh = createAgentRegistry({ agentsDir, workspacesDir: path.join(root, 'ws') });
+    expect(fresh.errors()).toEqual([]);
+    const cskh = fresh.require('bot-cskh');
+    expect(cskh).toMatchObject({ runtime: 'genbot', context: 'lean', permission: 'safe' });
+    expect(cskh.runtimeOptions).toEqual({ base_url: 'http://127.0.0.1:8800', bot_id: '', key_env: 'GENBOT_KEY_CSKH', max_runs_day: 500 });
+    expect(cskh.access.brain).toEqual({ 'tra-sen-viet': { read: ['san-pham/**', 'chinh-sach/**', 'giong-noi.md'], write: [] } });
+    expect(cskh.access.modules).toEqual({ care: ['reply.draft', 'reply.send'] });
+    expect(cskh.access.connections).toEqual({});
+    const content = fresh.require('bot-noi-dung');
+    expect(content.context).toBe('standard');
+    expect(content.access.brain['tra-sen-viet']!.read).toEqual(['giong-noi.md', 'noi-dung/**', 'san-pham/**', 'bai-hoc/**', 'cong-thuc/**']);
+    expect(content.runtimeOptions.key_env).toBe('GENBOT_KEY_NOI_DUNG');
+    const assistant = fresh.require('bot-tro-ly');
+    expect(assistant.context).toBe('standard'); // lean turns only accept <aios-status>; the assistant needs task and memory directives
+    expect(assistant.access.brain).toEqual({ 'tra-sen-viet': { read: ['**'], write: ['nho/**'] } });
+    expect(assistant.canDelegate).toBe(true);
+    expect(fresh.require('bot-cskh').reportsTo).toBe('bot-tro-ly');
+    // one GenBot bot (and key) per agent; no key in any file
+    expect(new Set(fresh.list().map((a) => a.runtimeOptions.key_env)).size).toBe(3);
+    for (const a of fresh.list()) {
+      expect(a.persona).toContain('Trà Sen Việt');
+      expect(a.persona).not.toMatch(/"action"\s*:|json/i); // persona: role and tone only, no output schema
+    }
+    expect(scheduler.rows.map((r) => [r.agentId, r.enabled])).toEqual([['bot-tro-ly', false]]);
+    expect(res.nextSteps.join(' ')).toContain('GENBOT_KEY_CSKH');
+  });
+
+  it('an imported package never grants itself access, but keeps context and runtime options', () => {
+    const { svc } = setup();
+    const z = new AdmZip();
+    z.addFile('TEAM.md', Buffer.from('---\nschema: aios-team/v1\nname: X\nslug: x\ndescription: d\nmanager: a1\n---\n'));
+    z.addFile('agents/a1/agent.yaml.template', Buffer.from('name: A\nruntime: genbot\ncontext: lean\nruntime_options:\n  base_url: http://127.0.0.1:8800\n  bot_id: b1\n  key_env: GENBOT_KEY_X\naccess:\n  brain:\n    kb: { read: ["**"], write: ["**"] }\n  modules:\n    care: [reply.send]\n'));
+    z.addFile('agents/a1/persona.md', Buffer.from('p'));
+    const imp = svc.importZip(z.toBuffer());
+    const res = svc.install({ kind: 'import', id: imp.id }, {});
+    const a1 = res.agents[0]!;
+    const fresh = createAgentRegistry({ agentsDir: path.join(root, 'agents'), workspacesDir: path.join(root, 'ws') });
+    const cfg = fresh.require(a1.id);
+    expect(cfg).toMatchObject({ runtime: 'genbot', context: 'lean', runtimeOptions: { base_url: 'http://127.0.0.1:8800', bot_id: 'b1', key_env: 'GENBOT_KEY_X' } });
+    expect(cfg.access.brain).toEqual({});
+    expect(cfg.access.modules).toEqual({});
+    expect(res.warnings.join(' ')).toContain('không được tự cấp quyền');
   });
 
   it('renames on id clash by default and skips when asked', () => {

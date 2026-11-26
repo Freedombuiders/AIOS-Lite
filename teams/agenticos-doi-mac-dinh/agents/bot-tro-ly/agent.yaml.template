@@ -1,0 +1,15 @@
+name: "Bot Trợ lý"
+description: "Trợ lý của chủ {{input.SHOP_NAME}}: trả lời từ brain, ghi nhớ, tạo việc và nhắc lịch."
+runtime: genbot
+context: standard
+runtime_options:
+  base_url: "{{input.GENBOT_URL}}"
+  bot_id: ""
+  key_env: GENBOT_KEY_TRO_LY
+  max_runs_day: 500
+access:
+  brain:
+    "{{input.BRAIN_FOLDER}}":
+      read: ["**"]
+      write: ["nho/**"]
+  memory: { team: true, private: true }

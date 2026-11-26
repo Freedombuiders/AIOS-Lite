@@ -142,7 +142,7 @@ function readSchedules(text: string | undefined, agentIds: string[], errors: str
 }
 
 /** Agent keys a package may set. Everything else is dropped on install with a warning. */
-export const AGENT_YAML_KEYS = ['name', 'description', 'runtime', 'model', 'skills', 'reports_to', 'budget_usd_month', 'permission'] as const;
+export const AGENT_YAML_KEYS = ['name', 'description', 'runtime', 'model', 'skills', 'reports_to', 'budget_usd_month', 'permission', 'context', 'runtime_options', 'access'] as const;
 
 export function buildTeamManifest(files: TeamFiles, opts: { slugHint?: string } = {}): { manifest: TeamManifest | null; errors: string[]; warnings: string[] } {
   const errors: string[] = [];

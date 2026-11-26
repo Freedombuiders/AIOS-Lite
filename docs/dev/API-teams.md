@@ -16,7 +16,7 @@ Mọi route nằm dưới `/api`, lỗi theo `docs/dev/API.md` (`{ error: { code
 | `DELETE /api/teams/import/:id` | bỏ gói đã nhập |
 | `POST /api/teams/export` | `{ name, agentIds, slug?, description?, manager? }` → `{ filename, base64, files, redactions, inputs }`; khoá/token/đường dẫn/email được gỡ thành ô `{{input.KEY}}` |
 
-Quy tắc cài: agent tạo qua `AgentRegistry` (permission `safe`, `access` rỗng; skill của gói được cấp cho agent đó), trùng id thì đổi tên `-2`… hoặc bỏ qua; skill đã có trong thư viện thì giữ bản cũ; lịch tạo ở trạng thái **tắt**; input kiểu `secret` không bao giờ được điền vào file.
+Quy tắc cài: agent tạo qua `AgentRegistry` (permission `safe`, `access` rỗng; skill của gói được cấp cho agent đó). `agent.yaml.template` nhận thêm `context`, `runtime_options` (chỉ giá trị chữ, số, đúng/sai; không chứa khoá) và `access` (`brain: { "<mã brain>": { read, write } }`, `memory`, `modules`). `access` chỉ được áp cho gói có sẵn trong `teams/` của repo; gói nhập từ zip không tự cấp quyền (bỏ qua kèm cảnh báo), trùng id thì đổi tên `-2`… hoặc bỏ qua; skill đã có trong thư viện thì giữ bản cũ; lịch tạo ở trạng thái **tắt**; input kiểu `secret` không bao giờ được điền vào file.
 
 ## Chợ Agent (`/api/agent-market`)
 

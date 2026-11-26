@@ -1,0 +1,15 @@
+name: "Bot Nội dung"
+description: "Viết bài cho {{input.SHOP_NAME}} theo giọng cửa hàng, dựa trên sản phẩm, bài học và công thức đã có."
+runtime: genbot
+context: standard
+runtime_options:
+  base_url: "{{input.GENBOT_URL}}"
+  bot_id: ""
+  key_env: GENBOT_KEY_NOI_DUNG
+  max_runs_day: 500
+access:
+  brain:
+    "{{input.BRAIN_FOLDER}}":
+      read: ["giong-noi.md", "noi-dung/**", "san-pham/**", "bai-hoc/**", "cong-thuc/**"]
+      write: []
+  memory: { team: true, private: true }

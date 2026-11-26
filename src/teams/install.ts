@@ -245,6 +245,7 @@ export function installTeam(deps: InstallDeps, team: LoadedTeam, opts: InstallOp
       const tpl = team.files.get(`agents/${a.pkgId}/${AGENT_YAML_TEMPLATE}`)!;
       const rawTpl = (deepRender(parseTemplate(tpl.toString('utf8')), r) ?? {}) as Record<string, unknown>;
       const persona = r(team.files.get(personaPath(team, a.pkgId))!.toString('utf8'));
+      const extra = templateSettings(rawTpl, team.source.kind === 'catalog', r, (w) => result.warnings.push(`${a.pkgId}: ${w}`));
       const created = deps.agents.create(a.finalId, {
         name: String(rawTpl.name ?? a.name),
         description: String(rawTpl.description ?? a.description),
@@ -255,7 +256,9 @@ export function installTeam(deps: InstallDeps, team: LoadedTeam, opts: InstallOp
         ...(a.reportsTo ? { reportsTo: a.reportsTo } : {}),
         canDelegate: a.pkgId === plan.team.manager || a.pkgId === team.manifest.manager,
         ...(typeof rawTpl.budget_usd_month === 'number' ? { budgetUsdMonth: rawTpl.budget_usd_month } : {}),
-        access: { brain: {}, memory: { team: false, private: true }, skills: a.skills, connections: {}, modules: {} },
+        ...(extra.context ? { context: extra.context } : {}),
+        ...(extra.runtimeOptions ? { runtimeOptions: extra.runtimeOptions } : {}),
+        access: { brain: extra.brain, memory: extra.memory, skills: a.skills, connections: {}, modules: extra.modules },
       });
       undo.push(() => {
         fs.rmSync(created.dir, { recursive: true, force: true });
@@ -293,9 +296,63 @@ export function installTeam(deps: InstallDeps, team: LoadedTeam, opts: InstallOp
     throw new TeamError(`Cài gói thất bại, đã hoàn tác: ${(err as Error).message}`, 422);
   }
   if (result.schedules.length) result.nextSteps.push('Các lịch được tạo ở trạng thái TẮT. Bật từng lịch trong Lịch chạy sau khi kiểm tra.');
-  result.nextSteps.push('Mở từng agent để cấp quyền (Second Brain, kết nối, module); mặc định agent chưa có quyền nào.');
+  const granted = result.agents.some((x) => {
+    const cfg = deps.agents.get(x.id);
+    return !!cfg && (Object.keys(cfg.access.brain).length > 0 || Object.keys(cfg.access.modules).length > 0);
+  });
+  result.nextSteps.push(granted
+    ? 'Gói này cấp sẵn quyền đọc brain và quyền module ghi trong TEAM.md. Mở từng agent để kiểm lại ở tab Quyền trước khi bật.'
+    : 'Mở từng agent để cấp quyền (Second Brain, kết nối, module); mặc định agent chưa có quyền nào.');
   result.nextSteps.push(...plan.team.prerequisites);
   return result;
+}
+
+const isRecord = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
+const strings = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string' && x.trim() !== '').map((x) => x.trim()) : []);
+const OPTION_KEY_RE = /^[a-z][a-z0-9_]{0,40}$/;
+
+interface TemplateSettings {
+  context?: 'standard' | 'lean';
+  runtimeOptions?: Record<string, string | number | boolean>;
+  brain: Record<string, { read: string[]; write: string[] }>;
+  memory: { team: boolean; private: boolean };
+  modules: Record<string, string[]>;
+}
+
+/**
+ * Optional template keys. `context` and `runtime_options` (plain values, no secrets: a key stays in .env) apply to every
+ * package. `access` (brain globs, memory, module scopes) is applied only for catalog packages shipped with AIOS; an
+ * imported package never grants itself rights, the owner does that in Agents › Quyền.
+ */
+function templateSettings(tpl: Record<string, unknown>, trusted: boolean, r: (t: string) => string, warn: (w: string) => void): TemplateSettings {
+  const out: TemplateSettings = { brain: {}, memory: { team: false, private: true }, modules: {} };
+  if (tpl.context === 'lean' || tpl.context === 'standard') out.context = tpl.context;
+  if (isRecord(tpl.runtime_options)) {
+    const opts: Record<string, string | number | boolean> = {};
+    for (const [k, v] of Object.entries(tpl.runtime_options)) {
+      if (!OPTION_KEY_RE.test(k)) warn(`bỏ qua runtime_options.${k} (tên không hợp lệ).`);
+      else if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') opts[k] = v;
+      else if (v === null || v === undefined) opts[k] = '';
+      else warn(`bỏ qua runtime_options.${k} (chỉ nhận chữ, số hoặc đúng/sai).`);
+    }
+    if (Object.keys(opts).length) out.runtimeOptions = opts;
+  }
+  if (!isRecord(tpl.access)) return out;
+  if (!trusted) {
+    warn('gói nhập từ ngoài không được tự cấp quyền: bỏ qua mục access, hãy cấp quyền trong Agents › Quyền.');
+    return out;
+  }
+  const acc = tpl.access;
+  if (isRecord(acc.brain)) {
+    for (const [rawFolder, grant] of Object.entries(acc.brain)) {
+      const folder = r(rawFolder).trim();
+      if (!folder || !isRecord(grant)) continue;
+      out.brain[folder] = { read: strings(grant.read), write: strings(grant.write) };
+    }
+  }
+  if (isRecord(acc.memory)) out.memory = { team: acc.memory.team === true, private: acc.memory.private !== false };
+  if (isRecord(acc.modules)) for (const [m, scopes] of Object.entries(acc.modules)) if (strings(scopes).length) out.modules[m] = strings(scopes);
+  return out;
 }
 
 function deepRender(v: unknown, r: (t: string) => string): unknown {

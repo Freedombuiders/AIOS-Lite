@@ -1,6 +1,7 @@
 import path from 'node:path';
 import type { AgentRegistry } from '../agents/contracts.js';
-import type { AgentConfig } from '../core/types.js';
+import type { AgentConfig, RuntimeId } from '../core/types.js';
+import type { RuntimeCapabilities } from '../runtimes/contracts.js';
 import type { BrainService, SkillLibrary } from '../shared/contracts.js';
 import { globBaseDir, matchAnyGlob, matchGlob, normalizeRel } from '../shared/glob.js';
 import { bridgeCommand } from '../integrations/mcp-bridge/index.js';
@@ -16,6 +17,8 @@ export interface AccessPolicyDeps {
   integrationToken?: (agentId: string, taskId: string) => string;
   /** API base the bridge calls back, e.g. http://127.0.0.1:4000 */
   apiUrl?: string;
+  /** capabilities of an agent's runtime; a runtime with `mcp: false` (GenBot) gets no MCP server. Absent = every runtime takes MCP. */
+  runtimeCapabilities?: (runtime: RuntimeId) => Pick<RuntimeCapabilities, 'mcp'> | undefined;
 }
 
 export function createAccessPolicy(deps: AccessPolicyDeps): AccessPolicy {
@@ -32,6 +35,14 @@ export function createAccessPolicy(deps: AccessPolicyDeps): AccessPolicy {
     return out;
   }
 
+  const runtimeTakesMcp = (runtime: RuntimeId): boolean => {
+    try {
+      return deps.runtimeCapabilities?.(runtime)?.mcp !== false;
+    } catch {
+      return true; // unknown runtime: the run fails on its own; do not change the grant here
+    }
+  };
+
   const addDirsOf = (grants: DirGrant[]): string[] => {
     const dirs: string[] = [];
     for (const g of grants) for (const glob of g.globs) dirs.push(path.join(g.root, ...globBaseDir(glob).split('/').filter(Boolean)));
@@ -44,10 +55,13 @@ export function createAccessPolicy(deps: AccessPolicyDeps): AccessPolicy {
 
     const mcpServers: McpGrant[] = [];
     const envVars: Record<string, string> = {};
+    // explicit capability, not noTools: noTools only says a runtime CAN run without tools
+    const takesMcp = runtimeTakesMcp(agent.runtime);
     for (const [id, grant] of Object.entries(agent.access.connections)) {
       const c = connections.get(id);
       if (!c) continue;
       if (c.type === 'mcp') {
+        if (!takesMcp) continue;
         const env = connections.resolveEnv(c);
         if (Object.values(env).some((v) => v === '')) continue; // unresolved secret: do not start a broken server
         mcpServers.push({
@@ -65,7 +79,7 @@ export function createAccessPolicy(deps: AccessPolicyDeps): AccessPolicy {
     }
 
     const hasIntegrations = Object.values(agent.access.integrations ?? {}).some((g) => (typeof g === 'string' ? g : g.grant) !== 'off');
-    if (hasIntegrations && task?.id && task.contextProfile !== 'lean' && deps.integrationToken && deps.apiUrl) {
+    if (takesMcp && hasIntegrations && task?.id && task.contextProfile !== 'lean' && deps.integrationToken && deps.apiUrl) {
       const { command, args } = bridgeCommand();
       mcpServers.push({
         id: 'aios-integrations',

@@ -86,6 +86,8 @@ export interface RunService {
   events(runId: number, opts?: { afterId?: number; limit?: number }): StoredRunEvent[];
   /** sum of cost_usd for the agent in the current calendar month (UTC); unknown costs ignored */
   monthCost(agentId: string): number;
+  /** runs the agent started since local midnight in `timeZone` (IANA name, e.g. Asia/Ho_Chi_Minh) */
+  dayCount(agentId: string, timeZone: string, now?: Date): number;
   /** mark runs still 'running' as failed (boot recovery) */
   failOrphans(reason: string): number;
 }

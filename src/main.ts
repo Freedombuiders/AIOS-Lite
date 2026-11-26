@@ -79,6 +79,7 @@ export function bootstrap(opts: BootstrapOptions = {}): AppDeps {
     // integrations bridge (MCP server `aios-integrations`): calls back into this API with a per-task token
     apiUrl: `http://${config.host}:${config.port}`,
     integrationToken: (agentId, taskId) => integrationServiceFor(lazy.deps!).createRunToken(agentId, taskId),
+    runtimeCapabilities: (id) => runtimes.get(id).capabilities,
   });
 
   const tasks = createTaskService({ db, bus, agents, abort: (id) => lazy.dispatcher?.abort(id) ?? false });
