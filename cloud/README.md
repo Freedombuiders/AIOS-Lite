@@ -189,3 +189,41 @@ npm run pack -- download tra-va-qua-tang-co-ban 1.0.0 --pubkey <khoá công khai
 ```
 
 Thử trên `wrangler dev`: chạy với `--var DEV_MODE:1 --var ADMIN_EMAILS:… --var 'PACK_SIGNING_KEYS:{"k2026":"…"}'`, lấy token bằng `POST /auth/dev`. Khi chưa có khoá R2, `DEV_MODE` cấp đường dẫn tới `/_dev/blobs/…` trên chính Worker cục bộ thay cho đường dẫn R2 thật. Đường này chỉ tồn tại khi bật `DEV_MODE` và gọi qua `localhost`.
+
+### Ảnh và video đăng bài
+
+| Method | Path | Thân | Trả về |
+|---|---|---|---|
+| POST | `/uploads` | `{ contentType, size, purpose: post-media\|avatar\|pack-cover }` | `{ id, uploadUrl, headers, expiresAt }` |
+| POST | `/uploads/:id/complete` | — | `{ id, url, expiresAt }` |
+| GET | `/uploads` | `?purpose=` | `{ items }` của người gọi, mỗi tệp sẵn sàng kèm đường đọc mới |
+| DELETE | `/uploads/:id` | — | `{ ok: true }` |
+
+- Chỉ nhận `image/jpeg`, `image/png`, `image/webp` (tối đa 10 MB) và `video/mp4` (tối đa 200 MB). Mỗi người lưu tối đa `UPLOAD_QUOTA_BYTES` (mặc định 2 GB), tính cả tệp đang chờ.
+- `uploadUrl` là đường PUT ký sẵn, sống 10 phút, ký cả `content-type` và `content-length`. Gửi đúng các header trong `headers`.
+- `complete` đọc kích thước thật trên R2 và vài byte đầu. Lệch kích thước hoặc sai loại thì tệp bị xoá.
+- Khoá R2: `u/<userId>/<purpose>/<id>.<đuôi>`. Tên tệp gốc không bao giờ vào khoá.
+- Đường đọc là GET ký sẵn, sống 24 giờ. Thùng chứa không mở công khai.
+- `post-media` tự xoá sau 7 ngày. Cron mỗi ngày xoá tệp hết hạn và tệp `pending` quá 1 giờ. `avatar` và `pack-cover` không hết hạn; ảnh đại diện mới thay ảnh cũ, ảnh bìa mới (qua `PATCH /admin/packs/:id` với `coverUploadId`) thay ảnh bìa cũ. Chỉ quản trị viên tải được `pack-cover`.
+- `DELETE /me` xoá mọi đối tượng dưới `u/<userId>/`.
+
+#### Luật vòng đời R2
+
+Nên đặt thêm một luật vòng đời trên thùng chứa làm lớp bảo vệ thứ hai, phòng khi cron hỏng. Lưu ý: luật vòng đời của R2 chỉ lọc theo tiền tố, mà khoá ảnh đăng bài là `u/<userId>/post-media/…`, nên không có tiền tố nào chỉ gồm ảnh đăng bài. Hai cách:
+
+1. Giữ cấu trúc khoá hiện tại và đặt luật xoá `incoming/` sau 1 ngày (zip gói tải lên dở). Ảnh đăng bài chỉ dựa vào cron.
+2. Đổi khoá ảnh đăng bài thành `post-media/<userId>/<id>.<đuôi>` rồi đặt luật xoá tiền tố `post-media/` sau 14 ngày. Khi đó `DELETE /me` phải xoá thêm tiền tố này.
+
+Chủ dự án chọn một trong hai trước khi chạy thật.
+
+#### Phía máy
+
+Lõi AIOS có integration `agenticos-cloud` (`src/integrations/agenticos-cloud/`). Chủ shop đăng nhập máy một lần:
+
+```sh
+cd cloud && npm run login -- --url https://cloud.example.com
+```
+
+rồi dán địa chỉ cloud và mã phiên in ra vào trang Kết nối. Mã phiên được lưu mã hoá trong `integration_credentials`. Agent được cấp quyền ghi thì chạy `upload <tệp>` để nhận đường dẫn công khai 24 giờ.
+
+Đăng bài lên Facebook, Instagram, TikTok qua Composio hiện đã tự tải tệp trong máy lên (`modules/marketing/server/core/publisher.ts`, `modules/kol/server/platforms/*`), nên R2 chỉ là thêm một lựa chọn cho chỗ nào cần đường dẫn công khai.

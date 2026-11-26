@@ -8,6 +8,7 @@ import { Hono, type Context } from 'hono';
 import { z } from 'zod';
 import type { AppEnv } from '../app-types';
 import { incomingKey, packJson, releaseJson, releaseKey, type PackRow, type ReleaseRow } from '../db/packs';
+import { deleteUploads, type UploadRow } from '../db/uploads';
 import { auditStmt } from '../db/users';
 import { badRequest, conflict, notFound, readJson } from '../http/errors';
 import { newId, sha256Hex } from '../lib/encoding';
@@ -61,7 +62,20 @@ adminPackRoutes.patch('/packs/:id', async (c) => {
     summary: text(500).nullable().optional(),
     industry: text(60).nullable().optional(),
     visibility: z.enum(['public', 'unlisted']).optional(),
+    /** A ready `pack-cover` upload of the calling admin; the previous cover is deleted. */
+    coverUploadId: z.string().max(100).optional(),
   }));
+  let coverKey = pack.cover_key;
+  let oldCover: UploadRow | null = null;
+  if (body.coverUploadId) {
+    const cover = await c.env.db.prepare("SELECT * FROM uploads WHERE id = ? AND user_id = ? AND purpose = 'pack-cover' AND status = 'ready'")
+      .bind(body.coverUploadId, c.var.auth.user.id).first<UploadRow>();
+    if (!cover) throw badRequest('Không tìm thấy ảnh bìa đã tải lên xong (purpose pack-cover).');
+    if (pack.cover_key && pack.cover_key !== cover.r2_key) {
+      oldCover = await c.env.db.prepare('SELECT * FROM uploads WHERE r2_key = ?').bind(pack.cover_key).first<UploadRow>();
+    }
+    coverKey = cover.r2_key;
+  }
   const next = {
     name: body.name ?? pack.name,
     summary: body.summary === undefined ? pack.summary : body.summary,
@@ -70,10 +84,12 @@ adminPackRoutes.patch('/packs/:id', async (c) => {
   };
   const db = c.env.db;
   await db.batch([
-    db.prepare('UPDATE packs SET name = ?, summary = ?, industry = ?, visibility = ?, updated_at = ? WHERE id = ?')
-      .bind(next.name, next.summary, next.industry, next.visibility, c.env.now(), pack.id),
+    db.prepare('UPDATE packs SET name = ?, summary = ?, industry = ?, visibility = ?, cover_key = ?, updated_at = ? WHERE id = ?')
+      .bind(next.name, next.summary, next.industry, next.visibility, coverKey, c.env.now(), pack.id),
     auditStmt(c.env, c.var.auth.user.id, 'pack.update', pack.id, body),
   ]);
+  if (oldCover) await deleteUploads(c.env, [oldCover]);
+  else if (coverKey !== pack.cover_key && pack.cover_key) await c.env.blobs.delete(pack.cover_key);
   return c.json(await packJson(c.env, await getPack(c, pack.id)));
 });
 

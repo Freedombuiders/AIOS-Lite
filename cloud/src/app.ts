@@ -9,6 +9,7 @@ import { authRoutes } from './routes/auth';
 import { devBlobRoutes } from './routes/dev-blobs';
 import { meRoutes } from './routes/me';
 import { packRoutes } from './routes/packs';
+import { uploadRoutes } from './routes/uploads';
 
 export function createApp() {
   const app = new Hono<AppEnv>();
@@ -18,6 +19,7 @@ export function createApp() {
   app.route('/auth', authRoutes);
   app.route('/me', meRoutes);
   app.route('/packs', packRoutes);
+  app.route('/uploads', uploadRoutes);
 
   const admin = new Hono<AppEnv>();
   admin.use('*', requireSession, requireAdmin);
