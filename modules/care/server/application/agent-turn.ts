@@ -27,8 +27,13 @@ import {
   evaluateEligibility,
   type DeliveryAdjustment,
   type EligibilityInput,
+  type EligibilityReason,
   type KillSwitchState,
 } from '../policy/eligibility.js';
+import type { AgentTurnReason } from './agent-reasons.js';
+
+/** Every `skip_reason` this turn writes: its own codes plus the eligibility ones (see agent-reasons.ts). */
+type RunReason = AgentTurnReason | Exclude<EligibilityReason, 'eligible'>;
 import type { AutoDelayRange } from '../policy/policy-ext.js';
 import { toGateMessage, type GateMessage } from '../policy/message-gates.js';
 import { isChatNoise, matchKeywordAtWordStart, stripQuotedReply } from '../policy/text-heuristics.js';
@@ -271,13 +276,13 @@ export class CareAgentTurn {
       // Lost the compare-and-set: another worker finished this run first; report what is stored.
       return done ?? stores.agentRuns.getRun(runId)!;
     };
-    const skip = (reason: string, detail?: Record<string, unknown>, effects: AgentTurnEffect[] = []): AgentTurnOutcome => ({
+    const skip = (reason: RunReason, detail?: Record<string, unknown>, effects: AgentTurnEffect[] = []): AgentTurnOutcome => ({
       status: 'skipped',
       run: finish({ status: 'skipped', skipReason: reason, decision: detail ? { detail } : null }),
       reason,
       effects,
     });
-    const fail = (reason: string, detail?: Record<string, unknown>, extra: Partial<CompleteRunPatch> = {}): AgentTurnOutcome => ({
+    const fail = (reason: RunReason, detail?: Record<string, unknown>, extra: Partial<CompleteRunPatch> = {}): AgentTurnOutcome => ({
       status: 'failed',
       run: finish({ status: 'failed', skipReason: reason, decision: detail ? { detail } : null, ...extra }),
       reason,
@@ -325,7 +330,8 @@ export class CareAgentTurn {
     );
     if (!pre.eligible) {
       const effects: AgentTurnEffect[] = pre.reason === 'opted_out' && pre.detail === 'message' ? ['mark_opted_out'] : [];
-      return skip(pre.reason, pre.detail ? { qualifier: pre.detail } : undefined, effects);
+      // eligible=false never carries the 'eligible' reason
+      return skip(pre.reason as RunReason, pre.detail ? { qualifier: pre.detail } : undefined, effects);
     }
     if (!rule) return skip('no_assignment'); // unreachable: eligibility denies it; keeps the type honest
 
@@ -495,7 +501,7 @@ export class CareAgentTurn {
 
   private finishSkip(
     finish: (p: CompleteRunPatch) => CareAgentRunRecord,
-    reason: string,
+    reason: RunReason,
     decision: AgentDecision,
     meta: Partial<CompleteRunPatch>,
   ): AgentTurnOutcome {

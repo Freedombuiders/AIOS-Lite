@@ -10,8 +10,8 @@ export interface InboxFilters {
   channel: '' | CareApiChannel;
   accountId: string;
   unread: boolean;
-  /** Status tab: Mở / Chờ khách / Hoãn / Xong (`wf=`). */
-  wf: CareWorkflowStatus;
+  /** Status tab: Mở / Chờ khách / Hoãn / Xong (`wf=`); `all` sends no status (every conversation, T07 "Tất cả"). */
+  wf: CareWorkflowStatus | 'all';
   /** Who handles it: Cần tôi / AI đang lo / Chưa giao / Tất cả (`view=`). */
   view: CareInboxView;
   q: string;
@@ -33,7 +33,7 @@ export function conversationQuery(f: InboxFilters, cursor?: string | null, limit
   const p = new URLSearchParams();
   const q = effectiveQuery(f.q);
   if (!q) {
-    p.set('wf', f.wf);
+    if (f.wf !== 'all') p.set('wf', f.wf);
     p.set('view', f.view);
   }
   if (f.channel) p.set('channel', f.channel);

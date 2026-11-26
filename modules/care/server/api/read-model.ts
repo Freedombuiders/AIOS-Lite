@@ -33,6 +33,7 @@ import type {
 import type { CareConversationWorkflowDto, CareInboxCountsDto, CareInboxView, CareWorkflowStatus } from './dto-inbox.js';
 import { invalid, notFound } from './errors.js';
 import { decodeCursor, encodeCursor, foldText } from './util.js';
+import { buildBotStates, type BotStateRow } from '../workflow/bot-state.js';
 import { WF_COLUMNS, buildWorkflows, effectiveStatusSql, inView, viewMembership, type WfRawRow, type WorkflowEnv } from '../workflow/view.js';
 
 /** Upper bounds. Callers may ask for less, never more. */
@@ -388,10 +389,32 @@ export class CareReadModel {
   /** Hydrates a page of rows with ONE batched workflow computation. */
   private hydrateRows(rows: readonly ConvRow[]): CareConversationDto[] {
     const wfs = buildWorkflows(this.db, this.wfEnv, rows);
-    const out: CareConversationDto[] = [];
+    const recs = new Map<string, CareConversationRecord>();
+    const botRows: BotStateRow[] = [];
     for (const row of rows) {
       const rec = this.stores.conversations.getConversation(row.id);
-      if (rec) out.push(this.toConversationDto(rec, row.channel, row.lm_dir, row.lm_role, wfs.get(row.id)));
+      if (!rec) continue;
+      recs.set(row.id, rec);
+      const wf = wfs.get(row.id);
+      botRows.push({
+        rec,
+        channel: row.channel,
+        pendingDrafts: wf?.pendingDrafts ?? 0,
+        aiMode: row.cs_ai_mode,
+        takenOver: row.cs_kind === 'owner',
+        handoffAt: row.cs_handoff_at,
+        handoffKeyword: row.cs_handoff_keyword,
+      });
+    }
+    // T07: the state label is computed once, here (one rule walk per row, queries batched per page).
+    const bots = buildBotStates(this.db, (accountId) => this.stores.assignments.listAssignments(accountId), this.wfEnv.now(), botRows);
+    const out: CareConversationDto[] = [];
+    for (const row of rows) {
+      const rec = recs.get(row.id);
+      if (!rec) continue;
+      const wf = wfs.get(row.id);
+      const bot = bots.get(row.id);
+      out.push(this.toConversationDto(rec, row.channel, row.lm_dir, row.lm_role, wf && bot ? { ...wf, bot } : wf));
     }
     return out;
   }

@@ -1,0 +1,114 @@
+/* T07: three-column inbox (list · chat · bot). Theme tokens only; the accents mirror docs/dev/design-mockups/Inbox.dc.html. */
+
+.care-inbox3 { --care-bot: #a875ff; --care-me: var(--color-accent); }
+.care-inbox3 .care-layout { min-height: 0; }
+.care-inbox3 .care-list { width: 340px; }
+.care-botcol { width: 320px; flex-shrink: 0; min-height: 0; overflow-y: auto; border-left: 1px solid var(--color-border); display: flex; flex-direction: column; }
+.care-bot-back { display: none; }
+.care-open-bot { display: none; }
+
+/* ── list head ─────────────────────────────────────────────────────────────────────────────── */
+.care-inbox-head { display: flex; flex-direction: column; gap: 10px; padding: 14px 14px 10px; border-bottom: 1px solid var(--color-border); }
+.care-inbox-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.care-inbox-title h1 { margin: 0; font-size: 18px; font-weight: 700; }
+.care-inbox-tools { display: inline-flex; align-items: center; gap: 2px; }
+.care-submenu { position: relative; }
+.care-submenu > summary { list-style: none; cursor: pointer; }
+.care-submenu > summary::-webkit-details-marker { display: none; }
+.care-submenu-list { position: absolute; right: 0; top: 100%; z-index: 40; min-width: 200px; display: flex; flex-direction: column; padding: 4px; border-radius: 10px; border: 1px solid var(--color-border-strong); background: var(--color-card); box-shadow: 0 10px 28px rgba(0, 0, 0, .35); }
+.care-submenu-list a { padding: 10px 12px; border-radius: 7px; color: var(--color-text); text-decoration: none; font-size: 13px; }
+.care-submenu-list a:hover { background: var(--color-control-hover); }
+
+.care-nick { position: relative; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 12px; border: 1px solid var(--color-border-strong); border-radius: 10px; background: var(--color-card); cursor: pointer; }
+.care-nick-dot { width: 8px; height: 8px; border-radius: 999px; flex-shrink: 0; background: var(--color-text-faint); }
+.care-nick-dot.is-ok { background: var(--color-status-done); }
+.care-nick-dot.is-warn { background: var(--color-status-running); }
+.care-nick-dot.is-bad { background: var(--color-status-failed); }
+.care-nick-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.care-nick-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.care-nick-sub { font-size: 12px; color: var(--color-text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.care-nick-select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.care-nick:focus-within { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+.care-inbox-search { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--color-text-muted); }
+.care-inbox-search .care-search input { min-height: 40px; font-size: 14px; border-radius: 10px; }
+
+/* segmented controls: filters, scope and modes */
+.care-seg3 { display: flex; gap: 4px; padding: 4px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-card); }
+.care-seg3 > button { flex: 1 1 auto; min-height: 40px; padding: 0 8px; border: 0; border-radius: 7px; background: transparent; color: var(--color-text-muted); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.care-seg3 > button:hover:not(:disabled):not(.is-on) { background: var(--color-control-hover); }
+.care-seg3 > button.is-on { background: var(--color-accent); color: var(--color-bg); }
+.care-seg3 > button:disabled { opacity: .5; cursor: not-allowed; }
+.care-seg3-n { font-variant-numeric: tabular-nums; opacity: .85; }
+.care-seg3.is-modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: var(--color-bg); }
+.care-seg3.is-two > button { font-size: 12.5px; }
+
+/* ── state label ───────────────────────────────────────────────────────────────────────────── */
+.care-chip.care-state { padding: 1px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+.care-chip.is-state-review { background: color-mix(in srgb, var(--care-amber) 18%, transparent); color: var(--care-amber); }
+.care-chip.is-state-active { background: color-mix(in srgb, var(--care-bot) 18%, transparent); color: var(--care-bot); }
+.care-chip.is-state-yielded { background: color-mix(in srgb, var(--care-me) 18%, transparent); color: var(--care-me); }
+.care-chip.is-state-handoff { background: color-mix(in srgb, var(--care-red) 18%, transparent); color: var(--care-red); }
+.care-chip.is-state-none { background: var(--color-elevated); color: var(--color-text-muted); }
+.care-row.care-conv { border-left: 3px solid transparent; }
+.care-row.care-conv[data-bot-state='review'] { border-left-color: var(--care-amber); }
+.care-row.care-conv[data-bot-state='active'] { border-left-color: var(--care-bot); }
+.care-row.care-conv[data-bot-state='yielded'] { border-left-color: var(--care-me); }
+.care-row.care-conv[data-bot-state='handoff'] { border-left-color: var(--care-red); }
+.care-chip.is-outside { background: var(--color-elevated); color: var(--color-text-muted); font-style: italic; }
+
+/* ── bot column ────────────────────────────────────────────────────────────────────────────── */
+.care-bot { padding: 14px; display: flex; flex-direction: column; gap: 16px; }
+.care-bot h2 { margin: 0; font-size: 15px; font-weight: 600; }
+.care-botcard { display: flex; flex-direction: column; gap: 10px; padding: 14px; border: 1px solid var(--color-border); border-radius: 14px; background: var(--color-card); }
+.care-botcard-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.care-botfield { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--color-text-muted); }
+.care-botfield select { min-height: 44px; padding: 0 10px; border: 1px solid var(--color-border-strong); border-radius: 10px; background: var(--color-bg); color: var(--color-text); font: inherit; font-size: 14px; }
+.care-botnote { margin: 0; font-size: 13px; color: var(--color-text-muted); overflow-wrap: anywhere; }
+.care-botnote.is-effective { color: var(--color-text); }
+.care-botnote.is-yield { color: var(--care-me); }
+.care-pauses { display: flex; flex-wrap: wrap; gap: 6px; }
+.care-pauses .cc-button { min-height: 44px; padding: 0 10px; font-size: 13px; border-radius: 10px; }
+.care-botsec { display: flex; flex-direction: column; gap: 8px; }
+.care-rulelist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.care-rulelist li { position: relative; padding-left: 16px; font-size: 13px; color: var(--color-text-muted); }
+.care-rulelist li::before { content: ''; position: absolute; left: 0; top: 7px; width: 6px; height: 6px; border-radius: 999px; background: var(--color-accent); }
+.care-rulelist li.is-warn { color: var(--care-amber); }
+.care-rulelist li.is-warn::before { background: var(--care-amber); }
+.care-runlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.care-runlist li { display: flex; gap: 10px; font-size: 13px; }
+.care-run-at { flex: 0 0 44px; color: var(--color-text-faint); font-variant-numeric: tabular-nums; }
+.care-run-text { flex: 1; min-width: 0; overflow-wrap: anywhere; color: var(--color-text-muted); }
+.care-run-text.is-ok { color: var(--color-text); }
+.care-run-text.is-warn { color: var(--care-amber); }
+.care-run-text.is-error { color: var(--care-red); }
+.care-botsec[data-testid='care-run-log'] { border-top: 1px solid var(--color-border); padding-top: 14px; }
+
+.care-handoff { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--care-red) 45%, transparent); background: color-mix(in srgb, var(--care-red) 12%, var(--color-card)); }
+.care-handoff p { margin: 0; font-size: 13px; }
+.care-handoff-title { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--care-red); }
+.care-handoff .cc-button { align-self: flex-start; min-height: 44px; }
+
+/* ── draft above the composer ──────────────────────────────────────────────────────────────── */
+.care-draftcard.is-bot { border-color: color-mix(in srgb, var(--care-bot) 40%, var(--color-border)); background: color-mix(in srgb, var(--care-bot) 9%, var(--color-card)); }
+.care-draftcard-why { margin: 0; font-size: 12px; color: var(--color-text-muted); }
+.care-draftcard-nosrc { margin: 0; }
+.care-draftcard-edit { width: 100%; box-sizing: border-box; resize: vertical; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--color-border-strong); background: var(--color-bg); color: var(--color-text); font: inherit; font-size: 13.5px; line-height: 1.5; }
+.care-draftcard.is-bot .cc-button { min-height: 40px; }
+
+/* ── screens ───────────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .care-inbox3 .care-list { width: 280px; }
+  .care-botcol { width: 280px; }
+}
+
+/* Mobile: the three columns become three stacked screens (list -> chat -> bot). */
+@media (max-width: 767px) {
+  .care-inbox3 .care-list, .care-botcol { width: 100%; border: 0; }
+  .care-layout[data-screen='list'] .care-main, .care-layout[data-screen='list'] .care-botcol { display: none; }
+  .care-layout[data-screen='chat'] .care-list, .care-layout[data-screen='chat'] .care-botcol { display: none; }
+  .care-layout[data-screen='bot'] .care-list, .care-layout[data-screen='bot'] .care-main { display: none; }
+  .care-open-bot { display: inline-flex; }
+  .care-bot-back { display: inline-flex; align-self: flex-start; }
+  .care-seg3 > button, .care-pauses .cc-button, .care-botfield select { min-height: 44px; }
+}

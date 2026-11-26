@@ -35,6 +35,8 @@ import { registerProfileRoutes, storedAvatarSource } from './routes-profiles.js'
 import type { CareMediaCache } from '../application/media-cache.js';
 import type { ConnectorRegistry } from '../connectors/registry.js';
 import { registerWorkflowRoutes } from './routes-workflow.js';
+import { registerBotRoutes } from './routes-bot.js';
+import type { CareBotSettingsDto } from './dto-inbox.js';
 import { createCareWorkflowService, type CareWorkflowService } from '../workflow/index.js';
 
 export type { CareReplyPort, CareReplyRequest, CareReplyAcceptance } from './ports.js';
@@ -71,6 +73,8 @@ export interface CareApiDeps {
   media?: Pick<CareMediaCache, 'get'>;
   /** Channel connectors, for `GET /conversations/:id/profiles` and the list rows' `avatarUrl`. Default: none. */
   connectors?: ConnectorRegistry;
+  /** T07: the module settings shown in the bot panel (`GET /conversations/:id/bot`). Default: the panel shows none. */
+  botSettings?: () => CareBotSettingsDto;
   /** Data-access/module read gate. Evaluated per request and on every SSE tick. Default: allowed. */
   canRead?: () => boolean;
   now?: () => number;
@@ -160,6 +164,7 @@ export function registerCareRoutes(app: Hono, deps: CareApiDeps = {}): CareApiHa
     },
     media: deps.media,
     connectors: deps.connectors,
+    botSettings: deps.botSettings,
   };
 
   const sub = new Hono();
@@ -182,6 +187,7 @@ export function registerCareRoutes(app: Hono, deps: CareApiDeps = {}): CareApiHa
   registerMediaRoutes(sub, api);
   registerProfileRoutes(sub, api);
   registerWorkflowRoutes(sub, api);
+  registerBotRoutes(sub, api);
   registerReadRoutes(sub, api);
   registerReplyRoutes(sub, api);
   registerCustomerOpsRoutes(sub, api);

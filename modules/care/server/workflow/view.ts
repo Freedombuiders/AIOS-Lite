@@ -23,7 +23,8 @@ export const WF_COLUMNS = `a.channel AS channel, c.account_id AS account_id, a.w
        CASE WHEN lm.direction = 'in' AND lm.sender_role = 'customer' THEN 1 ELSE 0 END AS lm_inbound,
        cs.workflow AS cs_workflow, cs.snoozed_until AS cs_snoozed_until, cs.changed_at AS cs_changed_at,
        cs.assignee_kind AS cs_kind, cs.assignee_agent_id AS cs_agent, cs.ai_mode AS cs_ai_mode,
-       cs.taken_over_at AS cs_taken_over_at, cs.state_revision AS cs_rev`;
+       cs.taken_over_at AS cs_taken_over_at, cs.state_revision AS cs_rev,
+       cs.handoff_at AS cs_handoff_at, cs.handoff_keyword AS cs_handoff_keyword`;
 
 export interface WfRawRow {
   id: string;
@@ -41,6 +42,9 @@ export interface WfRawRow {
   cs_ai_mode: 'off' | 'draft' | 'auto' | null;
   cs_taken_over_at: number | null;
   cs_rev: number | null;
+  /** T06 handoff marker (optional: hand-built rows in tests carry none). */
+  cs_handoff_at?: number | null;
+  cs_handoff_keyword?: string | null;
 }
 
 /**

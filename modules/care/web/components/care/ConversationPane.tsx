@@ -6,31 +6,27 @@ import { EmailComposer } from './EmailComposer';
 import { conversationTitle } from '@modules/care/web/lib/care/title';
 import { Timeline } from './Timeline';
 import { CustomerDrawer } from './customer/CustomerDrawer';
-import { AiBar } from './inbox/AiBar';
-import { AssigneeMenu } from './inbox/AssigneeMenu';
 import { Avatar } from './inbox/Avatar';
 import type { ComposerTab } from './inbox/ComposerParts';
 import { snoozeUntilText, waitText } from './inbox/format';
 import { DraftNote, InlineDraftCard, type DraftNoteKind } from './inbox/InlineDraftCard';
 import { SnoozeMenu } from './inbox/SnoozeMenu';
 import { NoteComposer } from './NoteComposer';
-import { ConfirmModal } from '@/components/ConfirmModal';
 import { PageState } from '@/components/PageState';
-import { careApi, type AssigneeChoice, type WorkflowAction } from '@modules/care/web/lib/care/client';
+import { careApi, type WorkflowAction } from '@modules/care/web/lib/care/client';
 import type { CareAccountDto, CareCannedReplyDto, CareConversationDto, CareInlineDraftDto } from '@modules/care/web/lib/care/dto';
 import { toCareFailure } from '@modules/care/web/lib/care/failure';
 import { ct } from '@modules/care/web/lib/care/i18n';
 import { draftStore, intentStore } from '@modules/care/web/lib/care/singletons';
 import { useConversation } from '@modules/care/web/lib/care/useConversation';
-import { draftText, newRequestId } from '@modules/care/web/lib/care/composer';
+import { newRequestId } from '@modules/care/web/lib/care/composer';
+import { stateChip } from '@modules/care/web/lib/care/botView';
 import { waitMinutes } from '@modules/care/web/lib/care/inboxView';
 import { reasonText } from '@modules/care/web/lib/care/reasons';
 import { useZaloProfiles } from '@modules/care/web/lib/care/zaloProfiles';
 import { useCustomerPanel } from '@modules/care/web/lib/care/useCustomerPanel';
 import { useConversationExtras, type AgentLite } from '@modules/care/web/lib/care/useInboxExtras';
 import { pushToast } from '@/lib/toasts';
-
-const POLL_MS = 3000;
 
 export type WorkflowEvent = { conversation: CareConversationDto; action: 'done' | 'snooze' | 'reopen' };
 
@@ -39,7 +35,7 @@ function failureText(e: unknown): string {
   return reasonText(f.reason) ?? f.message;
 }
 
-export function ConversationPane({ conversationId, around, accounts, agents, canned, replyEnabled, convTick, resyncTick, onBack, onClearAround, onConversation, onOpenConversation, onWorkflow }: {
+export function ConversationPane({ conversationId, around, accounts, agents, canned, replyEnabled, convTick, resyncTick, onBack, onClearAround, onConversation, onOpenConversation, onWorkflow, onOpenBot }: {
   conversationId: string;
   around: string | null;
   accounts: CareAccountDto[];
@@ -56,6 +52,8 @@ export function ConversationPane({ conversationId, around, accounts, agents, can
   onOpenConversation: (conversationId: string, messageId?: string) => void;
   /** The owner changed the status (Xong / Hoãn / Mở lại): the list shows a banner and refreshes. */
   onWorkflow?: (e: WorkflowEvent) => void;
+  /** Mobile: the bot column is its own screen; this opens it. */
+  onOpenBot?: () => void;
 }) {
   const { state, loadOlder, loadNewer, setConversation, reload, refresh } = useConversation(conversationId, around, convTick, resyncTick);
   const { conversation, window: w } = state;
@@ -66,13 +64,10 @@ export function ConversationPane({ conversationId, around, accounts, agents, can
   const [busyNote, setBusyNote] = useState<string | null>(null);
   const [wfBusy, setWfBusy] = useState(false);
   const markedFor = useRef<string | null>(null);
-  const panel = useCustomerPanel();
+  const panel = useCustomerPanel(false);
   const [draftBusy, setDraftBusy] = useState(false);
   const [draftAction, setDraftAction] = useState<'send' | 'discard' | null>(null);
   const [draftNote, setDraftNote] = useState<DraftNoteKind | null>(null);
-  /** Drafts copied into the composer ("Sửa rồi gửi"): their card stays hidden. */
-  const [editedIds, setEditedIds] = useState<string[]>([]);
-  const [pendingEdit, setPendingEdit] = useState<CareInlineDraftDto | null>(null);
   const [tab, setTab] = useState<ComposerTab>('reply');
 
   useEffect(() => intentStore.subscribe(() => force((n) => n + 1)), []);
@@ -87,23 +82,20 @@ export function ConversationPane({ conversationId, around, accounts, agents, can
     careApi.markRead(conversation.id).then((c) => { setConversation(c); onConversation(c); }).catch(() => { markedFor.current = null; });
   }, [conversation?.id, conversation?.localUnread, conversation?.lastMessageId, w.newerCursor]);
 
-  // Open intents settle on the server; poll each by id until terminal (and on every stream tick).
+  // Open intents settle on the server: each is refetched by id when the care stream reports this conversation changed
+  // (convTick), never on a timer.
   const open = intentStore.open(conversationId);
   const openKey = open.map((t) => t.intent.id).join(',');
   useEffect(() => {
-    if (!openKey) return;
+    if (!openKey) return undefined;
     let cancelled = false;
-    const poll = () => {
-      for (const t of intentStore.open(conversationId)) {
-        careApi.outbox(t.intent.id).then((i) => { if (!cancelled) intentStore.upsert(conversationId, i); }).catch(() => {});
-      }
-    };
-    poll();
-    const h = setInterval(poll, POLL_MS);
-    return () => { cancelled = true; clearInterval(h); };
+    for (const t of intentStore.open(conversationId)) {
+      careApi.outbox(t.intent.id).then((i) => { if (!cancelled) intentStore.upsert(conversationId, i); }).catch(() => {});
+    }
+    return () => { cancelled = true; };
   }, [conversationId, openKey, convTick]);
 
-  const visibleDraft = extras.drafts.find((d) => !editedIds.includes(d.id)) ?? null;
+  const visibleDraft = extras.drafts[0] ?? null;
   // A new draft replaces whatever the last one left behind.
   useEffect(() => { if (visibleDraft) setDraftNote(null); }, [visibleDraft?.id]);
 
@@ -154,19 +146,23 @@ export function ConversationPane({ conversationId, around, accounts, agents, can
     () => careApi.setWorkflow(conversationId, { ...body, ...(conversation?.workflow ? { expectedStateRevision: conversation.workflow.stateRevision } : {}) }),
     (c) => onWorkflow?.({ conversation: c, action }),
   );
-  const pickAssignee = (choice: AssigneeChoice) => change(() => careApi.setAssignee(conversationId, choice));
 
-  async function draftApprove(d: CareInlineDraftDto): Promise<void> {
+  /** Gửi: approves the exact revision the owner is looking at (a stale one is a 409 and the card reloads). */
+  async function draftApprove(d: CareInlineDraftDto, editedText?: string): Promise<void> {
     setDraftAction('send');
     try {
-      const res = await careApi.approveInline(d.id);
-      const r = res as { id?: unknown; status?: unknown; conversationId?: unknown } | null;
-      // Some answers carry the delivery row; track it like a reply so the timeline shows its status.
-      if (r && typeof r.id === 'string' && typeof r.status === 'string' && typeof r.conversationId === 'string') intentStore.upsert(conversationId, res as never, d.text);
-      pushToast({ tone: 'success', title: ct('inbox2.draft.sentToast') });
+      let revision = d.payloadRevision ?? (await careApi.drafts(['draft', 'needs_review']).then((r) => r.items.find((x) => x.id === d.id)?.payloadRevision));
+      if (typeof revision !== 'number') throw new Error('revision');
+      // "Sửa rồi gửi": the edit becomes the next revision first, then that revision is approved.
+      if (editedText !== undefined) revision = (await careApi.editDraft(d.id, { expectedRevision: revision, text: editedText })).payloadRevision;
+      const approved = await careApi.approveDraft(d.id, revision);
+      // The approved delivery is tracked like a typed reply, so its chip and the sent message show up in the timeline.
+      if (approved && typeof approved.id === 'string') intentStore.upsert(conversationId, approved, editedText ?? d.text);
+      pushToast({ tone: 'success', title: ct('bot.draft.sent') });
       await Promise.all([extras.reloadDrafts(), refresh()]);
     } catch (e) {
-      pushToast({ tone: 'error', title: ct('inbox2.draft.sendFailed'), description: failureText(e) });
+      const f = toCareFailure(e);
+      pushToast({ tone: 'error', title: ct('bot.draft.failed'), description: f.code === 'STALE_REVISION' ? ct('bot.draft.stale') : failureText(e) });
       void extras.reloadDrafts();
     } finally {
       setDraftAction(null);
@@ -176,37 +172,14 @@ export function ConversationPane({ conversationId, around, accounts, agents, can
   async function draftDiscard(d: CareInlineDraftDto): Promise<void> {
     setDraftAction('discard');
     try {
-      await careApi.discardInline(d.id);
+      await careApi.discardDraft(d.id);
       setDraftNote('discarded');
       await extras.reloadDrafts();
     } catch (e) {
-      pushToast({ tone: 'error', title: ct('inbox2.draft.discardFailed'), description: failureText(e) });
+      pushToast({ tone: 'error', title: ct('bot.draft.discardFailed'), description: failureText(e) });
     } finally {
       setDraftAction(null);
     }
-  }
-
-  /** Copies the draft into the composer (chat text, or email body + subject + recipients) and hides its card. */
-  function loadDraft(d: CareInlineDraftDto): void {
-    const isEmail = d.channel === 'email';
-    if (isEmail) {
-      draftStore.update(conversationId, 'email', (cur) => (cur.kind === 'email'
-        ? { ...cur, mode: 'reply', body: d.text, subject: d.email?.subject ?? cur.subject, removedCc: [], recipients: d.email ? { to: d.email.to, cc: d.email.cc } : null, fromDraftId: d.id, requestId: null, payloadKey: null }
-        : cur));
-    } else {
-      draftStore.update(conversationId, 'chat', (cur) => (cur.kind === 'chat' ? { ...cur, text: d.text, styles: undefined, mentions: undefined, fromDraftId: d.id, requestId: null, payloadKey: null } : cur));
-    }
-    setEditedIds((ids) => [...ids, d.id]);
-    setDraftNote('edited');
-    setTab('reply');
-    setTimeout(() => document.getElementById(isEmail ? `care-mail-${conversationId}-body` : `care-chat-${conversationId}`)?.focus(), 0);
-  }
-
-  function editDraft(d: CareInlineDraftDto): void {
-    const cur = draftStore.get(conversationId, d.channel === 'email' ? 'email' : 'chat');
-    // Never drop what the owner already typed without asking.
-    if (draftText(cur).trim() && draftText(cur) !== d.text) setPendingEdit(d);
-    else loadDraft(d);
   }
 
   // aria-live announcement for a customer message that arrives while the thread is open.
@@ -233,7 +206,10 @@ export function ConversationPane({ conversationId, around, accounts, agents, can
   const people = profiles ?? (conversation.kind === 'direct'
     ? { thread: { name: conversationTitle(conversation.title), avatarUrl: conversation.avatarUrl ?? '' }, senders: {} }
     : null);
-  const aiOn = Boolean(wf && wf.ai.supported && wf.ai.agentId && !wf.ai.takenOver && wf.ai.mode !== 'off');
+  const bot = stateChip(wf?.bot?.label);
+  // "Bạn tự nhắn thì bot nhường": only worth saying while a bot could answer here
+  const yieldMinutes = wf?.bot && wf.bot.mode && wf.bot.mode !== 'observe' && wf.bot.humanPauseMinutes ? wf.bot.humanPauseMinutes : null;
+  const aiOn = Boolean(wf?.bot && (wf.bot.label === 'active' || wf.bot.label === 'review'));
   const onAccepted = () => {
     // A reply typed by hand while an AI draft was waiting retires that draft.
     setDraftNote(visibleDraft ? 'superseded' : null);
@@ -263,11 +239,11 @@ export function ConversationPane({ conversationId, around, accounts, agents, can
             <ChannelBadge channel={conversation.channel} account={account?.label} />
             {conversation.kind !== 'direct' && conversation.kind !== 'email_thread' && <span class="care-chip">{ct(`kind.${conversation.kind}`)}</span>}
             {statusChip && <span class={`care-chip is-status-${statusChip.tone}`} data-testid="care-status-chip">{statusChip.text}</span>}
+            {bot && <span class={`care-chip care-state is-state-${bot.tone}`} data-testid="care-head-state">{bot.text}</span>}
           </div>
         </div>
         {wf && (
           <>
-            <AssigneeMenu workflow={wf} agents={agents} isEmail={isEmail} busy={wfBusy} onPick={(c) => void pickAssignee(c)} />
             <SnoozeMenu busy={wfBusy} onPick={(untilMs) => void workflow({ action: 'snooze', snoozeUntilMs: untilMs }, 'snooze')} />
             {(wf.status === 'done' || wf.status === 'snoozed') && (
               <button type="button" class="care-ctl" disabled={wfBusy} onClick={() => void workflow({ action: 'reopen' }, 'reopen')} data-testid="care-reopen">
@@ -287,12 +263,15 @@ export function ConversationPane({ conversationId, around, accounts, agents, can
             {draftBusy ? <Loader2 size={12} class="animate-spin" aria-hidden="true" /> : <Bot size={12} aria-hidden="true" />} <span class="care-btn-label">{ct('detail.requestDraft')}</span>
           </button>
         )}
+        {onOpenBot && (
+          <button type="button" class="cc-button care-open-bot" onClick={onOpenBot} data-testid="care-open-bot">
+            <Bot size={12} aria-hidden="true" /> <span>{ct('bot.open')}</span>
+          </button>
+        )}
         <button type="button" class={`cc-button${panel.open ? ' is-on' : ''}`} aria-pressed={panel.open} onClick={panel.toggle} data-testid="care-customer-toggle">
           <UserRound size={12} aria-hidden="true" /> <span class={panel.open && panel.wide ? 'care-sr-only' : 'care-btn-label'}>{ct('customer.drawer')}</span>
         </button>
       </header>
-
-      {wf && <AiBar workflow={wf} agents={agents} isEmail={isEmail} busy={wfBusy} draftBusy={draftBusy} onMode={(m) => void change(() => careApi.setAiMode(conversationId, m))} onTakeover={(on) => void change(() => careApi.setTakeover(conversationId, on))} onRequestDraft={() => void requestDraft()} />}
 
       <div class="care-sr-only" aria-live="polite" aria-atomic="true" data-testid="care-live">
         {announce ? ct('detail.newMessage', { text: announce.text }) : ''}
@@ -333,11 +312,11 @@ export function ConversationPane({ conversationId, around, accounts, agents, can
       {visibleDraft && (
         <InlineDraftCard
           draft={visibleDraft}
-          more={extras.drafts.filter((d) => !editedIds.includes(d.id)).length - 1}
+          more={extras.drafts.length - 1}
           agents={agents}
           busy={draftAction}
           onSend={() => void draftApprove(visibleDraft)}
-          onEdit={() => editDraft(visibleDraft)}
+          onSendEdited={(text) => void draftApprove(visibleDraft, text)}
           onDiscard={() => void draftDiscard(visibleDraft)}
         />
       )}
@@ -350,7 +329,7 @@ export function ConversationPane({ conversationId, around, accounts, agents, can
       ) : isEmail ? (
         <EmailComposer key={conversationId} conversation={conversation} messages={w.items} account={account} replyEnabled={replyEnabled} canned={canned} tab={tab} onTab={setTab} onAccepted={onAccepted} />
       ) : (
-        <ChatComposer key={conversationId} conversation={conversation} messages={w.items} replyEnabled={replyEnabled} account={account} canned={canned} tab={tab} onTab={setTab} onAccepted={onAccepted} />
+        <ChatComposer key={conversationId} conversation={conversation} messages={w.items} replyEnabled={replyEnabled} account={account} canned={canned} tab={tab} onTab={setTab} onAccepted={onAccepted} onAskBot={wf ? () => void requestDraft() : undefined} askBusy={draftBusy} yieldMinutes={yieldMinutes} />
       )}
     </section>
     {panel.open && (
@@ -362,15 +341,6 @@ export function ConversationPane({ conversationId, around, accounts, agents, can
         onOpenConversation={(cid, mid) => onOpenConversation(cid, mid)}
       />
     )}
-    <ConfirmModal
-      open={pendingEdit !== null}
-      onClose={() => setPendingEdit(null)}
-      onConfirm={() => { if (pendingEdit) loadDraft(pendingEdit); setPendingEdit(null); }}
-      title={ct('inbox2.draft.replaceTitle')}
-      body={ct('inbox2.draft.replaceBody')}
-      confirmLabel={ct('inbox2.draft.replaceConfirm')}
-      cancelLabel={ct('identity.cancel')}
-    />
     </div>
   );
 }

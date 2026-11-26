@@ -5,11 +5,12 @@ import { snoozeUntilText, waitText } from './inbox/format';
 import { relTime } from '@modules/care/web/lib/care/timeFormat';
 import { conversationTitle } from '@modules/care/web/lib/care/title';
 import { ct } from '@modules/care/web/lib/care/i18n';
-import { aiChip, ownerChip, unreadCount, waitMinutes, waitTone } from '@modules/care/web/lib/care/inboxView';
-import { agentName, type AgentLite } from '@modules/care/web/lib/care/useInboxExtras';
+import { unreadCount, waitMinutes, waitTone } from '@modules/care/web/lib/care/inboxView';
+import { stateChip } from '@modules/care/web/lib/care/botView';
+import type { AgentLite } from '@modules/care/web/lib/care/useInboxExtras';
 import type { CareAccountDto, CareConversationDto } from '@modules/care/web/lib/care/dto';
 
-export function ConversationRow({ conversation: c, account, agents, waitThresholdMin, nowMs, active, showAccount, onSelect }: {
+export function ConversationRow({ conversation: c, account, agents: _agents, waitThresholdMin, nowMs, active, showAccount, onSelect }: {
   conversation: CareConversationDto;
   account: CareAccountDto | undefined;
   agents: AgentLite[];
@@ -27,9 +28,10 @@ export function ConversationRow({ conversation: c, account, agents, waitThreshol
   const w = c.workflow;
   const chips = useMemo(() => {
     if (!w) return null;
-    const owner = ownerChip(w);
-    return { owner, ai: aiChip(w), tone: w.status === 'open' ? waitTone(c.waitingSinceMs, nowMs, waitThresholdMin) : null };
+    return { tone: w.status === 'open' ? waitTone(c.waitingSinceMs, nowMs, waitThresholdMin) : null };
   }, [w, c.waitingSinceMs, nowMs, waitThresholdMin]);
+  // T07: ONE state label, computed by the server (workflow.bot.label); the browser only names it.
+  const state = stateChip(w?.bot?.label);
 
   return (
     <button
@@ -38,6 +40,7 @@ export function ConversationRow({ conversation: c, account, agents, waitThreshol
       aria-current={active ? 'true' : undefined}
       data-conversation-id={c.id}
       data-status={w?.status}
+      data-bot-state={w?.bot?.label}
       onClick={onSelect}
     >
       <Avatar id={c.id} title={title} channel={c.channel} url={c.avatarUrl} />
@@ -55,6 +58,7 @@ export function ConversationRow({ conversation: c, account, agents, waitThreshol
           {unreadN > 0 && <span class="care-unread-n" role="img" aria-label={c.remoteUnreadCount > 0 ? ct('list.remoteUnread', { n: unreadN }) : ct('list.unreadBadge')}>{unreadN}</span>}
         </span>
         <span class="care-row-meta">
+          {state && <span class={`care-chip care-state is-state-${state.tone}`} data-testid="care-state-chip" data-state={state.tone}>{state.text}</span>}
           {showAccount && account && <span class="care-row-account" title={account.label}>{account.label}</span>}
           {c.kind !== 'direct' && c.kind !== 'email_thread' && <span class="care-chip">{ct(`kind.${c.kind}`)}</span>}
           {chips ? (
@@ -65,10 +69,6 @@ export function ConversationRow({ conversation: c, account, agents, waitThreshol
                 </span>
               )}
               {w?.status === 'snoozed' && w.snoozedUntilMs !== null && <span class="care-chip is-snooze" data-testid="care-snooze-chip">{ct('inbox2.snooze.until', { when: snoozeUntilText(w.snoozedUntilMs, nowMs) })}</span>}
-              <span class={`care-chip is-owner-${chips.owner.kind}`} data-testid="care-owner-chip">
-                {chips.owner.kind === 'me' ? ct('inbox2.assignee.me') : chips.owner.kind === 'none' ? ct('inbox2.assignee.none') : ct('inbox2.owner.ai', { name: agentName(agents, chips.owner.agentId) })}
-              </span>
-              {chips.ai && <span class={`care-chip is-ai is-ai-${chips.ai}`} data-testid="care-ai-chip" data-ai={chips.ai}>{ct(`inbox2.aichip.${chips.ai}`)}</span>}
             </>
           ) : (
             c.waitingSinceMs !== null && <span class="care-chip is-waiting" title={ct('list.waitingSince', { time: new Date(c.waitingSinceMs).toLocaleString('vi-VN') })}>{ct('filters.waiting')}</span>

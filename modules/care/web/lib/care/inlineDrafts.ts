@@ -4,7 +4,7 @@ import type { CareInlineDraftDto, CareNoteDto } from './dto';
 
 /** Only drafts still waiting for a person: sent/discarded/superseded ones are history. Newest first. */
 export function pendingDrafts(items: CareInlineDraftDto[]): CareInlineDraftDto[] {
-  return items.filter((d) => d.status === 'draft').sort((a, b) => b.createdAtMs - a.createdAtMs);
+  return items.filter((d) => d.status === 'draft' || d.status === 'needs_review').sort((a, b) => b.createdAtMs - a.createdAtMs);
 }
 
 /** A malformed answer (older or proxied server) must never crash the pane: rows without the fields the UI renders are dropped. */

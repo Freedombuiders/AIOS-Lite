@@ -83,7 +83,10 @@ export function Timeline({ window: w, channel, profiles, notes, busyNote, hitId,
 
   function onScroll(): void {
     const el = scroller.current;
-    if (el) stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    if (!el) return;
+    stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    // Scrolling up to the top loads the page of older messages (the button stays for keyboards and short threads).
+    if (el.scrollTop < 60 && w.olderCursor && !loadingOlder) loadOlder();
   }
 
   function loadOlder(): void {

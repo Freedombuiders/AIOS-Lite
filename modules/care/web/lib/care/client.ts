@@ -5,6 +5,8 @@ import type {
   CareAssignmentDto, CareActivityItemDto, CareDraftDto, CareDraftRequestDto, CareEffectiveRuleDto, CareHoldDto,
   CareLinkPreviewDto, CareLinkResultDto, CareSwitchDto, CareTimelinePageDto, CareUnlinkResultDto,
 } from '@modules/care/server/api/dto-ops';
+import type { CareBotPanelDto } from '@modules/care/server/api/dto-inbox';
+import type { CareRunDto } from '@modules/care/server/api/dto-ops';
 import type { DraftPatchBody } from './draftReview';
 import type { LinkRequestBody, UnlinkRequestBody } from './customer/link';
 import type { RuleBody } from './rules';
@@ -54,6 +56,13 @@ export const careApi = {
   setWorkflow: (id: string, body: WorkflowAction & { expectedStateRevision?: number }) => apiPut<CareConversationDto>(`${B}/conversations/${seg(id)}/workflow`, body),
   setAssignee: (id: string, body: AssigneeChoice) => apiPut<CareConversationDto>(`${B}/conversations/${seg(id)}/assignee`, body),
   setAiMode: (id: string, mode: 'off' | 'draft' | 'auto') => apiPut<CareConversationDto>(`${B}/conversations/${seg(id)}/ai`, { mode }),
+  /** T06 timed pause: 30 / 120 minutes, or null = until switched back on. DELETE resumes now. */
+  setPause: (id: string, minutes: 30 | 120 | null) => apiPut<CareConversationDto>(`${B}/conversations/${seg(id)}/pause`, { minutes }),
+  resume: (id: string) => apiDelete<CareConversationDto>(`${B}/conversations/${seg(id)}/pause`),
+  /** T07 bot panel of one conversation: effective rule, both rule scopes, the per-conversation switch and the settings. */
+  botPanel: (id: string) => apiGet<CareBotPanelDto>(`${B}/conversations/${seg(id)}/bot`),
+  /** Agent runs of one conversation, newest first (with the translated skip reason on the client). */
+  runs: (conversationId: string, limit = 20) => apiGet<{ items: CareRunDto[]; nextCursor: string | null }>(`${B}/runs?conversation=${seg(conversationId)}&limit=${limit}`),
   setTakeover: (id: string, on: boolean) => apiPut<CareConversationDto>(`${B}/conversations/${seg(id)}/takeover`, { on }),
   notes: (id: string) => apiGet<{ items: CareNoteDto[] }>(`${B}/conversations/${seg(id)}/notes`),
   addNote: (id: string, body: string, clientRequestId: string) => apiPost<CareNoteDto>(`${B}/conversations/${seg(id)}/notes`, { body, clientRequestId }),
