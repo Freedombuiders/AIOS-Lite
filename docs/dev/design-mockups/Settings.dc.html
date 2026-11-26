@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Cài đặt</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115;font-family:'Inter',system-ui,'Segoe UI',sans-serif}
+a{color:#8aa3ff}a:hover{color:#a9bbff}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #0f1115; color: #e6e8ee; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+<div style="flex: 0 0 232px"><dc-import name="Sidebar" active="settings" hint-size="232px,100vh"></dc-import></div>
+
+<div style="flex: 999 1 560px; min-width: 0; min-height: 100vh; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid #272c37">
+<h1 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 20px; font-weight: 700">Cài đặt</h1>
+<span style="color: #9aa3b2">Mọi thứ chạy trên máy này. Không có máy chủ trung gian.</span>
+</header>
+
+<main style="flex: 1 1 auto; box-sizing: border-box; padding: 20px 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); gap: 16px; align-items: start">
+
+<section aria-labelledby="agent" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 10px">
+<h2 id="agent" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Tầng agent</h2>
+<span style="margin-left: auto; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: rgba(70,194,138,0.16); color: #46c28a">GenBot đang chạy</span>
+</div>
+<dl style="margin: 0; display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 8px 12px; font-size: 13px">
+<dt style="color: #9aa3b2">Giao việc qua</dt><dd style="margin: 0; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace">Bot API · 127.0.0.1:8800</dd>
+<dt style="color: #9aa3b2">Bot gọi công cụ qua</dt><dd style="margin: 0; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace">MCP · agenticos</dd>
+<dt style="color: #9aa3b2">Bot đã ghép</dt><dd style="margin: 0">CSKH, Nội dung, Trợ lý</dd>
+</dl>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Khi GenBot không chạy
+<select style="min-height: 44px; padding: 0 10px; border: 1px solid #353c4a; border-radius: 10px; background: #0f1115; color: #e6e8ee; font: inherit; font-weight: 400"><option>Dùng Claude Code trên máy này</option><option>Dùng Codex trên máy này</option><option>Dừng mọi việc và báo cho tôi</option></select>
+</label>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; background: transparent; color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer">Kiểm tra kết nối</button>
+<a href="Bots.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; font-weight: 600">Xem các bot</a>
+</div>
+</section>
+
+<section aria-labelledby="tu-chu" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px">
+<h2 id="tu-chu" style="margin: 0 0 6px; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Mức tự chủ mặc định</h2>
+<label style="display: flex; align-items: flex-start; gap: 10px; min-height: 44px; padding: 8px 0"><input type="radio" name="tu-chu" style="margin-top: 3px"><span style="display: flex; flex-direction: column"><span style="font-weight: 600">AI chỉ đọc</span><span style="font-size: 13px; color: #9aa3b2">Xem và tóm tắt, không soạn, không gửi gì.</span></span></label>
+<label style="display: flex; align-items: flex-start; gap: 10px; min-height: 44px; padding: 8px 0"><input type="radio" name="tu-chu" checked style="margin-top: 3px"><span style="display: flex; flex-direction: column"><span style="font-weight: 600">AI soạn nháp, tôi duyệt</span><span style="font-size: 13px; color: #9aa3b2">Tin nhắn, bài đăng, ghi brain đều dừng ở Hôm nay chờ bạn.</span></span></label>
+<label style="display: flex; align-items: flex-start; gap: 10px; min-height: 44px; padding: 8px 0"><input type="radio" name="tu-chu" style="margin-top: 3px"><span style="display: flex; flex-direction: column"><span style="font-weight: 600">AI tự làm việc an toàn</span><span style="font-size: 13px; color: #9aa3b2">Tự trả lời câu có sẵn trong brain. Giá, giảm giá, khiếu nại vẫn chờ bạn.</span></span></label>
+<span style="font-size: 13px; color: #9aa3b2; padding-top: 6px">Từng bot và từng cuộc chat có thể đặt khác mức mặc định này.</span>
+</section>
+
+<section aria-labelledby="zalo" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+<h2 id="zalo" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Giữ an toàn cho nick Zalo</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr)); gap: 12px">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Tin gửi đi mỗi giờ
+<input type="text" inputmode="numeric" placeholder="[SỐ CỦA BẠN]" style="min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #353c4a; border-radius: 10px; background: #0f1115; color: #e6e8ee; font: inherit; font-weight: 400">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Nghỉ giữa hai tin (giây)
+<input type="text" inputmode="numeric" placeholder="[SỐ CỦA BẠN]" style="min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #353c4a; border-radius: 10px; background: #0f1115; color: #e6e8ee; font: inherit; font-weight: 400">
+</label>
+</div>
+<label style="display: flex; align-items: center; gap: 10px; min-height: 44px"><input type="checkbox" checked><span>Tự dừng gửi hàng loạt khi Zalo cảnh báo</span></label>
+<label style="display: flex; align-items: center; gap: 10px; min-height: 44px"><input type="checkbox" checked><span>Không nhắn lại người đã từ chối nhận tin</span></label>
+</section>
+
+<section aria-labelledby="brain" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+<h2 id="brain" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Brain và sao lưu</h2>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+<span style="flex: 1 1 220px; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; padding: 12px; border: 1px solid #272c37; border-radius: 10px; background: #0f1115">~/AgenticOS/brain/tra-sen-viet</span>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; background: transparent; color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer">Đổi thư mục</button>
+</div>
+<span style="font-size: 13px; color: #9aa3b2">Trỏ sang một vault Obsidian có sẵn cũng được. Thêm công ty khác thì thêm một thư mục brain, bot của công ty nào chỉ đọc brain công ty đó.</span>
+<div style="border-top: 1px solid #272c37; padding-top: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+<div style="flex: 1 1 220px; display: flex; flex-direction: column"><span style="font-weight: 600">Sao lưu lên GitHub riêng</span><span style="font-size: 13px; color: #9aa3b2">Chưa nối. Brain hiện chỉ nằm trên máy này.</span></div>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 0; border-radius: 10px; background: #6d8dff; color: #0b1020; font: inherit; font-weight: 600; cursor: pointer">Nối kho sao lưu</button>
+</div>
+</section>
+
+<section aria-labelledby="chi-phi" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+<h2 id="chi-phi" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Chi phí AI</h2>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Trần chi mỗi ngày cho việc AI tự chạy
+<input type="text" placeholder="[SỐ TIỀN CỦA BẠN]" style="min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #353c4a; border-radius: 10px; background: #0f1115; color: #e6e8ee; font: inherit; font-weight: 400">
+</label>
+<span style="font-size: 13px; color: #9aa3b2">Chạm trần thì việc nền dừng lại, hộp thư chuyển sang chế độ soạn nháp. Gói thuê bao cá nhân của các hãng không dành cho việc chạy nền liên tục, nên việc nền nên dùng API key.</span>
+</section>
+
+<section aria-labelledby="giao-dien" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+<h2 id="giao-dien" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Giao diện</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr)); gap: 12px">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Nền
+<select style="min-height: 44px; padding: 0 10px; border: 1px solid #353c4a; border-radius: 10px; background: #0f1115; color: #e6e8ee; font: inherit; font-weight: 400"><option>Tối</option><option>Sáng</option><option>Theo máy</option></select>
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Ngôn ngữ
+<select style="min-height: 44px; padding: 0 10px; border: 1px solid #353c4a; border-radius: 10px; background: #0f1115; color: #e6e8ee; font: inherit; font-weight: 400"><option>Tiếng Việt</option><option>English</option></select>
+</label>
+</div>
+<span style="font-size: 13px; color: #9aa3b2">AgenticOS · mã nguồn mở · bản nháp thiết kế</span>
+</section>
+
+</main>
+
+<dc-import name="ChatBar" ask="Ví dụ: từ nay để AI tự trả lời câu hỏi về giờ giao hàng" hint-size="100%,72px"></dc-import>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

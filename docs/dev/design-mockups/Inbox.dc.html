@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Hộp thư Zalo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115;font-family:'Inter',system-ui,'Segoe UI',sans-serif}
+a{color:#8aa3ff}a:hover{color:#a9bbff}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #0f1115; color: #e6e8ee; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+<div style="flex: 0 0 232px"><dc-import name="Sidebar" active="inbox" hint-size="232px,100vh"></dc-import></div>
+
+<div style="flex: 999 1 560px; min-width: 0; min-height: 100vh; display: flex; flex-wrap: wrap">
+
+<section aria-label="Danh sách cuộc chat" style="flex: 1 1 300px; min-width: 0; box-sizing: border-box; border-right: 1px solid #272c37; display: flex; flex-direction: column">
+<div style="padding: 16px 16px 12px; display: flex; flex-direction: column; gap: 12px">
+<h1 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 20px; font-weight: 700">Hộp thư Zalo</h1>
+<button type="button" style="display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 12px; border: 1px solid #353c4a; border-radius: 10px; background: #171a21; color: #e6e8ee; font: inherit; text-align: left; cursor: pointer"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: #46c28a"></span><span style="flex: 1 1 auto; display: flex; flex-direction: column"><span style="font-weight: 600">Nick Trà Sen Việt</span><span style="font-size: 12px; color: #9aa3b2">Đang kết nối · hôm nay đã gửi 46/200 tin</span></span><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #9aa3b2">Tìm theo tên, số điện thoại, nội dung
+<input type="search" placeholder="Tìm trong lịch sử chat" style="min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #353c4a; border-radius: 10px; background: #12151a; color: #e6e8ee; font: inherit; font-size: 14px">
+</label>
+<div role="group" aria-label="Lọc cuộc chat" style="display: flex; gap: 4px; padding: 4px; background: #171a21; border: 1px solid #272c37; border-radius: 10px">
+<button type="button" aria-pressed="true" style="flex: 1 1 auto; min-height: 40px; padding: 0 8px; border: 0; border-radius: 7px; background: #6d8dff; color: #0b1020; font: inherit; font-weight: 600; cursor: pointer">Tất cả</button>
+<button type="button" aria-pressed="false" style="flex: 1 1 auto; min-height: 40px; padding: 0 8px; border: 0; border-radius: 7px; background: transparent; color: #c9ced9; font: inherit; font-weight: 600; cursor: pointer">Chưa đọc 3</button>
+<button type="button" aria-pressed="false" style="flex: 1 1 auto; min-height: 40px; padding: 0 8px; border: 0; border-radius: 7px; background: transparent; color: #c9ced9; font: inherit; font-weight: 600; cursor: pointer">Chưa trả lời 2</button>
+</div>
+</div>
+<sc-for list="{{chats}}" as="c" hint-placeholder-count="7">
+<a href="#chat" style="display: flex; gap: 12px; padding: 11px 16px; text-decoration: none; color: #e6e8ee; border-top: 1px solid #20242d; border-left: 3px solid {{c.edge}}; background: {{c.rowBg}}">
+<span aria-hidden="true" style="flex: 0 0 40px; height: 40px; border-radius: 999px; background: #1e222b; display: flex; align-items: center; justify-content: center; font-weight: 600; color: #c9ced9">{{c.initial}}</span>
+<span style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+<span style="display: flex; align-items: baseline; gap: 8px"><span style="font-weight: 600; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{c.name}}</span><span style="font-size: 12px; color: #9aa3b2">{{c.time}}</span></span>
+<span style="font-size: 13px; color: #9aa3b2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{c.last}}</span>
+<span style="display: flex; gap: 6px; align-items: center; font-size: 12px"><span style="padding: 1px 8px; border-radius: 999px; font-weight: 600; background: {{c.stateBg}}; color: {{c.stateFg}}">{{c.state}}</span><span style="color: #9aa3b2">{{c.rel}}</span></span>
+</span>
+</a>
+</sc-for>
+</section>
+
+<section id="chat" aria-label="Cuộc chat với chị Lan" style="flex: 3 1 420px; min-width: 0; display: flex; flex-direction: column">
+<div style="border-bottom: 1px solid #272c37; padding: 12px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+<div style="flex: 1 1 200px; display: flex; flex-direction: column; gap: 2px">
+<h2 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 17px; font-weight: 600">Chị Lan</h2>
+<span style="font-size: 13px; color: #9aa3b2">Chat riêng · chưa kết bạn · bắt đầu 26/11</span>
+</div>
+<span style="display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 12px; border-radius: 999px; background: {{chipBg}}; color: {{chipFg}}; font-size: 13px; font-weight: 600"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4"/><circle cx="9" cy="14" r="1"/><circle cx="15" cy="14" r="1"/></svg>{{chipText}}</span>
+<a href="Customer.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; color: #e6e8ee; font-weight: 600; text-decoration: none">Hồ sơ khách</a>
+</div>
+
+<div style="flex: 1 1 auto; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+<span style="align-self: center; font-size: 12px; color: #9aa3b2; padding: 2px 12px; border-radius: 999px; background: #171a21">Thứ Năm, 26/11</span>
+<div style="align-self: flex-start; max-width: 72%; display: flex; flex-direction: column; gap: 4px">
+<div style="background: #1e222b; border-radius: 14px; padding: 10px 14px">Shop có bán sỉ không em?</div>
+<span style="font-size: 12px; color: #9aa3b2">Chị Lan · 09:41</span>
+</div>
+<div style="align-self: flex-end; max-width: 72%; display: flex; flex-direction: column; gap: 4px; align-items: flex-end">
+<div style="background: rgba(199,155,255,0.16); border-radius: 14px; padding: 10px 14px">Có chị ạ. Bên em có giá sỉ cho cửa hàng và đại lý. Chị định nhập loại nào ạ?</div>
+<span style="font-size: 12px; color: #9aa3b2">Bot CSKH tự trả lời · 09:41 · khách đã xem</span>
+</div>
+<div style="align-self: flex-start; max-width: 72%; display: flex; flex-direction: column; gap: 4px">
+<div style="background: #1e222b; border-radius: 14px; padding: 10px 14px">Chị muốn nhập ô long sen về bán ở cửa hàng. 60 hộp thì giá sỉ bao nhiêu, có chiết khấu không?</div>
+<span style="font-size: 12px; color: #9aa3b2">Chị Lan · 09:44</span>
+</div>
+<div style="align-self: flex-start; max-width: 72%; display: flex; flex-direction: column; gap: 4px">
+<div style="background: #1e222b; border-radius: 14px; padding: 6px; display: flex; flex-direction: column; gap: 6px"><div style="width: 220px; max-width: 100%; height: 120px; border-radius: 10px; background: #272c37; display: flex; align-items: center; justify-content: center; color: #9aa3b2; font-size: 13px">[Ảnh khách gửi: kệ hàng ở cửa hàng]</div></div>
+<span style="font-size: 12px; color: #9aa3b2">Chị Lan · 09:45 · bot bỏ qua vì chỉ có ảnh</span>
+</div>
+</div>
+
+<div style="background: #12151a; border-top: 1px solid #272c37; padding: 14px 20px; display: flex; flex-direction: column; gap: 10px">
+<sc-if value="{{ isDraft }}" hint-placeholder-val="{{ true }}">
+<div style="background: rgba(199,155,255,0.12); border: 1px solid rgba(199,155,255,0.35); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 600; color: #c79bff">Bot CSKH soạn sẵn, chưa gửi</span>
+<p style="margin: 0">Ô long sen hộp 200 g giá sỉ 260 nghìn một hộp chị ạ. Đơn từ 50 hộp giảm 8%, nên 60 hộp là 14.352.000đ. Nếu chị làm đại lý cấp 2 (nhập từ 60 hộp mỗi quý) thì chiết khấu 10%. Hàng giao toàn quốc trong 3 ngày. Chị muốn em lên đơn theo cách nào ạ?</p>
+<span style="font-size: 12px; color: #c9ced9">Bot dừng lại vì câu trả lời có con số giảm giá. Lấy từ brain: <a href="Files.dc.html">danh-muc-tra-sen.md</a> · <a href="Files.dc.html">chinh-sach-dai-ly.md</a></span>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" style="min-height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: #6d8dff; color: #0b1020; font: inherit; font-weight: 600; cursor: pointer">Gửi</button>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; background: transparent; color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer">Sửa rồi gửi</button>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; background: transparent; color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer">Bỏ</button>
+</div>
+</div>
+</sc-if>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<button type="button" aria-label="Gửi ảnh" style="width: 48px; height: 48px; border: 1px solid #353c4a; border-radius: 12px; background: #171a21; color: #e6e8ee; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m4 17 5-4 4 3 3-2 4 3"/></svg></button>
+<button type="button" aria-label="Chèn mẫu câu" style="width: 48px; height: 48px; border: 1px solid #353c4a; border-radius: 12px; background: #171a21; color: #e6e8ee; font: inherit; font-weight: 700; font-size: 18px; cursor: pointer">/</button>
+<input type="text" aria-label="Nhắn cho chị Lan" placeholder="Nhắn cho chị Lan bằng nick Trà Sen Việt" style="flex: 1 1 240px; min-width: 0; min-height: 48px; box-sizing: border-box; padding: 0 14px; border: 1px solid #353c4a; border-radius: 12px; background: #0f1115; color: #e6e8ee; font: inherit; font-size: 15px">
+<button type="button" style="min-height: 48px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 12px; background: #171a21; color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer">Nhờ bot soạn</button>
+<button type="button" style="min-height: 48px; padding: 0 18px; border: 0; border-radius: 12px; background: #6d8dff; color: #0b1020; font: inherit; font-weight: 600; cursor: pointer">Gửi</button>
+</div>
+<span style="font-size: 12px; color: #9aa3b2">Bạn tự nhắn thì bot nhường cuộc chat này 30 phút.</span>
+</div>
+</section>
+
+<aside aria-label="Bot chăm cuộc chat" style="flex: 1 1 290px; min-width: 0; box-sizing: border-box; border-left: 1px solid #272c37; padding: 16px; display: flex; flex-direction: column; gap: 16px">
+
+<section aria-labelledby="bot-cham" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px">
+<h2 id="bot-cham" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 15px; font-weight: 600">Bot chăm cuộc chat này</h2>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #9aa3b2">Bot từ GenBot
+<select style="min-height: 44px; padding: 0 10px; border: 1px solid #353c4a; border-radius: 10px; background: #0f1115; color: #e6e8ee; font: inherit; font-size: 14px"><option>Bot CSKH</option><option>Bot Trợ lý</option><option>Không gán bot</option></select>
+</label>
+<span style="font-size: 13px; color: #9aa3b2">Đang theo cài đặt chung của nick Trà Sen Việt. <a href="#chat">Đặt riêng cho chị Lan</a></span>
+<div role="group" aria-label="Bot được làm gì" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; background: #0f1115; border: 1px solid #272c37; border-radius: 10px">
+<sc-for list="{{modes}}" as="m" hint-placeholder-count="3">
+<button type="button" aria-pressed="{{m.on}}" onClick="{{m.pick}}" style="min-height: 40px; padding: 0 4px; border: 0; border-radius: 7px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; background: {{m.bg}}; color: {{m.fg}}">{{m.label}}</button>
+</sc-for>
+</div>
+<span style="font-size: 13px; color: #c9ced9">{{modeNote}}</span>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<button type="button" style="min-height: 44px; padding: 0 10px; border: 1px solid #353c4a; border-radius: 10px; background: transparent; color: #e6e8ee; font: inherit; font-size: 13px; cursor: pointer">Dừng 30 phút</button>
+<button type="button" style="min-height: 44px; padding: 0 10px; border: 1px solid #353c4a; border-radius: 10px; background: transparent; color: #e6e8ee; font: inherit; font-size: 13px; cursor: pointer">Dừng 2 giờ</button>
+<button type="button" style="min-height: 44px; padding: 0 10px; border: 1px solid #353c4a; border-radius: 10px; background: transparent; color: #e6e8ee; font: inherit; font-size: 13px; cursor: pointer">Đến khi bật lại</button>
+</div>
+</section>
+
+<section aria-labelledby="luat" style="display: flex; flex-direction: column; gap: 8px">
+<h2 id="luat" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 15px; font-weight: 600">Bot luôn giữ các luật này</h2>
+<sc-for list="{{rules}}" as="r" hint-placeholder-count="5">
+<div style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px"><span aria-hidden="true" style="flex: 0 0 6px; height: 6px; margin-top: 7px; border-radius: 999px; background: #6d8dff"></span><span style="color: #c9ced9">{{r.t}}</span></div>
+</sc-for>
+</section>
+
+<section aria-labelledby="nhat-ky-bot" style="border-top: 1px solid #272c37; padding-top: 14px; display: flex; flex-direction: column; gap: 6px">
+<h2 id="nhat-ky-bot" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 15px; font-weight: 600">Bot đã làm gì ở đây</h2>
+<sc-for list="{{runs}}" as="u" hint-placeholder-count="3">
+<div style="display: flex; gap: 10px; font-size: 13px"><span style="flex: 0 0 40px; color: #9aa3b2; font-variant-numeric: tabular-nums">{{u.at}}</span><span style="flex: 1 1 auto; color: {{u.fg}}">{{u.text}}</span></div>
+</sc-for>
+</section>
+
+</aside>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var self = this;
+    var mode = (this.state && this.state.mode) || 'draft';
+    var S = {
+      need: { edge: '#f0b24a', stateBg: 'rgba(240,178,74,0.16)', stateFg: '#f0b24a', state: 'Chờ bạn duyệt' },
+      bot: { edge: '#c79bff', stateBg: 'rgba(199,155,255,0.16)', stateFg: '#c79bff', state: 'Bot đang chăm' },
+      me: { edge: '#6d8dff', stateBg: 'rgba(109,141,255,0.18)', stateFg: '#a9bbff', state: 'Bot nhường bạn' },
+      off: { edge: '#353c4a', stateBg: 'rgba(255,255,255,0.07)', stateFg: '#c9ced9', state: 'Chưa gán bot' }
+    };
+    function row(s, o) {
+      o.edge = s.edge; o.stateBg = s.stateBg; o.stateFg = s.stateFg; o.state = s.state;
+      o.rowBg = o.active ? '#171a21' : 'transparent';
+      return o;
+    }
+    var info = {
+      auto: { label: 'Tự trả lời', note: 'Bot tự gửi câu trả lời có sẵn trong brain. Gặp giá riêng, giảm giá, khiếu nại thì dừng lại gọi bạn.', chipText: 'Bot CSKH đang chăm', chipBg: 'rgba(199,155,255,0.16)', chipFg: '#c79bff' },
+      draft: { label: 'Soạn nháp', note: 'Bot chỉ soạn, tin nào cũng chờ bạn bấm Gửi.', chipText: 'Bot CSKH soạn nháp', chipBg: 'rgba(240,178,74,0.16)', chipFg: '#f0b24a' },
+      off: { label: 'Tắt bot', note: 'Bot không đọc, không trả lời cuộc chat này. Bạn tự chăm.', chipText: 'Bot đang tắt', chipBg: 'rgba(255,255,255,0.07)', chipFg: '#c9ced9' }
+    };
+    var cur = info[mode];
+    return {
+      isDraft: mode === 'draft',
+      modeNote: cur.note,
+      chipText: cur.chipText, chipBg: cur.chipBg, chipFg: cur.chipFg,
+      modes: ['auto', 'draft', 'off'].map(function (id) {
+        var on = id === mode;
+        return {
+          label: info[id].label, on: on,
+          bg: on ? '#6d8dff' : 'transparent',
+          fg: on ? '#0b1020' : '#c9ced9',
+          pick: function () { self.setState({ mode: id }); }
+        };
+      }),
+      rules: [
+        { t: 'Chờ 3 đến 12 giây và gom các tin khách gửi liền nhau rồi mới trả lời một lần.' },
+        { t: 'Bạn vừa nhắn thì bot nhường 30 phút.' },
+        { t: 'Khách nói "gặp nhân viên" hay "khiếu nại" thì dừng 60 phút và báo bạn.' },
+        { t: 'Tối đa 30 câu trả lời mỗi ngày cho một khách.' },
+        { t: 'Chỉ trả lời tin chữ. Ảnh, sticker, ghi âm thì để lại cho bạn.' }
+      ],
+      runs: [
+        { at: '09:41', text: 'Tự trả lời câu hỏi có bán sỉ không', fg: '#c9ced9' },
+        { at: '09:44', text: 'Soạn báo giá 60 hộp, dừng chờ bạn duyệt', fg: '#f0b24a' },
+        { at: '09:45', text: 'Bỏ qua tin chỉ có ảnh', fg: '#9aa3b2' }
+      ],
+      chats: [
+        row(S.need, { initial: 'L', name: 'Chị Lan', time: '09:45', last: '[Ảnh]', rel: 'Chưa kết bạn', active: true }),
+        row(S.bot, { initial: 'A', name: 'Cửa hàng An Nhiên', time: '09:02', last: 'Bot: Bên em giao toàn quốc trong 3 ngày ạ', rel: 'Bạn bè' }),
+        row(S.need, { initial: 'M', name: 'Anh Minh', time: 'Thứ Hai', last: 'Để anh xem lại báo giá nhé', rel: 'Bạn bè' }),
+        row(S.me, { initial: 'D', name: 'Anh Dũng', time: 'Thứ Hai', last: 'Bạn: Em xác nhận ngày giao trong hôm nay nhé', rel: 'Bạn bè' }),
+        row(S.bot, { initial: 'T', name: 'Anh Tuấn', time: 'Thứ Hai', last: 'Bot: Em gửi anh bảng giá sỉ ạ', rel: 'Chưa kết bạn' }),
+        row(S.bot, { initial: 'H', name: 'Cô Hạnh', time: 'Chủ nhật', last: 'Cô xem rồi báo lại con nhé', rel: 'Bạn bè' }),
+        row(S.off, { initial: 'N', name: 'Nhóm Đại lý miền Bắc', time: 'Chủ nhật', last: 'Trà quán Mộc: tuần sau em lấy thêm 50 hộp', rel: 'Nhóm · chỉ lưu lịch sử' })
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

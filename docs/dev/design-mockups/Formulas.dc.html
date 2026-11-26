@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Dream 100 · Công thức</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115;font-family:'Inter',system-ui,'Segoe UI',sans-serif}
+a{color:#8aa3ff}a:hover{color:#a9bbff}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #0f1115; color: #e6e8ee; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+<div style="flex: 0 0 232px"><dc-import name="Sidebar" active="dream" hint-size="232px,100vh"></dc-import></div>
+
+<div style="flex: 999 1 560px; min-width: 0; min-height: 100vh; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid #272c37">
+<h1 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 20px; font-weight: 700">Dream 100</h1>
+<nav aria-label="Các phần của Dream 100" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #171a21; border: 1px solid #272c37; border-radius: 10px">
+<a href="Dream.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Kênh theo dõi</a>
+<a href="DreamFeed.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Video nổi bật</a>
+<a href="Formulas.dc.html" aria-current="page" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; background: #6d8dff; color: #0b1020; font-weight: 600; text-decoration: none">Công thức</a>
+<a href="DailyIdeas.dc.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Đề xuất hôm nay<span style="background: rgba(240,178,74,0.16); color: #f0b24a; font-size: 12px; padding: 1px 8px; border-radius: 999px">3</span></a>
+</nav>
+<span style="font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; border: 1px dashed #697386; color: #c9ced9">Số liệu minh họa</span>
+<span style="color: #9aa3b2">Học từ kênh người khác, rồi kiểm lại trên kênh của mình.</span>
+</header>
+
+<div style="flex: 1 1 auto; display: flex; flex-wrap: wrap">
+
+<section aria-label="Danh sách công thức" style="flex: 1.3 1 420px; min-width: 0; box-sizing: border-box; border-right: 1px solid #272c37; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; color: #9aa3b2">brain/tra-sen-viet/cong-thuc/</span>
+<sc-for list="{{formulas}}" as="f" hint-placeholder-count="5">
+<a href="#chi-tiet" style="display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 12px; border: 1px solid {{f.bd}}; background: {{f.bg}}; text-decoration: none; color: #e6e8ee">
+<span style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px"><span style="flex: 1 1 200px; font-weight: 600; font-size: 15px">{{f.name}}</span><span style="font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: {{f.vBg}}; color: {{f.vFg}}">{{f.verdict}}</span></span>
+<span style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; font-size: 12px; color: #9aa3b2">
+<span style="display: flex; flex-direction: column"><span>Học từ</span><span style="font-size: 14px; color: #e6e8ee; font-variant-numeric: tabular-nums">{{f.proof}}</span></span>
+<span style="display: flex; flex-direction: column"><span>Mình đã làm</span><span style="font-size: 14px; color: #e6e8ee; font-variant-numeric: tabular-nums">{{f.made}}</span></span>
+<span style="display: flex; flex-direction: column"><span>ER của mình</span><span style="font-size: 14px; color: #e6e8ee; font-variant-numeric: tabular-nums">{{f.er}}</span></span>
+</span>
+</a>
+</sc-for>
+<span style="font-size: 13px; color: #9aa3b2">So với ER trung vị của kênh mình là 4,2%. Dưới 3 bài thì chưa kết luận.</span>
+</section>
+
+<section id="chi-tiet" aria-label="Chi tiết công thức" style="flex: 2 1 520px; min-width: 0; box-sizing: border-box; padding: 20px 28px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px">
+<h2 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 24px; font-weight: 700; letter-spacing: -0.01em">Hướng dẫn 3 bước dưới 45 giây</h2>
+<span style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; color: #9aa3b2">cong-thuc/huong-dan-3-buoc.md</span>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px">
+<div style="flex: 1 1 180px; min-width: 0; background: #171a21; border: 1px solid #272c37; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 600; color: #a9bbff">0 ĐẾN 3 GIÂY · MỞ ĐẦU</span><span>Một câu hỏi về lỗi người xem hay mắc, hoặc một con số.</span></div>
+<span aria-hidden="true" style="align-self: center; color: #697386; font-size: 20px">›</span>
+<div style="flex: 1 1 180px; min-width: 0; background: #171a21; border: 1px solid #272c37; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 600; color: #a9bbff">3 ĐẾN 35 GIÂY · THÂN</span><span>Ba bước, mỗi bước một cảnh cận tay. Khoảng 14 lần cắt mỗi phút.</span></div>
+<span aria-hidden="true" style="align-self: center; color: #697386; font-size: 20px">›</span>
+<div style="flex: 1 1 180px; min-width: 0; background: #171a21; border: 1px solid #272c37; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 600; color: #a9bbff">35 ĐẾN 45 GIÂY · KẾT</span><span>Cho thấy kết quả, rồi mời nhắn Zalo hỏi giá sỉ.</span></div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 16px; align-items: start">
+
+<div style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+<h3 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 15px; font-weight: 600">Bài mình đã làm theo công thức này</h3>
+<div role="img" aria-label="ER của 5 bài làm theo công thức, từ 5,8% đến 7,1%, so với trung vị của kênh là 4,2%" style="position: relative; display: flex; align-items: flex-end; gap: 2px; height: 130px; border-bottom: 1px solid #353c4a">
+<sc-for list="{{ours}}" as="b" hint-placeholder-count="5">
+<a href="ContentNote.dc.html" title="{{b.tip}}" style="flex: 1 1 0; height: {{b.h}}%; background: #6d8dff; border-radius: 4px 4px 0 0; display: flex; justify-content: center; text-decoration: none"><span style="margin-top: -20px; font-size: 12px; color: #e6e8ee; font-variant-numeric: tabular-nums">{{b.v}}</span></a>
+</sc-for>
+<span aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 48.5%; border-top: 2px dashed #e6e8ee"></span>
+<span style="position: absolute; right: 0; bottom: 50%; font-size: 12px; color: #e6e8ee; background: #171a21; padding: 0 4px">Trung vị kênh 4,2%</span>
+</div>
+<span style="font-size: 13px; color: #c9ced9">5 bài, ER trung vị 6,6%. Cả 5 đều cao hơn trung vị của kênh.</span>
+</div>
+
+<div style="background: #171a21; border: 1px solid rgba(70,194,138,0.4); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 15px; font-weight: 600">Bot Đối chiếu kết luận</h3>
+<div style="display: flex; align-items: baseline; gap: 8px"><span style="font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 26px; font-weight: 700; color: #46c28a">Hợp</span><span style="color: #c9ced9">cao hơn trung vị 57%</span></div>
+<span style="font-size: 13px; color: #c9ced9">Kỳ vọng khi rút công thức là gấp rưỡi trung vị. Kết quả thật gấp 1,57 lần, nên công thức giữ đúng lời hứa.</span>
+<span style="font-size: 13px; color: #c9ced9">Chỗ kênh mình làm khác bản gốc: nhịp cắt chậm hơn (10 so với 14 lần mỗi phút). Hai bài cắt nhanh hơn có thời gian xem trung bình dài hơn 4 giây.</span>
+<a href="Playbook.dc.html" style="align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; font-weight: 600">Đã thành bài học trong sổ</a>
+</div>
+
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h3 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 15px; font-weight: 600">Học từ 9 video của Dream 100</h3>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{proofs}}" as="p" hint-placeholder-count="4">
+<a href="DreamFeed.dc.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border: 1px solid #272c37; border-radius: 10px; background: #171a21; color: #e6e8ee; text-decoration: none"><span>{{p.title}}</span><span style="font-size: 12px; color: #9aa3b2">{{p.from}}</span></a>
+</sc-for>
+</div>
+</div>
+</section>
+
+</div>
+
+<dc-import name="ChatBar" bot="Bot Đối chiếu" ask="Ví dụ: công thức nào đang kém nhất trên kênh mình, vì sao?" hint-size="100%,72px"></dc-import>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var V = {
+      fit: { verdict: 'Hợp với kênh mình', vBg: 'rgba(70,194,138,0.16)', vFg: '#46c28a' },
+      maybe: { verdict: 'Có vẻ hợp, cần thêm bài', vBg: 'rgba(109,141,255,0.18)', vFg: '#a9bbff' },
+      no: { verdict: 'Chưa hợp', vBg: 'rgba(240,178,74,0.16)', vFg: '#f0b24a' },
+      untried: { verdict: 'Chưa thử', vBg: 'rgba(255,255,255,0.07)', vFg: '#c9ced9' }
+    };
+    function f(v, o) {
+      o.verdict = v.verdict; o.vBg = v.vBg; o.vFg = v.vFg;
+      o.bg = o.active ? '#171a21' : 'transparent';
+      o.bd = o.active ? '#6d8dff' : '#272c37';
+      return o;
+    }
+    var ours = [['Ô long sen pha lạnh', 6.3], ['Bảo quản trà mùa nồm', 5.8], ['Pha trà sen đúng cách', 6.6], ['Ướp trà tại nhà', 6.9], ['Cách ướp trà sen Tây Hồ', 7.1]];
+    return {
+      formulas: [
+        f(V.fit, { name: 'Hướng dẫn 3 bước dưới 45 giây', proof: '9 video', made: '5 bài', er: '6,6% · cao hơn 57%', active: true }),
+        f(V.maybe, { name: 'Chỉ ra lỗi sai rồi sửa', proof: '6 video', made: '2 bài', er: '5,0% · cao hơn 19%' }),
+        f(V.no, { name: 'Hậu trường một ngày làm nghề', proof: '4 video', made: '3 bài', er: '3,4% · thấp hơn 19%' }),
+        f(V.untried, { name: 'Danh sách quà theo mức giá', proof: '3 video', made: '0 bài', er: '–' }),
+        f(V.untried, { name: 'Hỏi đáp chính sách bằng video', proof: '2 video', made: '0 bài', er: '–' })
+      ],
+      ours: ours.map(function (o) {
+        var t = String(o[1]).replace('.', ',') + '%';
+        return { h: Math.round(o[1] / 7.1 * 82), v: t, tip: o[0] + ': ER ' + t };
+      }),
+      proofs: [
+        { title: 'Pha trà lạnh 3 bước', from: 'Bếp Nhà Mộc · gấp 6,2 lần' },
+        { title: 'Trà sữa tại nhà trong 30 giây', from: 'Bếp Nhà Mộc · gấp 4,8 lần' },
+        { title: 'Ủ trà qua đêm', from: 'The Tea Lab · gấp 3,9 lần' },
+        { title: 'và 6 video khác', from: '' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

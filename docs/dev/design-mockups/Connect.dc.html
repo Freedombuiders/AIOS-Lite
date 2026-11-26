@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Kết nối</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115;font-family:'Inter',system-ui,'Segoe UI',sans-serif}
+a{color:#8aa3ff}a:hover{color:#a9bbff}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #0f1115; color: #e6e8ee; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+<div style="flex: 0 0 232px"><dc-import name="Sidebar" active="connect" hint-size="232px,100vh"></dc-import></div>
+
+<div style="flex: 999 1 560px; min-width: 0; min-height: 100vh; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid #272c37">
+<h1 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 20px; font-weight: 700">Kết nối</h1>
+<span style="color: #9aa3b2">Nối một lần. Zalo về Hộp thư, bài đăng đi từ Đăng bài, số liệu về Mạng xã hội và Quảng cáo.</span>
+</header>
+
+<main style="flex: 1 1 auto; box-sizing: border-box; padding: 20px 24px; display: flex; flex-direction: column; gap: 22px">
+
+<section aria-labelledby="kenh" style="display: flex; flex-direction: column; gap: 12px">
+<h2 id="kenh" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Kênh và nguồn số liệu</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 14px">
+<sc-for list="{{channels}}" as="c" hint-placeholder-count="6">
+<div style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 12px">
+<span aria-hidden="true" style="flex: 0 0 40px; height: 40px; border-radius: 12px; background: #1e222b; color: #c9ced9; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px">{{c.short}}</span>
+<div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column"><span style="font-weight: 600; font-size: 15px">{{c.name}}</span><span style="font-size: 13px; color: #9aa3b2">{{c.account}}</span></div>
+<span style="font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: {{c.stBg}}; color: {{c.stFg}}">{{c.state}}</span>
+</div>
+<span style="font-size: 13px; color: #c9ced9">{{c.flows}}</span>
+<span style="font-size: 13px; color: {{c.noteFg}}">{{c.note}}</span>
+<button type="button" style="align-self: flex-start; min-height: 44px; padding: 0 14px; border: {{c.btnBorder}}; border-radius: 10px; background: {{c.btnBg}}; color: {{c.btnFg}}; font: inherit; font-weight: 600; cursor: pointer">{{c.btn}}</button>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section aria-labelledby="ung-dung" style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; overflow: hidden">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 14px 20px; border-bottom: 1px solid #272c37">
+<h2 id="ung-dung" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Ứng dụng và dữ liệu</h2>
+<span style="font-size: 13px; color: #9aa3b2">Bot gọi qua một cổng công cụ duy nhất. Mức quyền bị chặn bằng code, không phụ thuộc lời dặn.</span>
+</div>
+<sc-for list="{{apps}}" as="a" hint-placeholder-count="3">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 10px 20px; border-bottom: 1px solid #20242d">
+<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column"><span style="font-weight: 600">{{a.name}}</span><span style="font-size: 13px; color: #9aa3b2">{{a.use}}</span></div>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #9aa3b2">Quyền
+<select style="min-height: 44px; padding: 0 10px; border: 1px solid #353c4a; border-radius: 10px; background: #0f1115; color: #e6e8ee; font: inherit"><option>{{a.perm}}</option><option>Chỉ đọc</option><option>An toàn</option><option>Toàn quyền</option></select>
+</label>
+<span style="flex: 0 0 90px; text-align: right; font-size: 12px; font-weight: 600; color: {{a.stFg}}">{{a.state}}</span>
+</div>
+</sc-for>
+</section>
+
+</main>
+
+<dc-import name="ChatBar" ask="Ví dụ: nối thêm một nick Zalo nữa" hint-size="100%,72px"></dc-import>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    function on(o) {
+      o.state = 'Đã nối'; o.stBg = 'rgba(70,194,138,0.16)'; o.stFg = '#46c28a';
+      o.btn = 'Quản lý'; o.btnBg = 'transparent'; o.btnFg = '#e6e8ee'; o.btnBorder = '1px solid #353c4a';
+      o.noteFg = o.warn ? '#f0b24a' : '#9aa3b2';
+      return o;
+    }
+    function off(o) {
+      o.state = 'Chưa nối'; o.stBg = 'rgba(255,255,255,0.07)'; o.stFg = '#c9ced9';
+      o.btnBg = '#6d8dff'; o.btnFg = '#0b1020'; o.btnBorder = '0';
+      o.noteFg = '#9aa3b2';
+      return o;
+    }
+    return {
+      channels: [
+        on({ short: 'Za', name: 'Zalo cá nhân', account: 'Nick Trà Sen Việt · quét QR', flows: 'Lịch sử chat về Hộp thư · bạn và bot nhắn từ đây', note: 'Đường không chính thức của Zalo. Có giới hạn tốc độ gửi để tránh khoá nick.', warn: true }),
+        on({ short: 'Ad', name: 'Meta Ads', account: 'Tài khoản Trà Sen Việt · qua Composio', flows: 'Số liệu chiến dịch · đề xuất theo luật', note: 'Đang ở quyền chỉ đọc. Muốn tắt, bật ngay trong app cần cấp thêm quyền quản lý.', warn: true }),
+        on({ short: 'Fb', name: 'Facebook Page', account: 'Trang Trà Sen Việt · qua Composio', flows: 'Đăng và hẹn giờ bài · số liệu trang và từng bài', note: 'Bot Nội dung đăng bài qua đây. Tin nhắn Facebook không vào Hộp thư.' }),
+        on({ short: 'Ig', name: 'Instagram', account: 'Tài khoản gắn với Page', flows: 'Đăng bài ảnh và video', note: 'Đăng bài, đếm người theo dõi và số bài.' }),
+        on({ short: 'Tk', name: 'TikTok', account: 'Kênh của shop', flows: 'Đăng video', note: 'Cần video dọc 9:16 cho mỗi bài.' }),
+        on({ short: 'Yt', name: 'YouTube', account: 'Kênh Trà Sen Việt · qua Composio', flows: 'Đăng video · số công khai của kênh và từng video', note: 'Chưa có giờ xem và tỷ lệ giữ chân, cần quyền YouTube Analytics.' })
+      ],
+      apps: [
+        { name: 'Google Sheets', use: 'Bảng giá và danh sách đơn hàng để bot tra', perm: 'Chỉ đọc', state: 'Đã nối', stFg: '#46c28a' },
+        { name: 'Composio', use: 'Cầu nối tới Facebook, Instagram, TikTok, YouTube và Meta Ads', perm: 'An toàn', state: 'Đã nối', stFg: '#46c28a' },
+        { name: 'Gọi thẳng Graph API của Meta', use: 'Dùng token của chính bạn thay cho Composio, cho Facebook Page và Meta Ads', perm: 'Chỉ đọc', state: 'Chưa nối', stFg: '#c9ced9' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

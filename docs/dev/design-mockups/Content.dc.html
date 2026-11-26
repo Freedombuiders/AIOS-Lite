@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Đăng bài</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115;font-family:'Inter',system-ui,'Segoe UI',sans-serif}
+a{color:#8aa3ff}a:hover{color:#a9bbff}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #0f1115; color: #e6e8ee; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+<div style="flex: 0 0 232px"><dc-import name="Sidebar" active="content" hint-size="232px,100vh"></dc-import></div>
+
+<div style="flex: 999 1 560px; min-width: 0; min-height: 100vh; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid #272c37">
+<h1 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 20px; font-weight: 700">Đăng bài</h1>
+<span style="color: #9aa3b2">Viết một lần. AI chỉnh theo từng nền tảng, bạn duyệt rồi lên lịch.</span>
+<button type="button" style="margin-left: auto; min-height: 44px; padding: 0 16px; border: 0; border-radius: 10px; background: #6d8dff; color: #0b1020; font: inherit; font-weight: 600; cursor: pointer">Bài mới</button>
+</header>
+
+<main style="flex: 1 1 auto; box-sizing: border-box; padding: 20px 24px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+
+<section aria-labelledby="soan" style="flex: 1.2 1 360px; min-width: 0; background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+<h2 id="soan" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Soạn bài</h2>
+<span style="background: rgba(240,178,74,0.16); color: #f0b24a; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px">Chờ bạn duyệt</span>
+<span style="margin-left: auto; font-size: 13px; color: #9aa3b2">Bot Nội dung viết lúc 08:55</span>
+</div>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Tên bài (chỉ bạn thấy)
+<input type="text" value="Combo quà tặng Tết" style="min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #353c4a; border-radius: 10px; font: inherit; font-weight: 400; color: #e6e8ee; background: #0f1115">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Nội dung gốc
+<textarea rows="5" style="box-sizing: border-box; padding: 10px 12px; border: 1px solid #353c4a; border-radius: 10px; font: inherit; font-weight: 400; color: #e6e8ee; background: #0f1115; resize: vertical">Tết này biếu gì cho vừa lòng người nhận? Combo quà tặng Tết gồm 3 hộp trà sen, giá 790 nghìn. Giao toàn quốc trong 3 ngày. Nhắn shop để đặt.</textarea>
+</label>
+<span style="font-size: 12px; color: #9aa3b2">Lấy từ brain: <a href="Files.dc.html">san-pham/danh-muc-tra-sen.md</a> · <a href="Files.dc.html">giong-noi.md</a></span>
+<div style="border: 1px solid rgba(70,194,138,0.4); border-radius: 10px; padding: 10px 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; background: #12151a">
+<span style="font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 20px; font-weight: 700; color: #46c28a">2/3</span>
+<span style="flex: 1 1 200px; display: flex; flex-direction: column"><span style="font-weight: 600">Khớp sổ bài học</span><span style="font-size: 12px; color: #9aa3b2">Đúng giờ đăng, mở đầu bằng câu hỏi. Chưa khớp: bài này là ảnh, video ngắn thường hiệu quả hơn.</span></span>
+<a href="Playbook.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; font-weight: 600">Xem bài học</a>
+</div>
+<div style="border: 1px dashed #353c4a; border-radius: 10px; min-height: 64px; display: flex; align-items: center; justify-content: center; color: #9aa3b2; font-size: 13px; background: #12151a">[Ảnh hoặc video của bạn] · kéo thả vào đây</div>
+<fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 8px">
+<legend style="padding: 0; font-size: 13px; font-weight: 600; margin-bottom: 8px">Đăng lên</legend>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<label style="display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border: 1px solid #353c4a; border-radius: 10px"><input type="checkbox" checked>Facebook Page</label>
+<label style="display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border: 1px solid #353c4a; border-radius: 10px"><input type="checkbox" checked>Zalo</label>
+<label style="display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border: 1px solid #353c4a; border-radius: 10px"><input type="checkbox" checked>Instagram</label>
+<label style="display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border: 1px solid #353c4a; border-radius: 10px"><input type="checkbox" checked>TikTok</label>
+<label style="display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border: 1px solid #353c4a; border-radius: 10px; color: #9aa3b2"><input type="checkbox">YouTube Shorts</label>
+</div>
+</fieldset>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-top: 14px; border-top: 1px solid #272c37">
+<span style="flex: 1 1 160px">Thứ Sáu 27/11 · 19:00</span>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; background: transparent; color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer">Lưu nháp</button>
+<button type="button" style="min-height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: #6d8dff; color: #0b1020; font: inherit; font-weight: 600; cursor: pointer">Duyệt và lên lịch</button>
+</div>
+</section>
+
+<section aria-labelledby="xem-truoc" style="flex: 1 1 300px; min-width: 0; background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<h2 id="xem-truoc" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Bản cho từng nền tảng</h2>
+<div role="group" aria-label="Chọn nền tảng để xem" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #0f1115; border: 1px solid #272c37; border-radius: 10px">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
+<button type="button" aria-pressed="{{t.on}}" onClick="{{t.pick}}" style="flex: 1 1 auto; min-height: 40px; padding: 0 10px; border: 0; border-radius: 7px; font: inherit; font-weight: 600; cursor: pointer; background: {{t.bg}}; color: {{t.fg}}">{{t.label}}</button>
+</sc-for>
+</div>
+<div style="border: 1px solid #272c37; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; background: #12151a">
+<div style="display: flex; align-items: center; gap: 10px; padding: 12px 14px">
+<span aria-hidden="true" style="width: 32px; height: 32px; border-radius: 999px; background: rgba(109,141,255,0.18); color: #a9bbff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px">TS</span>
+<div style="display: flex; flex-direction: column"><span style="font-weight: 600">Trà Sen Việt</span><span style="font-size: 12px; color: #9aa3b2">{{where}}</span></div>
+</div>
+<p style="margin: 0; padding: 0 14px 12px; white-space: pre-line">{{text}}</p>
+<div style="background: #1e222b; min-height: 170px; display: flex; align-items: center; justify-content: center; color: #9aa3b2; font-size: 13px">{{media}}</div>
+</div>
+<span style="font-size: 13px; color: #9aa3b2">{{note}}</span>
+<button type="button" style="min-height: 44px; border: 1px solid #353c4a; border-radius: 10px; background: transparent; color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer">Sửa riêng bản này</button>
+</section>
+
+<section aria-labelledby="lich" style="flex: 1 1 320px; min-width: 0; background: #171a21; border: 1px solid #272c37; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-bottom: 1px solid #272c37">
+<h2 id="lich" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Lịch tuần này</h2>
+<span style="margin-left: auto; font-size: 13px; color: #9aa3b2">23/11 đến 29/11</span>
+</div>
+<sc-for list="{{week}}" as="p" hint-placeholder-count="5">
+<div style="display: flex; gap: 12px; padding: 12px 20px; border-bottom: 1px solid #20242d">
+<div style="flex: 0 0 64px; display: flex; flex-direction: column"><span style="font-weight: 600">{{p.day}}</span><span style="font-size: 13px; color: #9aa3b2; font-variant-numeric: tabular-nums">{{p.time}}</span></div>
+<div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<span style="font-weight: 600">{{p.title}}</span>
+<span style="font-size: 13px; color: #9aa3b2">{{p.where}}</span>
+<span style="align-self: flex-start; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: {{p.bg}}; color: {{p.fg}}">{{p.state}}</span>
+</div>
+</div>
+</sc-for>
+</section>
+
+</main>
+
+<dc-import name="ChatBar" bot="Bot Nội dung" ask="Ví dụ: lên 5 bài cho tuần sau về quà Tết" hint-size="100%,72px"></dc-import>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var self = this;
+    var tab = (this.state && this.state.tab) || 'fb';
+    var variants = {
+      fb: {
+        label: 'Facebook', where: 'Bài trên Page',
+        text: 'Tết này biếu gì cho vừa lòng người nhận?\n\nCombo quà tặng Tết gồm 3 hộp trà sen, giá 790 nghìn. Giao toàn quốc trong 3 ngày.\n\nNhắn shop để đặt.',
+        media: '[Ảnh combo] ngang 1.91:1 hoặc vuông', note: 'Giữ nguyên bài gốc. Số liệu của bài hiện ở Mạng xã hội.'
+      },
+      zalo: {
+        label: 'Zalo', where: 'Nhật ký Zalo',
+        text: 'Combo quà tặng Tết: 3 hộp trà sen, 790 nghìn. Giao toàn quốc trong 3 ngày. Nhắn Zalo shop để đặt.',
+        media: '[Ảnh combo] vuông', note: 'AI rút gọn còn 2 câu. Có giới hạn số bài mỗi ngày để tránh khoá nick.'
+      },
+      ig: {
+        label: 'Instagram', where: 'Bài trên Instagram',
+        text: 'Tết này biếu gì cho vừa lòng người nhận? Combo 3 hộp trà sen, 790 nghìn, giao toàn quốc trong 3 ngày.\n\n#trasen #quatet #trasenviet',
+        media: '[Ảnh combo] dọc 4:5', note: 'AI thêm hashtag và đổi lời kêu gọi vì Instagram không bấm được link trong bài.'
+      },
+      tt: {
+        label: 'TikTok', where: 'Video TikTok',
+        text: 'Quà Tết 3 hộp trà sen, 790 nghìn. #quatet #trasen',
+        media: '[Video của bạn] dọc 9:16', note: 'TikTok cần video. Chưa có video thì bản này không đăng, các nền tảng khác vẫn đăng.'
+      }
+    };
+    var v = variants[tab];
+    var st = {
+      done: { state: 'Đã đăng', bg: 'rgba(70,194,138,0.16)', fg: '#46c28a' },
+      plan: { state: 'Đã lên lịch', bg: 'rgba(109,141,255,0.18)', fg: '#a9bbff' },
+      wait: { state: 'Chờ bạn duyệt', bg: 'rgba(240,178,74,0.16)', fg: '#f0b24a' },
+      idea: { state: 'AI đang viết', bg: 'rgba(199,155,255,0.16)', fg: '#c79bff' }
+    };
+    function post(s, o) { o.state = s.state; o.bg = s.bg; o.fg = s.fg; return o; }
+    return {
+      where: v.where, text: v.text, media: v.media, note: v.note,
+      tabs: ['fb', 'zalo', 'ig', 'tt'].map(function (id) {
+        var on = id === tab;
+        return {
+          label: variants[id].label, on: on,
+          bg: on ? '#6d8dff' : 'transparent',
+          fg: on ? '#0b1020' : '#c9ced9',
+          pick: function () { self.setState({ tab: id }); }
+        };
+      }),
+      week: [
+        post(st.done, { day: 'Thứ Ba', time: '19:00', title: 'Cách ướp trà sen Tây Hồ', where: 'Facebook, Instagram' }),
+        post(st.done, { day: 'Thứ Năm', time: '08:40', title: 'Trà sen Tây Hồ, hộp 100 g', where: 'Facebook, Instagram' }),
+        post(st.wait, { day: 'Thứ Sáu', time: '19:00', title: 'Combo quà tặng Tết', where: 'Facebook, Zalo, Instagram, TikTok' }),
+        post(st.plan, { day: 'Thứ Bảy', time: '10:00', title: 'Chính sách cho đại lý mới', where: 'Facebook, Zalo' }),
+        post(st.idea, { day: 'Chủ nhật', time: '20:00', title: 'Ô long sen pha thế nào cho ngon', where: 'Facebook, Instagram, TikTok' })
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

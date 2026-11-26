@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Đội AI · Bot</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115;font-family:'Inter',system-ui,'Segoe UI',sans-serif}
+a{color:#8aa3ff}a:hover{color:#a9bbff}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #0f1115; color: #e6e8ee; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+<div style="flex: 0 0 232px"><dc-import name="Sidebar" active="bots" hint-size="232px,100vh"></dc-import></div>
+
+<div style="flex: 999 1 560px; min-width: 0; min-height: 100vh; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid #272c37">
+<h1 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 20px; font-weight: 700">Bot</h1>
+<span style="color: #9aa3b2">Bot chạy trong GenBot. Ở đây bạn gắn kênh, brain và mức quyền cho từng bot.</span>
+<button type="button" style="margin-left: auto; min-height: 44px; padding: 0 16px; border: 1px solid #353c4a; border-radius: 10px; background: #171a21; color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer">Mở GenBot</button>
+</header>
+
+<main style="flex: 1 1 auto; box-sizing: border-box; padding: 20px 24px; display: flex; flex-direction: column; gap: 20px">
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 16px; align-items: start">
+<sc-for list="{{bots}}" as="b" hint-placeholder-count="3">
+<section style="background: #171a21; border: 1px solid #272c37; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; gap: 12px">
+<span aria-hidden="true" style="flex: 0 0 44px; height: 44px; border-radius: 12px; background: {{b.tint}}; color: {{b.ink}}; display: flex; align-items: center; justify-content: center; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-weight: 700">{{b.short}}</span>
+<div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
+<h2 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 17px; font-weight: 600">{{b.name}}</h2>
+<span style="font-size: 13px; color: #9aa3b2">{{b.role}}</span>
+</div>
+<span style="font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: {{b.stBg}}; color: {{b.stFg}}">{{b.state}}</span>
+</div>
+<dl style="margin: 0; display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 8px 12px; font-size: 13px">
+<dt style="color: #9aa3b2">Model</dt><dd style="margin: 0">{{b.engine}}</dd>
+<dt style="color: #9aa3b2">Kênh</dt><dd style="margin: 0">{{b.channels}}</dd>
+<dt style="color: #9aa3b2">Đọc brain</dt><dd style="margin: 0; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace">{{b.reads}}</dd>
+<dt style="color: #9aa3b2">Được ghi</dt><dd style="margin: 0; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace">{{b.writes}}</dd>
+<dt style="color: #9aa3b2">Hôm nay</dt><dd style="margin: 0">{{b.today}}</dd>
+</dl>
+<div style="border-top: 1px solid #272c37; padding-top: 12px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 600; color: #9aa3b2">MỨC QUYỀN</span>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; background: #0f1115; border: 1px solid #272c37; border-radius: 10px">
+<span style="display: flex; align-items: center; justify-content: center; min-height: 36px; border-radius: 7px; font-size: 13px; font-weight: 600; background: {{b.p1Bg}}; color: {{b.p1Fg}}">Chỉ đọc</span>
+<span style="display: flex; align-items: center; justify-content: center; min-height: 36px; border-radius: 7px; font-size: 13px; font-weight: 600; background: {{b.p2Bg}}; color: {{b.p2Fg}}">Soạn nháp</span>
+<span style="display: flex; align-items: center; justify-content: center; min-height: 36px; border-radius: 7px; font-size: 13px; font-weight: 600; background: {{b.p3Bg}}; color: {{b.p3Fg}}">Tự làm</span>
+</div>
+<span style="font-size: 13px; color: #9aa3b2">{{b.permNote}}</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<a href="Chat.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; background: rgba(109,141,255,0.18); color: #a9bbff; font-weight: 600; text-decoration: none">Trò chuyện</a>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; background: transparent; color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer">Sửa lời dặn</button>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; background: transparent; color: #e6e8ee; font: inherit; font-weight: 600; cursor: pointer">Tạm dừng</button>
+</div>
+</section>
+</sc-for>
+</div>
+
+<section aria-labelledby="mau" style="border: 1px dashed #353c4a; border-radius: 16px; padding: 18px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+<div style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 4px">
+<h2 id="mau" style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">Thêm bot từ mẫu của GenBot</h2>
+<span style="font-size: 13px; color: #9aa3b2">Mỗi mẫu là một file mô tả vai trò và kỹ năng. Thêm vào là bot tự có trong đội, mặc định ở mức Chỉ đọc.</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; background: #171a21; color: #e6e8ee; font: inherit; cursor: pointer">Bán hàng</button>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; background: #171a21; color: #e6e8ee; font: inherit; cursor: pointer">Kế toán</button>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; background: #171a21; color: #e6e8ee; font: inherit; cursor: pointer">Nhân sự</button>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; background: #171a21; color: #e6e8ee; font: inherit; cursor: pointer">Xem tất cả mẫu</button>
+</div>
+</section>
+
+</main>
+
+<dc-import name="ChatBar" ask="Ví dụ: cho Bot CSKH tự trả lời câu hỏi về giờ giao hàng" hint-size="100%,72px"></dc-import>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var on = { bg: '#6d8dff', fg: '#0b1020' };
+    var off = { bg: 'transparent', fg: '#9aa3b2' };
+    function perm(level, o) {
+      var p = [off, off, off];
+      p[level] = on;
+      o.p1Bg = p[0].bg; o.p1Fg = p[0].fg;
+      o.p2Bg = p[1].bg; o.p2Fg = p[1].fg;
+      o.p3Bg = p[2].bg; o.p3Fg = p[2].fg;
+      return o;
+    }
+    return {
+      bots: [
+        perm(1, {
+          short: 'CS', name: 'Bot CSKH', role: 'Trực hộp thư, trả lời khách theo brain',
+          tint: 'rgba(70,194,138,0.18)', ink: '#46c28a',
+          state: 'Đang trực', stBg: 'rgba(70,194,138,0.16)', stFg: '#46c28a',
+          engine: 'Claude Code · chọn trong GenBot',
+          channels: 'Hộp thư Zalo · nick Trà Sen Việt · mọi chat riêng',
+          reads: 'san-pham/ chinh-sach/ giong-noi.md',
+          writes: 'khach-hang/ nho/',
+          today: 'Tự trả lời 6 cuộc chat, soạn nháp 2',
+          permNote: 'Câu có sẵn trong brain thì tự trả lời. Báo giá, giảm giá, khiếu nại thì soạn nháp chờ bạn.'
+        }),
+        perm(1, {
+          short: 'ND', name: 'Bot Nội dung', role: 'Viết bài, chỉnh theo nền tảng, lên lịch',
+          tint: 'rgba(199,155,255,0.18)', ink: '#c79bff',
+          state: 'Đang viết', stBg: 'rgba(109,141,255,0.18)', stFg: '#a9bbff',
+          engine: 'Codex · chọn trong GenBot',
+          channels: 'Facebook Page, Zalo, Instagram, TikTok',
+          reads: 'giong-noi.md noi-dung/ san-pham/',
+          writes: 'noi-dung/',
+          today: 'Đăng 1 bài theo lịch, 1 bài chờ duyệt',
+          permNote: 'Bài nào cũng dừng ở Đăng bài chờ bạn duyệt trước khi lên lịch.'
+        }),
+        perm(2, {
+          short: 'TL', name: 'Bot Trợ lý', role: 'Nhắc việc, tổng kết, chia việc cho hai bot kia',
+          tint: 'rgba(109,141,255,0.18)', ink: '#a9bbff',
+          state: 'Chờ lịch', stBg: 'rgba(255,255,255,0.07)', stFg: '#c9ced9',
+          engine: 'Claude Code · chọn trong GenBot',
+          channels: 'Chỉ nói với bạn, không nói với khách',
+          reads: 'Toàn bộ brain',
+          writes: 'nho/',
+          today: 'Tạo 1 nhắc chăm khách, chạy lại lúc 21:00',
+          permNote: 'Tự tạo việc và nhắc lịch. Không gửi được gì ra ngoài, nên được để ở mức Tự làm.'
+        })
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

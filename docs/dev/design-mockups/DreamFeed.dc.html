@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Dream 100 · Video nổi bật</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0f1115;font-family:'Inter',system-ui,'Segoe UI',sans-serif}
+a{color:#8aa3ff}a:hover{color:#a9bbff}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #0f1115; color: #e6e8ee; font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+<div style="flex: 0 0 232px"><dc-import name="Sidebar" active="dream" hint-size="232px,100vh"></dc-import></div>
+
+<div style="flex: 999 1 560px; min-width: 0; min-height: 100vh; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid #272c37">
+<h1 style="margin: 0; font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 20px; font-weight: 700">Dream 100</h1>
+<nav aria-label="Các phần của Dream 100" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #171a21; border: 1px solid #272c37; border-radius: 10px">
+<a href="Dream.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Kênh theo dõi</a>
+<a href="DreamFeed.dc.html" aria-current="page" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; background: #6d8dff; color: #0b1020; font-weight: 600; text-decoration: none">Video nổi bật</a>
+<a href="Formulas.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Công thức</a>
+<a href="DailyIdeas.dc.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border-radius: 7px; color: #c9ced9; font-weight: 600; text-decoration: none">Đề xuất hôm nay<span style="background: rgba(240,178,74,0.16); color: #f0b24a; font-size: 12px; padding: 1px 8px; border-radius: 999px">3</span></a>
+</nav>
+<span style="font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; border: 1px dashed #697386; color: #c9ced9">Số liệu minh họa</span>
+<span style="color: #9aa3b2">Hôm nay 26/11 · 84 video mới, 4 video vượt ngưỡng</span>
+</header>
+
+<main style="flex: 1 1 auto; box-sizing: border-box; padding: 18px 24px; display: flex; flex-direction: column; gap: 14px">
+
+<span style="color: #c9ced9">Video nổi bật là video có lượt xem gấp từ 3 lần trung vị của chính kênh đó. Bot tải về, mổ xẻ, rồi xoá file.</span>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(520px, 100%), 1fr)); gap: 14px; align-items: start">
+<sc-for list="{{videos}}" as="v" hint-placeholder-count="4">
+<section style="background: #171a21; border: 1px solid #272c37; border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px">
+<div aria-hidden="true" style="flex: 0 0 72px; height: 96px; border-radius: 10px; background: #1e222b; display: flex; align-items: center; justify-content: center; color: #9aa3b2; font-size: 11px; text-align: center">[khung hình 3 giây đầu]</div>
+<div style="flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<span style="font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 16px; font-weight: 600">{{v.title}}</span>
+<span style="font-size: 13px; color: #9aa3b2">{{v.channel}} · {{v.where}} · {{v.len}}</span>
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px"><span style="font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif; font-size: 22px; font-weight: 700; color: #a9bbff">gấp {{v.x}} lần</span><span style="font-size: 13px; color: #9aa3b2">{{v.views}} lượt xem, trung vị kênh {{v.median}}</span></div>
+</div>
+</div>
+<dl style="margin: 0; display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 6px 12px; font-size: 13px">
+<dt style="color: #9aa3b2">Mở đầu</dt><dd style="margin: 0">{{v.hook}}</dd>
+<dt style="color: #9aa3b2">Cấu trúc</dt><dd style="margin: 0">{{v.shape}}</dd>
+<dt style="color: #9aa3b2">Nhịp cắt</dt><dd style="margin: 0">{{v.cuts}}</dd>
+<dt style="color: #9aa3b2">Kêu gọi</dt><dd style="margin: 0">{{v.cta}}</dd>
+</dl>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-top: 4px; border-top: 1px solid #20242d">
+<span style="flex: 1 1 200px; padding-top: 8px; font-size: 13px; color: {{v.fFg}}">{{v.formula}}</span>
+<a href="Formulas.dc.html" style="margin-top: 8px; display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; background: {{v.btnBg}}; color: {{v.btnFg}}; border: {{v.btnBd}}; font-weight: 600; text-decoration: none">{{v.btn}}</a>
+<a href="DailyIdeas.dc.html" style="margin-top: 8px; display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1px solid #353c4a; border-radius: 10px; color: #e6e8ee; font-weight: 600; text-decoration: none">Làm bài theo</a>
+</div>
+</section>
+</sc-for>
+</div>
+
+<span style="font-size: 13px; color: #9aa3b2">Mỗi video nổi bật lưu thành một ghi chú ở dream-100/video/. Nhịp cắt đo bằng máy nên chỉ là số xấp xỉ. Lời thoại, hình và nhạc không được lưu.</span>
+</main>
+
+<dc-import name="ChatBar" bot="Bot Phân tích" ask="Ví dụ: tuần này các kênh trà hay mở đầu video bằng gì?" hint-size="100%,72px"></dc-import>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var known = { fFg: '#46c28a', btn: 'Xem công thức', btnBg: 'transparent', btnFg: '#e6e8ee', btnBd: '1px solid #353c4a' };
+    var fresh = { fFg: '#f0b24a', btn: 'Rút thành công thức', btnBg: '#6d8dff', btnFg: '#0b1020', btnBd: '0' };
+    function vid(s, o) { o.fFg = s.fFg; o.btn = s.btn; o.btnBg = s.btnBg; o.btnFg = s.btnFg; o.btnBd = s.btnBd; return o; }
+    return {
+      videos: [
+        vid(known, { title: 'Pha trà lạnh 3 bước', channel: 'Bếp Nhà Mộc', where: 'TikTok', len: '31 giây', x: '6,2', views: '412.000', median: '66.000', hook: 'Câu hỏi về một lỗi hay gặp, nói trong 2 giây đầu', shape: 'Vấn đề, 3 bước, kết quả. Mỗi bước một cảnh cận tay.', cuts: 'Khoảng 14 lần cắt mỗi phút, 3 cảnh trong 3 giây đầu', cta: 'Mời xem phần tiếp theo, ở giây 28', formula: 'Khớp công thức "Hướng dẫn 3 bước dưới 45 giây" (bằng chứng thứ 9)' }),
+        vid(fresh, { title: 'Vì sao trà của bạn bị chát', channel: 'The Tea Lab', where: 'YouTube Shorts', len: '44 giây', x: '4,1', views: '188.000', median: '46.000', hook: 'Chỉ thẳng một việc người xem đang làm sai', shape: 'Lỗi sai, vì sao sai, cách sửa, kết quả trước và sau', cuts: 'Khoảng 9 lần cắt mỗi phút, có chữ lớn ở từ khoá', cta: 'Hỏi người xem đang pha kiểu nào, ở giây 40', formula: 'Gần giống "Chỉ ra lỗi sai rồi sửa", đã có 6 bằng chứng' }),
+        vid(known, { title: 'Một ngày ở xưởng trà', channel: 'Trà Việt Mỗi Ngày', where: 'Facebook', len: '1 phút 20', x: '3,3', views: '96.000', median: '29.000', hook: 'Cảnh rạng sáng, không lời trong 3 giây đầu', shape: 'Theo trình tự thời gian một ngày làm việc', cuts: 'Khoảng 6 lần cắt mỗi phút, nhịp chậm', cta: 'Không kêu gọi', formula: 'Khớp công thức "Hậu trường một ngày làm nghề". Công thức này chưa hợp với kênh mình.' }),
+        vid(fresh, { title: 'Hộp quà Tết dưới 500 nghìn', channel: 'Quán Nhỏ Ven Hồ', where: 'Instagram', len: '5 ảnh', x: '3,0', views: '54.000', median: '18.000', hook: 'Con số mức giá ngay trên ảnh đầu', shape: 'Danh sách 5 lựa chọn, mỗi ảnh một món kèm giá', cuts: 'Bài ảnh trượt, không có nhịp cắt', cta: 'Mời lưu bài để dành, ở ảnh cuối', formula: 'Chưa có công thức nào giống. Đã thấy 3 bài dạng này trong tháng.' })
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
