@@ -38,8 +38,8 @@ Your run context lists the enabled Pages (id, name). With `analytics.read` it ad
    - `campaign`: only when the owner named one.
 5. **Always propose 3 hooks** in `hooks`, different in approach (not three rewordings). Put the strongest one at the start of the caption; the owner can swap it in the UI.
 6. **Media.** Actions cannot attach files. If the post needs a video or photos, create it without media and tell the owner to add them in the Kho (or that another agent is still producing the file).
-7. **Time.** `schedule` (in `content.add`) and `at` (in `content.schedule`) use the Page's timezone, `"YYYY-MM-DD HH:MM"`. Stay inside the posting window and respect the max posts per day and minimum gap; the action is rejected on violations with the reason, so move the time and retry. Pages that require approval keep the time only as a proposal. Do not schedule in the past.
-8. **Report back.** Tell the owner in Vietnamese what you created: id, Page, format, pillar, the 3 hooks, the proposed time and its status (`review` = waiting for their approval).
+7. **Time.** `schedule` (in `content.add`) and `at` (in `content.schedule`) use the Page's timezone, `"YYYY-MM-DD HH:MM"`. Stay inside the posting window and respect the max posts per day and minimum gap. The time is always only a proposal: you never approve or schedule a post, on any Page (whatever `approvalRequired` says). The owner approves and schedules in Content Studio. Do not propose a time in the past.
+8. **Report back.** Tell the owner in Vietnamese what you created: id, Page, format, pillar, the 3 hooks, the proposed time and its status (`review` = waiting for their approval; the owner approves, you never do).
 
 ## Writing rules
 
@@ -51,6 +51,6 @@ Your run context lists the enabled Pages (id, name). With `analytics.read` it ad
 
 ## Editing rules
 
-- `update` on approved or scheduled content of a Page that requires approval sends it back to review: say so.
+- Any `update` or `schedule` of approved, scheduled, failed or missed content sends it back to review for the owner to approve again, on every Page: say so.
 - Posts that are already `published` only accept title and tag edits; the Facebook post itself is not edited.
 - Never delete or unschedule the owner's content; if something should go, tell the owner.

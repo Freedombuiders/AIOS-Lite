@@ -54,19 +54,19 @@ function run(command: 'add' | 'update' | 'schedule', payload: unknown, agentId: 
 export const marketingActions: Record<string, ModuleAction> = {
   'content.add': {
     scope: 'content.write',
-    description: 'Tạo bài mới trong Kho nội dung ở trạng thái Chờ duyệt (không đăng). Luôn kèm 3 hook khác hướng nhau.',
+    description: 'Tạo bài mới trong Kho nội dung ở trạng thái Chờ duyệt (không đăng, không tự duyệt). Chủ Page duyệt và lên lịch. Luôn kèm 3 hook khác hướng nhau.',
     example: { page: 'Tên hoặc id Fanpage', format: 'photo', title: 'Tiêu đề', caption: 'Nội dung bài', pillar: 'Kiến thức', hookType: 'câu hỏi', cta: 'Nhắn tin', hooks: ['Hook 1', 'Hook 2', 'Hook 3'], schedule: '2026-10-30 19:30' },
     handler: (payload, call) => run('add', payload, call.agentId),
   },
   'content.update': {
     scope: 'content.write',
-    description: 'Sửa một bài trong Kho nội dung (ví dụ theo góp ý của chủ Page). Bài đã duyệt của Page cần duyệt sẽ quay về Chờ duyệt.',
+    description: 'Sửa một bài trong Kho nội dung (ví dụ theo góp ý của chủ Page). Bài đã duyệt hoặc đã hẹn giờ sẽ quay về Chờ duyệt để chủ Page duyệt lại.',
     example: { id: 12, caption: 'Caption đã sửa' },
     handler: (payload, call) => run('update', payload, call.agentId),
   },
   'content.schedule': {
     scope: 'content.write',
-    description: 'Đề xuất hoặc đặt giờ đăng cho một bài (giờ theo múi giờ của Page). Page cần duyệt thì giờ chỉ là đề xuất.',
+    description: 'Đề xuất giờ đăng cho một bài (giờ theo múi giờ của Page). Giờ luôn chỉ là đề xuất: chỉ chủ Page duyệt và lên lịch; bài đã duyệt sẽ quay về Chờ duyệt.',
     example: { id: 12, at: '2026-10-30 19:30' },
     handler: (payload, call) => run('schedule', payload, call.agentId),
   },

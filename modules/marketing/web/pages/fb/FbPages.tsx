@@ -206,9 +206,9 @@ function PageCard({ page: p, selected, busy, onSelect, onEnabled, onApproval }: 
       <div class="flex items-center gap-3">
         <Toggle on={p.approvalRequired} disabled={busy} ariaLabel={`Bài do agent làm cần duyệt: ${p.name}`} onChange={() => onApproval(!p.approvalRequired)} />
         <div class="min-w-0">
-          <div class="text-[13px] font-semibold text-[var(--color-text)]">{p.approvalRequired ? 'Cần duyệt trước khi đăng' : 'Tự đăng'}</div>
+          <div class="text-[13px] font-semibold text-[var(--color-text)]">{p.approvalRequired ? 'Cần duyệt trước khi đăng' : 'Không bắt buộc duyệt'}</div>
           <div class="text-[13px] text-[var(--color-text-muted)]">
-            {p.approvalRequired ? 'Bài agent làm vào hàng chờ duyệt' : 'Agent làm xong là vào lịch'}
+            {p.approvalRequired ? 'Bài agent làm vào hàng chờ duyệt' : 'Bài agent làm vẫn luôn chờ bạn duyệt'}
           </div>
         </div>
       </div>

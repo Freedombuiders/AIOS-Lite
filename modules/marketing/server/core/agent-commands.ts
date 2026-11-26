@@ -13,8 +13,6 @@ import {
 } from '../store.js';
 import type { FbContentDto, FbContentInput, FbFormat } from '../types.js';
 import {
-  approveContent,
-  assertScheduleAllowed,
   createContent,
   deleteContentLocal,
   getContentDetail,
@@ -224,13 +222,11 @@ function cmdAdd(args: ParsedArgs, actor: Actor): unknown {
 
   const scheduleText = one(args, 'schedule');
   const at = scheduleText ? parseTime(scheduleText, page) : null;
-  const approvalOff = page.approval_required === 0;
-  // With approval off the time must satisfy the Page rules; check before anything is created.
-  if (approvalOff && at !== null) assertScheduleAllowed(page, at, undefined);
+  // An agent never approves: the time is only a proposal and the post waits for the owner,
+  // whatever the Page's approval_required says (that flag only shapes the owner's own flow).
   if (at !== null) input.scheduledAt = at;
 
   const created = createContent(input, actor);
-  const warnings: string[] = [];
   const mediaPaths = many(args, 'media');
   try {
     if (mediaPaths?.length) {
@@ -242,21 +238,13 @@ function cmdAdd(args: ParsedArgs, actor: Actor): unknown {
     throw err;
   }
 
-  let result = getContentDetail(created.id) as FbContentDto;
-  if (approvalOff) {
-    try {
-      result = approveContent(created.id, at);
-    } catch (err) {
-      if (!(err instanceof FbError)) throw err;
-      warnings.push(`Chưa duyệt tự động được: ${err.message}`);
-    }
-  }
+  const result = getContentDetail(created.id) as FbContentDto;
   return {
     ok: true,
     content: summarize(result, page.timezone),
-    approvalRequired: !approvalOff,
-    warnings,
-    next: result.status === 'review' ? 'Bài đang chờ chủ kênh duyệt trong Content Studio.' : undefined,
+    approvalRequired: true,
+    warnings: [] as string[],
+    next: 'Bài đang chờ chủ kênh duyệt trong Content Studio. Chỉ chủ kênh duyệt và lên lịch bài.',
   };
 }
 
@@ -292,14 +280,16 @@ function cmdSchedule(args: ParsedArgs, actor: Actor): unknown {
   if (!page) throw new FbError(400, 'Bài chưa có Fanpage.');
   const at = parseTime(text, page);
 
-  const awaitingApproval = !['approved', 'scheduled'].includes(row.status) && page.approval_required === 1;
-  const updated = awaitingApproval || ['approved', 'scheduled'].includes(row.status)
-    ? updateContent(id, { scheduledAt: at }, actor)
-    : approveContent(id, at);
+  // Agents only propose a time; updateContent keeps it as a proposal and sends a post that was
+  // already approved back to review, so only the owner ever approves or schedules.
+  const wasApproved = ['approved', 'scheduled', 'failed', 'missed'].includes(row.status);
+  const updated = updateContent(id, { scheduledAt: at }, actor);
   return {
     ok: true,
     content: summarize(updated, page.timezone),
-    note: awaitingApproval ? 'Đã ghi giờ đề xuất; bài vẫn chờ chủ kênh duyệt trong Content Studio.' : undefined,
+    note: wasApproved
+      ? 'Đã ghi giờ đề xuất; bài quay về Chờ duyệt để chủ kênh duyệt lại trong Content Studio.'
+      : 'Đã ghi giờ đề xuất; bài vẫn chờ chủ kênh duyệt trong Content Studio.',
   };
 }
 

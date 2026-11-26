@@ -142,29 +142,19 @@ describe('add', () => {
     expect(run('list').total).toBe(0);
   });
 
-  it('goes straight to approved, or scheduled, when the Page has approval off', () => {
+  it('never approves or schedules, even when the Page has approval off', () => {
     makePage('p2', { approval_required: 0 });
     const plain = run('add', '--page', 'p2', '--format', 'text', '--title', 'A', '--caption', 'x');
-    expect(plain.content.status).toBe('approved');
-    expect(plain.approvalRequired).toBe(false);
+    expect(plain.content.status).toBe('review');
+    expect(plain.approvalRequired).toBe(true);
+    expect(plain.next).toMatch(/chờ chủ kênh duyệt/);
     const at = futureAt(2, '10:00');
     const timed = run('add', '--page', 'p2', '--format', 'text', '--title', 'B', '--caption', 'x', '--schedule', local(at));
-    expect(timed.content).toMatchObject({ status: 'scheduled', scheduledAt: at });
-  });
-
-  it('rejects a time that breaks the rules before creating anything (approval off)', () => {
-    makePage('p2', { approval_required: 0 });
-    const err = thrown(() => run('add', '--page', 'p2', '--format', 'text', '--title', 'A', '--caption', 'x', '--schedule', local(futureAt(2, '23:30'))));
-    expect(err).toBeInstanceOf(FbError);
-    expect(err.message).toMatch(/ngoài khung/);
-    expect(run('list').total).toBe(0);
-  });
-
-  it('keeps an incomplete post in review with a warning (approval off)', () => {
-    makePage('p2', { approval_required: 0 });
-    const out = run('add', '--page', 'p2', '--format', 'video', '--title', 'No file');
-    expect(out.content.status).toBe('review');
-    expect(out.warnings[0]).toMatch(/Chưa duyệt tự động được/);
+    expect(timed.content).toMatchObject({ status: 'review', scheduledAt: at });
+    // A time outside the window is only a proposal too: the owner sees it when approving.
+    const late = run('add', '--page', 'p2', '--format', 'text', '--title', 'C', '--caption', 'x', '--schedule', local(futureAt(2, '23:30')));
+    expect(late.content.status).toBe('review');
+    expect(['approved', 'scheduled']).not.toContain(getFbContent(timed.content.id)?.status);
   });
 
   it('validates arguments', () => {
@@ -219,6 +209,16 @@ describe('update', () => {
     expect(run('update', String(id), '--caption', 'Agent sửa').content.status).toBe('review');
   });
 
+  it('sends approved, scheduled, failed and missed posts back to review even with approval off', () => {
+    makePage('p2', { approval_required: 0 });
+    for (const status of ['approved', 'scheduled', 'failed', 'missed']) {
+      const id = seedContent({ page_id: 'p2', status, scheduled_at: status === 'approved' ? null : futureAt(2, '19:00') });
+      expect(run('update', String(id), '--caption', `Agent sửa ${status}`).content.status).toBe('review');
+    }
+    const draft = seedContent({ page_id: 'p2', status: 'draft' });
+    expect(run('update', String(draft), '--caption', 'x').content.status).toBe('draft');
+  });
+
   it('needs something to change and refuses published posts', () => {
     const id = seedContent({ status: 'draft' });
     expect(thrown(() => run('update', String(id))).message).toMatch(/ít nhất một cờ/);
@@ -237,24 +237,25 @@ describe('schedule', () => {
     expect(out.note).toMatch(/chờ chủ kênh duyệt/);
   });
 
-  it('schedules approved posts through the Page rules', () => {
-    const id = seedContent({ status: 'approved' });
-    const at = futureAt(2, '19:00');
-    expect(run('schedule', String(id), local(at)).content).toMatchObject({ status: 'scheduled', scheduledAt: at });
-    const other = seedContent({ status: 'approved' });
-    const err = thrown(() => run('schedule', String(other), local(futureAt(2, '20:00'))));
-    expect(err).toBeInstanceOf(FbError);
-    expect(err.message).toMatch(/tối thiểu/);
-    expect(getFbContent(other)?.status).toBe('approved');
+  it('turns a new time on an approved or scheduled post into a proposal sent back to review', () => {
+    for (const status of ['approved', 'scheduled']) {
+      const id = seedContent({ status, scheduled_at: status === 'scheduled' ? futureAt(3, '19:00') : null });
+      const at = futureAt(2, '19:00');
+      const out = run('schedule', String(id), local(at));
+      expect(out.content).toMatchObject({ status: 'review', scheduledAt: at });
+      expect(out.note).toMatch(/duyệt lại/);
+    }
   });
 
-  it('approves and schedules on Pages with approval off', () => {
+  it('never approves or schedules on Pages with approval off', () => {
     makePage('p2', { approval_required: 0 });
-    const id = seedContent({ page_id: 'p2', status: 'review' });
-    const at = futureAt(2, '19:00');
-    const out = run('schedule', String(id), local(at));
-    expect(out.content).toMatchObject({ status: 'scheduled', scheduledAt: at });
-    expect(out.note).toBeUndefined();
+    for (const status of ['draft', 'review', 'approved', 'failed', 'missed']) {
+      const id = seedContent({ page_id: 'p2', status });
+      const at = futureAt(2, '19:00');
+      const out = run('schedule', String(id), local(at));
+      expect(['approved', 'scheduled']).not.toContain(out.content.status);
+      expect(out.content.scheduledAt).toBe(at);
+    }
   });
 
   it('validates arguments', () => {
