@@ -50,7 +50,8 @@ export const NOTE_SCHEMAS = {
     cong_thuc_phien_ban: opt(z.union([z.number(), z.string().min(1)])),
     hoc_tu: opt(wikiLink),
     nen_tang: z.enum(NEN_TANG),
-    dinh_dang: opt(z.enum(['video-ngan', 'anh', 'chu', 'album'])),
+    /** video = a Facebook video that is not a Reel; lien-ket = a link post */
+    dinh_dang: opt(z.enum(['video-ngan', 'video', 'anh', 'chu', 'album', 'lien-ket'])),
     tru_cot: str,
     mo_dau: opt(z.enum(MO_DAU)),
     do_dai: num,

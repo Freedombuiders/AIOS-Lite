@@ -31,7 +31,7 @@ Hoặc nhập mã ABCD-EFGH-JKLM ở màn hình "Đăng nhập chủ".
 - Khi chạy `npm run dev`, giao diện ở cổng 5173 và liên kết trỏ tới cổng 4380. Cookie gắn theo tên máy, không theo cổng, nên liên kết `127.0.0.1:4380` dùng được cho `127.0.0.1:5173`, nhưng không dùng được cho `localhost:5173`. Khi đó hãy nhập mã vào màn hình đăng nhập.
 - Máy chỉ dùng `AIOS_TOKEN` thì đặt `AIOS_OWNER_PAIRING=off` để không in mã.
 
-**Đường cần chủ.** Có đúng một danh sách là `OWNER_ROUTES` trong `src/api/owner.ts`. Nó gồm các đường: gửi tin cho khách (care, Zalo, trả lời bình luận), duyệt, sửa hoặc gửi nháp, duyệt, lên lịch hoặc đăng bài (marketing, KOL, video), ghi vào tài khoản quảng cáo và áp đề xuất, cài đặt module, đổi agent, quyền, skill, thư mục brain, khoá integration, duyệt lệnh integration, và cài gói team hay mẫu. Chỉ các method ghi (POST, PUT, PATCH, DELETE) mới bị chặn. Đường đọc và SSE vẫn mở như cũ.
+**Đường cần chủ.** Có đúng một danh sách là `OWNER_ROUTES` trong `src/api/owner.ts`. Nó gồm các đường: gửi tin cho khách (care, Zalo, trả lời bình luận), duyệt, sửa hoặc gửi nháp, duyệt, lên lịch hoặc đăng bài (marketing, KOL, video), ghi vào tài khoản quảng cáo và áp đề xuất, cài đặt module, đổi agent, quyền, skill, thư mục brain, khoá integration, duyệt lệnh integration, cài gói team hay mẫu, xem trước, cài, cập nhật hoặc gỡ gói dữ liệu (`/api/packs/*`), bắt đầu đăng nhập cloud (`POST /api/cloud/login/start`; đăng xuất cloud là `DELETE /api/integrations/agenticos-cloud`, cũng cần chủ), và mọi đường ghi của `crm` và `learn`. Hai mục `/api/m/crm/*` và `/api/m/learn/*` cũng chặn trước các đường ghi sẽ thêm sau. Chỉ các method ghi (POST, PUT, PATCH, DELETE) mới bị chặn. Đường đọc và SSE vẫn mở như cũ.
 
 - Không có quyền chủ: trả `401` với `{ error: { code: 'unauthorized' } }` và header `x-aios-owner: required`.
 - Có cookie nhưng yêu cầu đến từ trang khác: trả `403` với header `x-aios-owner: cross-site`.
@@ -46,6 +46,8 @@ Hoặc nhập mã ABCD-EFGH-JKLM ở màn hình "Đăng nhập chủ".
 SameSite coi mọi cổng của `localhost` là cùng một site, nên riêng SameSite không chặn được một trang ở `localhost:3000`. Kiểm tra `Origin` chặn được. Mọi yêu cầu ghi từ trang khác đều bị chặn, kể cả ở đường không cần chủ, ví dụ một trang web tạo task trên máy. Request không có `Origin` lẫn `Sec-Fetch-Site` (curl, script) không phải từ trình duyệt, và tự nó không mang được cookie của chủ.
 
 **Cầu MCP của agent.** `POST /api/integrations/call` và `GET /api/integrations/tools` vẫn dùng token riêng của từng lượt chạy, như trước. Token lượt chạy **không** phải quyền chủ. Đưa nó vào một đường của chủ sẽ nhận `401`.
+
+**Đường gọi lại khi đăng nhập cloud.** `GET /api/cloud/callback` mở mà không cần token hay cookie. Trình duyệt được chuyển về đây, nên không mang theo được token; `state` của OAuth là thứ bảo vệ đường này.
 
 **Khi bật `AIOS_TOKEN`.** Mọi đường vẫn đòi token như hôm nay. Phiên cookie của chủ cũng qua được cổng token. Riêng các đường ghép (`/api/owner/status`, `/api/owner/pair`, `/api/owner/pair/request`) mở mà không cần token.
 

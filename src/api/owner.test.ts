@@ -37,11 +37,22 @@ async function boot(opts: { token?: string; modules?: string[] } = {}) {
   const printed: string[] = [];
   const owner = createOwnerAuth({ db: h.deps.db, token: h.deps.config.token, print: (t) => void printed.push(t) });
   const server = createApiServer(h.deps, { owner });
-  const ids = opts.modules ?? mgr.discover().map((m) => m.manifest.id);
-  for (const id of ids) {
-    const r = await mgr.add(id, { installAgents: false });
-    expect(r.module.error, id).toBeUndefined();
+  // add in dependency order: a module whose required module is not on yet is retried in the next pass
+  let pending = opts.modules ?? mgr.discover().map((m) => m.manifest.id);
+  for (let pass = 0; pending.length && pass < 5; pass++) {
+    const next: string[] = [];
+    for (const id of pending) {
+      const requires = mgr.discover().find((m) => m.manifest.id === id)?.manifest.requires?.modules ?? [];
+      if (requires.some((r) => !mgr.isEnabled(r))) {
+        next.push(id);
+        continue;
+      }
+      const r = await mgr.add(id, { installAgents: false });
+      expect(r.module.error, id).toBeUndefined();
+    }
+    pending = next;
   }
+  expect(pending).toEqual([]);
   stop = () => mgr.stop();
   return { mgr, app: server.app, owner, printed, deps: h.deps };
 }
@@ -65,19 +76,34 @@ describe('owner route list', () => {
     const kol = new Hono();
     registerKolRoutes(kol);
     kol.route('/api/kol/videos', kolVideoRoutes);
-    const routes = [
+    const table = [
       ...app.routes.map((r) => ({ method: r.method, path: r.path })),
       ...mgr.routeTable(),
       ...kol.routes.map((r) => ({ method: r.method, path: r.path.replace(/^\/api\/kol/, '/api/m/kol') })),
-    ].filter((r) => r.method !== 'ALL' && r.method !== 'GET'); // ALL = middleware (app.use)
+    ].filter((r) => r.method !== 'ALL'); // ALL = middleware (app.use)
+    const routes = table.filter((r) => r.method !== 'GET');
     expect(routes.length).toBeGreaterThan(200);
 
     const uncovered = routes.filter((r) => looksSensitive(r.method, r.path) && !isOwnerRoute(r.method, r.path) && !isExemptRoute(r.method, r.path));
     expect(uncovered.map((r) => `${r.method} ${r.path}`)).toEqual([]);
 
     // stale or misspelled entries would silently protect nothing
+    // ('*' prefix entries such as /api/m/crm/* guard a module with no write route yet: a GET under it is enough)
     for (const [method, pattern] of [...OWNER_ROUTES, ...NOT_OWNER_ROUTES]) {
-      expect(routes.some((r) => matchesOne(method, pattern, r)), `${method} ${pattern}`).toBe(true);
+      const pool = method === '*' ? table.map((r) => ({ ...r, method: '*' })) : routes;
+      expect(pool.some((r) => matchesOne(method, pattern, r)), `${method} ${pattern}`).toBe(true);
+    }
+
+    // routes added on main since S1 (T22 packs + cloud, T08 crm, T14 learn) and care's pause / AI mode
+    for (const [m, p] of [
+      ['POST', '/api/packs/:id/preview'], ['POST', '/api/packs/:id/install'], ['POST', '/api/packs/:id/uninstall/preview'], ['POST', '/api/packs/:id/uninstall'],
+      ['POST', '/api/cloud/login/start'], ['POST', '/api/m/learn/sync'], ['POST', '/api/m/crm/anything-new'],
+      ['PUT', '/api/m/care/conversations/:id/pause'], ['DELETE', '/api/m/care/conversations/:id/pause'],
+      ['PUT', '/api/m/care/conversations/:id/ai'], ['PUT', '/api/m/care/conversations/:id/customer-care'], ['PUT', '/api/m/care/runtime/switches'],
+    ] as const) expect(isOwnerRoute(m, p), `${m} ${p}`).toBe(true);
+    // reads and the cloud OAuth callback stay open
+    for (const p of ['/api/packs', '/api/packs/installed', '/api/packs/updates', '/api/cloud/status', '/api/cloud/callback', '/api/m/crm/customers', '/api/m/learn/content-lab']) {
+      expect(isOwnerRoute('GET', p), p).toBe(false);
     }
     // a run-token path is never an owner path, even though "integrations" looks sensitive
     expect(isOwnerRoute('POST', '/api/integrations/call')).toBe(false);
@@ -153,6 +179,11 @@ describe('owner gate over HTTP', () => {
     // pairing stays reachable without the token; a paired session passes the token gate for reads
     const cookie = await pair(app, owner);
     expect((await app.request('/api/health', { headers: { cookie } })).status).toBe(200);
+    // the cloud sign-in callback is a browser redirect: no token, no cookie; its OAuth state is what guards it
+    const callback = await app.request('/api/cloud/callback?code=x&state=not-a-pending-state');
+    expect(callback.status).toBe(400);
+    expect(await callback.text()).not.toContain('AIOS_TOKEN');
+
   });
 
   it('the MCP bridge keeps working with its run token and is never the owner', async () => {
@@ -163,6 +194,12 @@ describe('owner gate over HTTP', () => {
     expect(await call.json()).toMatchObject({ ok: false }); // not connected in this harness, but authorised and answered
     const tools = await app.request('/api/integrations/tools', { headers: { authorization: `Bearer ${run}` } });
     expect(tools.status).toBe(200);
+    // starting a cloud sign-in, installing or uninstalling a pack, or a learn sync needs the owner
+    for (const p of ['/api/cloud/login/start', '/api/packs/demo/install', '/api/packs/demo/uninstall', '/api/m/learn/sync']) {
+      const r = await app.request(p, { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${run}` }, body: '{}' });
+      expect(r.status, p).toBe(401);
+      expect(r.headers.get(OWNER_HEADER), p).toBe('required');
+    }
     // the same run token on an owner route is refused
     const grant = await app.request('/api/agents/main/integrations', { method: 'PUT', headers: { 'content-type': 'application/json', authorization: `Bearer ${run}` }, body: JSON.stringify({ grants: { pancake: 'write' } }) });
     expect(grant.status).toBe(401);

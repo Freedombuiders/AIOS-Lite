@@ -16,6 +16,7 @@ import { mountIntegrationRoutes, RUN_TOKEN_PATHS } from './routes/integrations.j
 import { memoryRoutes } from './routes/memory.js';
 import { miscRoutes } from './routes/misc.js';
 import { modulesRoutes } from './routes/modules.js';
+import { CLOUD_CALLBACK_PATH, packsRoutes } from './routes/packs.js';
 import { runsRoutes } from './routes/runs.js';
 import { skillsAdminRoutes } from './routes/skills-admin.js';
 import { schedulesRoutes } from './routes/schedules.js';
@@ -47,8 +48,11 @@ const MIME: Record<string, string> = {
   '.woff': 'font/woff', '.woff2': 'font/woff2', '.map': 'application/json', '.txt': 'text/plain; charset=utf-8',
 };
 
-/** Reachable without AIOS_TOKEN: the MCP bridge (own per-run token) and owner pairing. */
-const OPEN_PATHS: readonly string[] = [...RUN_TOKEN_PATHS, '/api/owner/status', '/api/owner/pair', '/api/owner/pair/request'];
+/**
+ * Reachable without AIOS_TOKEN: the MCP bridge (own per-run token), owner pairing, and the cloud sign-in callback
+ * (a browser redirect that cannot carry the token; its OAuth `state` guards it).
+ */
+const OPEN_PATHS: readonly string[] = [...RUN_TOKEN_PATHS, CLOUD_CALLBACK_PATH, '/api/owner/status', '/api/owner/pair', '/api/owner/pair/request'];
 
 const originsFrom = (raw: string | undefined): string[] => (raw ?? '').split(',').map((s) => s.trim()).filter(Boolean);
 
@@ -83,6 +87,7 @@ export function createApiServer(deps: AppDeps, opts: ApiServerOptions = {}): Api
   schedulesRoutes(app, deps);
   chatRoutes(app, deps);
   brainRoutes(app, deps);
+  packsRoutes(app, deps);
   memoryRoutes(app, deps);
   skillsAdminRoutes(app, deps);
   miscRoutes(app, deps);

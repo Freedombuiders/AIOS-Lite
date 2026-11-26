@@ -247,6 +247,26 @@ describe('content feed', () => {
     expect(() => feed.since(-1, 10)).toThrow();
     expect(feed.get(999)).toBeUndefined();
   });
+
+  it('carries the ER of each snapshot from the metrics function, null when it cannot be known', () => {
+    const id = insertFbContent({ page_id: 'p1', caption: 'x', status: 'published', fb_post_id: POST_ID, published_at: T0 });
+    upsertFbPostMetrics(metric({ milestone: '24h', reach: 200, reactions: 8, comments: 1, shares: 1 }));
+    upsertFbPostMetrics(metric({ milestone: '7d', reach: null }));
+    const snaps = feed.get(id)!.snapshots;
+    expect(snaps.find((s) => s.milestone === '24h')?.er).toBe(5);
+    expect(snaps.find((s) => s.milestone === '7d')?.er).toBeNull();
+  });
+
+  it('lists published rows since a time, by id, for a first catch-up', () => {
+    const old = insertFbContent({ page_id: 'p1', caption: 'cũ', status: 'published', published_at: T0 - 100 * 86400 });
+    const a = insertFbContent({ page_id: 'p1', caption: 'a', status: 'published', published_at: T0 - 10 });
+    insertFbContent({ page_id: 'p1', caption: 'nháp', status: 'draft' });
+    const b = insertFbContent({ page_id: 'p1', caption: 'b', status: 'published', published_at: T0 });
+    expect(feed.publishedSince(T0 - 90 * 86400)).toEqual([a, b]);
+    expect(feed.publishedSince(T0 - 90 * 86400, a)).toEqual([b]);
+    expect(feed.publishedSince(0, 0, 1)).toEqual([old]);
+    expect(() => feed.publishedSince(0, -1)).toThrow();
+  });
 });
 
 describe('lineage is set once', () => {

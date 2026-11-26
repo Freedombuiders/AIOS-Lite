@@ -1,4 +1,4 @@
-import { CalendarClock, FileText, Flag, LineChart, MessageSquareReply, SlidersHorizontal } from 'lucide-preact';
+import { CalendarClock, FileText, Flag, LineChart, MessageSquareReply, Share2, SlidersHorizontal, ThumbsUp } from 'lucide-preact';
 import { Link } from 'wouter-preact';
 import { useFetch } from '@/lib/useFetch';
 import { defineWebModule, type WebNavItem } from '@/module-host/contracts';
@@ -9,6 +9,8 @@ import { FbComments } from '@modules/marketing/web/pages/fb/FbComments';
 import { FbLibrary } from '@modules/marketing/web/pages/fb/FbLibrary';
 import { ContentOverview } from '@modules/marketing/web/components/ContentOverview';
 import { FbPages } from '@modules/marketing/web/pages/fb/FbPages';
+import { SocialFacebook } from '@modules/marketing/web/pages/social/SocialFacebook';
+import { SocialOverview } from '@modules/marketing/web/pages/social/SocialOverview';
 import type { FbContentListDto } from '@modules/marketing/web/lib/fbstudio';
 
 // lucide's icon props accept string sizes, the host contract only numbers: cast once here
@@ -44,6 +46,8 @@ export default defineWebModule({
     { group: 'marketing', label: 'Pages', path: '/m/marketing', icon: icon(Flag), order: 10 },
     { group: 'marketing', label: 'Kho nội dung', path: '/m/marketing/library', icon: icon(FileText), order: 20 },
     { group: 'marketing', label: 'Lịch đăng', path: '/m/marketing/calendar', icon: icon(CalendarClock), order: 30 },
+    { group: 'marketing', label: 'Mạng xã hội', path: '/m/marketing/social', icon: icon(Share2), order: 34 },
+    { group: 'marketing', label: 'Facebook', path: '/m/marketing/social/facebook', icon: icon(ThumbsUp), order: 36 },
     { group: 'marketing', label: 'Phân tích', path: '/m/marketing/analytics', icon: icon(LineChart), order: 40 },
     { group: 'marketing', label: 'Bình luận AI', path: '/m/marketing/comments', icon: icon(MessageSquareReply), order: 50 },
     { group: 'marketing', label: 'Quy tắc bình luận', path: '/m/marketing/comment-rules', icon: icon(SlidersHorizontal), order: 60 },
@@ -52,6 +56,8 @@ export default defineWebModule({
     { path: '/m/marketing', component: FbPages },
     { path: '/m/marketing/library', component: FbLibrary },
     { path: '/m/marketing/calendar', component: FbCalendar },
+    { path: '/m/marketing/social', component: SocialOverview },
+    { path: '/m/marketing/social/facebook', component: SocialFacebook },
     { path: '/m/marketing/analytics', component: Analytics },
     { path: '/m/marketing/comments', component: FbComments },
     { path: '/m/marketing/comment-rules', component: FbCommentRules },

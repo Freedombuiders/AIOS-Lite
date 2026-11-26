@@ -33,7 +33,7 @@ interface Active {
 
 const CORE_TABLES = new Set([
   'tasks', 'task_comments', 'runs', 'run_events', 'schedules', 'conversations', 'messages', 'memories',
-  'brain_docs', 'board', 'audit_log', 'attention', 'modules', 'kv', 'schema_migrations', 'owner_sessions',
+  'brain_docs', 'board', 'audit_log', 'attention', 'modules', 'kv', 'schema_migrations', 'pack_installs', 'pack_files', 'owner_sessions',
 ]);
 
 export function createModuleManager(deps: AppDeps, opts: ModuleManagerOptions = {}): ModuleManager {

@@ -130,6 +130,14 @@ export const OWNER_ROUTES: ReadonlyArray<readonly [Method, string, string]> = [
   ['*', '/api/teams/import/*', 'nhập gói team'],
   ['*', '/api/agent-market/:id/install', 'cài agent'],
   ['*', '/api/m/video/edit/templates/:id/install', 'cài mẫu video'],
+  ['*', '/api/packs/*', 'xem trước, cài, cập nhật, gỡ gói dữ liệu'],
+  // cloud account (sign-out is DELETE /api/integrations/agenticos-cloud, covered above; the GET callback stays open:
+  // it is a browser redirect guarded by its OAuth state)
+  ['POST', '/api/cloud/login/start', 'đăng nhập tài khoản cloud'],
+  ['POST', '/api/m/radar/browser/login', 'đăng nhập trình duyệt của radar'],
+  // crm and learn: every route that changes anything (today only learn sync; a new write route is covered by default)
+  ['*', '/api/m/crm/*', 'ghi dữ liệu CRM'],
+  ['*', '/api/m/learn/*', 'đồng bộ, ghi bài học'],
   // owner sessions
   ['POST', '/api/owner/pair-link', 'tạo mã ghép cho thiết bị khác'],
 ];
@@ -143,7 +151,8 @@ export const SENSITIVE_SEGMENTS = [
   'approve', 'approvals', 'decide', 'submit', 'schedule', 'unschedule', 'publish', 'publish-now', 'delete-remote',
   'ads', 'recos', 'apply', 'apply-cart', 'budgets', 'accounts', 'connect', 'reconnect',
   'settings', 'config', 'enable', 'enabled', 'enable-all', 'switches', 'runtime', 'runtimes', 'autopilot', 'takeover', 'ai',
-  'agents', 'access', 'grants', 'integrations', 'oauth', 'composio-key', 'folders', 'roots', 'install', 'import', 'pack', 'packs',
+  'agents', 'access', 'grants', 'integrations', 'oauth', 'composio-key', 'folders', 'roots', 'install', 'uninstall', 'update', 'updates',
+  'import', 'pack', 'packs', 'cloud', 'login', 'logout', 'pause', 'mode', 'crm', 'learn',
 ] as const;
 
 /** Sensitive-looking routes that are deliberately NOT owner routes, with the reason. */
@@ -153,6 +162,7 @@ export const NOT_OWNER_ROUTES: ReadonlyArray<readonly [Method, string, string]> 
   ['POST', '/api/runtimes/genbot/check', 'chỉ kiểm kết nối runtime'],
   ['POST', '/api/owner/pair', 'đổi mã ghép lấy phiên chủ'],
   ['POST', '/api/owner/pair/request', 'in mã ghép mới ra terminal của máy chủ, không trả mã'],
+  ['POST', '/api/owner/logout', 'đăng xuất chính phiên của mình'],
   ['POST', '/api/m/video/edit/projects/:id/marks/send', 'gửi góp ý dựng phim cho agent dựng, không gửi ra ngoài'],
 ];
 

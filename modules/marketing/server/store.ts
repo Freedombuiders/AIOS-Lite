@@ -1135,6 +1135,14 @@ function appendFbContentFeed(kind: FbContentFeedKind, contentId: number, postId:
     .run(kind, contentId, postId, milestone, nowSec());
 }
 
+/** Ids of published rows with published_at >= sinceSec and id > afterId, ascending (contentFeed.publishedSince). */
+export function listPublishedFbContentIds(sinceSec: number, afterId: number, limit: number): number[] {
+  return (db.prepare(
+    `SELECT id FROM fb_content WHERE status = 'published' AND published_at IS NOT NULL AND published_at >= ? AND id > ?
+     ORDER BY id ASC LIMIT ?`,
+  ).all(sinceSec, afterId, limit) as Array<{ id: number }>).map((r) => r.id);
+}
+
 /** Feed events with id > cursor, oldest first. */
 export function listFbContentFeedSince(cursor: number, limit: number): FbContentFeedRow[] {
   return db.prepare(`SELECT * FROM fb_content_feed WHERE id > ? ORDER BY id ASC LIMIT ?`).all(cursor, limit) as FbContentFeedRow[];

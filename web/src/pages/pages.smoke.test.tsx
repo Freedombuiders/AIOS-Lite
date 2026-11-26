@@ -25,6 +25,7 @@ import SecondBrains from './SecondBrains';
 import SettingsPage from './Settings';
 import SkillsPage from './Skills';
 import TasksPage from './tasks/TasksPage';
+import PacksPage from './packs/PacksPage';
 import { Sidebar } from '@/components/Sidebar';
 
 // Every page renders against the mock API without throwing and shows its Vietnamese heading or content.
@@ -58,6 +59,8 @@ describe('pages with the mock api', () => {
     ['/audit', 'audit', () => <AuditPage />, /task\.create/],
     ['/modules', 'modules', () => <ModulesPage />, /Chăm sóc khách hàng/],
     ['/settings', 'settings', () => <SettingsPage />, /Runtime/],
+    ['/packs', 'kho dữ liệu', () => <PacksPage />, /Trà và quà tặng/],
+    ['/packs/tra-va-qua-tang-co-ban', 'pack detail', () => <PacksPage id="tra-va-qua-tang-co-ban" />, /CC-BY-4\.0/],
     ['/', 'sidebar', () => <Sidebar />, /Hôm nay/],
   ];
 
