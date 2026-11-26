@@ -82,7 +82,7 @@ access:
 
 Vài điều nên biết:
 
-- `budget_usd_month` chỉ đếm các lượt có báo chi phí. Codex và Hermes không báo chi phí (`reportsCost: false`), nên với hai runtime này ngân sách tháng gần như không có tác dụng.
+- `budget_usd_month` chỉ đếm các lượt có báo chi phí. Codex, Hermes và GenBot không báo chi phí (`reportsCost: false`), nên với các runtime này ngân sách tháng gần như không có tác dụng. Thay vào đó engine áp trần số lượt chạy mỗi ngày: `runtime_options.max_runs_day` (mặc định 500 khi runtime không báo chi phí; đặt cho runtime nào cũng được; `0` là tắt trần). Chạm trần thì việc mới `failed` với nhóm lỗi `budget`, ngày mới (theo `AIOS_TIMEZONE`) chạy lại được.
 - `can_delegate` không chỉ cho phép. Nó còn quyết định hệ thống có **đưa danh sách đồng đội và cách dùng `<aios-task>` vào prompt** hay không (`src/shared/context.ts:76`, `88`).
 - `max_concurrent` và `AIOS_MAX_PARALLEL` (toàn hệ thống) cùng áp dụng; con số nào chặt hơn thắng.
 

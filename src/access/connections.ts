@@ -4,6 +4,7 @@ import { parse } from 'yaml';
 import { z } from 'zod';
 import type { Composio } from '@composio/core';
 import { loadEnvFile, resolveEnvRefs } from '../core/env.js';
+import { isProtectedEnvName } from '../core/secret-env.js';
 import type { Logger } from '../core/log.js';
 import type { Connection } from '../core/types.js';
 import type { ConnectionsService } from './contracts.js';
@@ -98,10 +99,14 @@ export function createConnectionsService(opts: ConnectionsOptions): ConnectionsS
     }
   }
 
+  /** process env without core-only credentials (GenBot keys): a connection cannot copy them under another name */
+  const shareable = (): NodeJS.ProcessEnv => Object.fromEntries(Object.entries(env).filter(([k]) => !isProtectedEnvName(k)));
+
   const resolveEnv = (c: Connection): Record<string, string> => {
     if (c.type === 'composio' || !c.env) return {};
     const out: Record<string, string> = {};
-    for (const [k, v] of Object.entries(c.env)) out[k] = resolveEnvRefs(v, env);
+    const view = shareable();
+    for (const [k, v] of Object.entries(c.env)) out[k] = resolveEnvRefs(v, view);
     return out;
   };
 
@@ -109,8 +114,9 @@ export function createConnectionsService(opts: ConnectionsOptions): ConnectionsS
   function missingEnv(c: Connection): string[] {
     if (c.type === 'composio') return env[c.apiKeyEnv] ? [] : [c.apiKeyEnv];
     const missing = new Set<string>();
+    const view = shareable();
     for (const [k, v] of Object.entries(c.env ?? {})) {
-      if (resolveEnvRefs(v, env)) continue;
+      if (resolveEnvRefs(v, view)) continue;
       const refs = [...v.matchAll(/\$\{?([A-Z_][A-Z0-9_]*)\}?/g)].map((m) => m[1]!);
       (refs.length ? refs : [k]).forEach((r) => missing.add(r));
     }
@@ -129,7 +135,7 @@ export function createConnectionsService(opts: ConnectionsOptions): ConnectionsS
     list: () => items.slice(),
     get: (id) => items.find((c) => c.id === id),
     resolveEnv,
-    secret: (name) => env[name] || undefined,
+    secret: (name) => (isProtectedEnvName(name) ? undefined : env[name] || undefined),
 
     async composio() {
       const key = composioKey();

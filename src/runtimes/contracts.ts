@@ -1,6 +1,7 @@
 // Runtime layer contract. One adapter per CLI; the engine only talks to this interface.
 import type { AgentConfig, ErrorFamily, RunEvent, RuntimeId, Usage } from '../core/types.js';
 import type { EffectiveAccess } from '../access/contracts.js';
+import type { GenbotRuntimeOptions } from './genbot.js';
 
 export type Enforcement = 'hard' | 'soft' | 'none';
 
@@ -26,8 +27,14 @@ export interface RuntimeCapabilities {
   images: boolean;
   /** can attach local PDF documents to a prompt */
   documents: boolean;
-  /** can run with no tools at all (lean turns) */
+  /** can run with no tools at all (lean turns). Says nothing about whether tools or MCP are available otherwise. */
   noTools: boolean;
+  /** can be given MCP servers on a standard turn (the access policy grants `aios-integrations` only when true) */
+  mcp: boolean;
+  /** can open local files by path (skill files, attachments named in the prompt); false = text in, text out */
+  readsFiles: boolean;
+  /** hard cap on systemPrompt + prompt in characters; the context builder fits everything inside it */
+  maxPromptChars?: number;
   enforces: AccessEnforcement;
 }
 
@@ -109,6 +116,8 @@ export interface RuntimeRegistryOptions {
   commands?: Partial<Record<RuntimeId, string>>;
   /** extra env merged into every child process (after filtering) */
   env?: Record<string, string>;
+  /** GenBot adapter options (tests inject env, poll interval, limiter) */
+  genbot?: GenbotRuntimeOptions;
 }
 
 /** Implemented in src/runtimes/index.ts */

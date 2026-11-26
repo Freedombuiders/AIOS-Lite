@@ -1,8 +1,10 @@
 import { useState } from 'preact/hooks';
-import type { ContextProfile, Permission, RuntimeId } from '@core/types';
+import type { AgentConfig, ContextProfile, Permission, RuntimeId } from '@core/types';
+import { Pill } from '@/components/Pill';
 import { Toggle } from '@/components/Toggle';
 import { Field } from '@/components/ui';
-import type { AgentInput, AgentSummary } from '@/lib/api-types';
+import { apiPost, errorText } from '@/lib/api';
+import type { AgentInput, AgentSummary, DoctorCheck } from '@/lib/api-types';
 import { RUNTIME_LABEL } from '@/lib/labels';
 
 export interface AgentFormValue {
@@ -19,11 +21,13 @@ export interface AgentFormValue {
   budget: string;
   enabled: boolean;
   persona: string;
+  /** agent.yaml runtime_options, kept whole so saving the form never drops a key */
+  runtimeOptions: AgentConfig['runtimeOptions'];
 }
 
 export const EMPTY_AGENT: AgentFormValue = {
   id: '', name: '', description: '', runtime: 'claude', model: '', permission: 'safe', context: 'standard', reportsTo: '', canDelegate: false,
-  maxConcurrent: 1, budget: '', enabled: true, persona: '',
+  maxConcurrent: 1, budget: '', enabled: true, persona: '', runtimeOptions: {},
 };
 
 export function toInput(v: AgentFormValue): AgentInput {
@@ -41,6 +45,7 @@ export function toInput(v: AgentFormValue): AgentInput {
     budgetUsdMonth: budget !== undefined && Number.isFinite(budget) ? budget : undefined,
     enabled: v.enabled,
     persona: v.persona,
+    runtimeOptions: v.runtimeOptions,
   };
 }
 
@@ -49,7 +54,62 @@ export function validateAgent(v: AgentFormValue, creating: boolean): string | nu
   if (!v.name.trim()) return 'Hãy nhập tên agent.';
   if (v.maxConcurrent < 1) return 'Số việc chạy song song tối thiểu là 1.';
   if (v.budget.trim() !== '' && !(Number(v.budget) >= 0)) return 'Ngân sách phải là số không âm.';
+  if (v.runtime === 'genbot') {
+    const o = v.runtimeOptions;
+    if (!String(o.base_url ?? '').trim() || !String(o.bot_id ?? '').trim() || !String(o.key_env ?? '').trim()) return 'Agent GenBot cần đủ địa chỉ GenBot, mã bot và tên biến chứa khoá.';
+    if (!/^GENBOT_KEY_[A-Z0-9_]+$/.test(String(o.key_env).trim())) return 'Tên biến chứa khoá phải có dạng GENBOT_KEY_<TÊN>, ví dụ GENBOT_KEY_CSKH. Đừng dán khoá vào đây.';
+  }
   return null;
+}
+
+const GENBOT_FIELDS: { key: 'base_url' | 'bot_id' | 'key_env'; label: string; placeholder: string; hint: string }[] = [
+  { key: 'base_url', label: 'Địa chỉ GenBot', placeholder: 'http://127.0.0.1:8800', hint: 'Cổng nhận webhook của GenBot. http:// chỉ cho máy này, máy khác dùng https://.' },
+  { key: 'bot_id', label: 'Mã bot', placeholder: 'bot_abc123', hint: 'Lấy trong app GenBot, thẻ Bot API của bot.' },
+  { key: 'key_env', label: 'Biến chứa khoá', placeholder: 'GENBOT_KEY_CSKH', hint: 'Tên biến trong file .env, không phải khoá.' },
+];
+
+/** The three GenBot values and a "Kiểm tra" button that sends one real message through the Bot API. */
+function GenbotSettings({ value, onChange, agentId }: { value: AgentConfig['runtimeOptions']; onChange: (v: AgentConfig['runtimeOptions']) => void; agentId?: string }) {
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ status: string; checks: DoctorCheck[] } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const check = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      setResult(await apiPost<{ status: string; checks: DoctorCheck[] }>('/runtimes/genbot/check', { ...(agentId ? { agentId } : {}), runtimeOptions: value, probe: true }));
+    } catch (e) {
+      setError(errorText(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div class="flex flex-col gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] p-3">
+      <div class="grid gap-3 sm:grid-cols-3">
+        {GENBOT_FIELDS.map((f) => (
+          <Field key={f.key} label={f.label} hint={f.hint}>
+            <input class="field mono" value={String(value[f.key] ?? '')} placeholder={f.placeholder} onInput={(e) => onChange({ ...value, [f.key]: (e.target as HTMLInputElement).value.trim() })} />
+          </Field>
+        ))}
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" class="control-button control-sm" disabled={busy} onClick={() => void check()}>{busy ? 'Đang kiểm tra…' : 'Kiểm tra'}</button>
+        <span class="hint">Gửi một tin "ping" thật tới bot (tính vào 10 lượt mỗi phút của bot).</span>
+      </div>
+      {error && <div class="text-[12px] text-[var(--color-danger)]">{error}</div>}
+      {result && (
+        <ul class="flex flex-col gap-1 text-[12px]">
+          {result.checks.map((c, i) => (
+            <li key={i} class="flex items-start gap-2">
+              <Pill tone={c.level === 'error' ? 'error' : c.level === 'warn' ? 'warn' : 'success'}>{c.level === 'error' ? 'Lỗi' : c.level === 'warn' ? 'Lưu ý' : 'Được'}</Pill>
+              <span>{c.message}{c.hint ? <span class="hint"> {c.hint}</span> : null}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 interface Props {
@@ -62,6 +122,7 @@ interface Props {
 }
 
 export function AgentForm({ value, onChange, creating, others, show = 'all' }: Props) {
+  const savedId = creating ? undefined : value.id;
   const set = <K extends keyof AgentFormValue>(k: K, v: AgentFormValue[K]) => onChange({ ...value, [k]: v });
   const [idTouched, setIdTouched] = useState(false);
   const text = (k: 'id' | 'name' | 'description' | 'model' | 'budget') => (e: Event) => set(k, (e.target as HTMLInputElement).value);
@@ -114,6 +175,7 @@ export function AgentForm({ value, onChange, creating, others, show = 'all' }: P
               </select>
             </Field>
           </div>
+          {value.runtime === 'genbot' && <GenbotSettings value={value.runtimeOptions} agentId={savedId} onChange={(runtimeOptions) => set('runtimeOptions', runtimeOptions)} />}
           <div class="grid gap-3 sm:grid-cols-4">
             <Field label="Quyền chạy" hint={value.permission === 'full' ? 'Full: CLI được tự chạy lệnh và sửa file.' : 'Safe: CLI hỏi/chặn thao tác nguy hiểm.'}>
               <select class="field" value={value.permission} onChange={(e) => set('permission', (e.target as HTMLSelectElement).value as Permission)}>

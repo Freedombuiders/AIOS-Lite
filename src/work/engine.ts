@@ -5,6 +5,7 @@ import type { AgentConfig, Conversation, ErrorFamily, Message, Run, Task } from 
 import type { ChildResult } from '../shared/contracts.js';
 import type { Engine } from './contracts.js';
 import { budgetKey } from './attention.js';
+import { dayStartIso } from './runs.js';
 import { parseDirectives, validateDirectives, type Directive } from './directives.js';
 
 const FAMILY_MESSAGE: Record<ErrorFamily, string> = {
@@ -19,8 +20,10 @@ const FAMILY_MESSAGE: Record<ErrorFamily, string> = {
   cancelled: 'Đã huỷ',
   unknown: 'Lỗi không xác định',
 };
-const ATTENTION_FAMILIES: ErrorFamily[] = ['auth', 'quota', 'config'];
+// access: a runtime is waiting for the owner (GenBot needs_approval); only the owner can unblock it
+const ATTENTION_FAMILIES: ErrorFamily[] = ['auth', 'quota', 'config', 'access'];
 const HISTORY_LIMIT = 20;
+const DEFAULT_MAX_RUNS_DAY = 500;
 
 export function createEngine(deps: AppDeps): Engine {
   const { db, bus, log } = deps;
@@ -47,8 +50,8 @@ export function createEngine(deps: AppDeps): Engine {
     }
   }
 
-  function failTask(task: Task, family: ErrorFamily, message: string): void {
-    deps.tasks.update(task.id, { status: 'failed', error: message, meta: { ...task.meta, errorFamily: family } });
+  function failTask(task: Task, family: ErrorFamily, message: string, retryAfter?: string): void {
+    deps.tasks.update(task.id, { status: 'failed', error: message, meta: { ...task.meta, errorFamily: family, ...(retryAfter ? { retryAfter } : {}) } });
     deps.board.add({ agentId: task.agentId, taskId: task.id, kind: 'error', text: summarize(`Thất bại: ${message}`) });
     if (ATTENTION_FAMILIES.includes(family)) {
       deps.attention.raise({
@@ -166,6 +169,20 @@ export function createEngine(deps: AppDeps): Engine {
     return { children, review };
   }
 
+  /** runtime_options.max_runs_day; 0 turns the cap off. Without it, runtimes that report no cost default to 500. */
+  function maxRunsDay(agent: AgentConfig): number | undefined {
+    const raw = agent.runtimeOptions.max_runs_day;
+    const set = typeof raw === 'number' ? raw : typeof raw === 'string' && raw.trim() ? Number(raw) : undefined;
+    if (set !== undefined && Number.isFinite(set) && set >= 0) return set > 0 ? Math.floor(set) : undefined;
+    let reportsCost = true;
+    try {
+      reportsCost = deps.runtimes.get(agent.runtime).capabilities.reportsCost;
+    } catch {
+      /* unknown runtime: the run fails later with its own error */
+    }
+    return reportsCost ? undefined : DEFAULT_MAX_RUNS_DAY;
+  }
+
   async function execute(task: Task, signal: AbortSignal): Promise<void> {
     let run: Run | null = null;
     try {
@@ -180,6 +197,16 @@ export function createEngine(deps: AppDeps): Engine {
         deps.attention.raise({
           key: budgetKey(agent.id), kind: 'budget', title: `${agent.name} đã dùng hết ngân sách tháng`, detail: `Ngân sách $${agent.budgetUsdMonth}`,
           link: `/agents/${agent.id}`, severity: 'warn',
+        });
+        return await finalize(task.id, null);
+      }
+      // a runtime that reports no cost never hits the money budget: cap the number of runs per day instead
+      const maxDay = maxRunsDay(agent);
+      if (maxDay && deps.runs.dayCount(agent.id, deps.config.timezone) >= maxDay) {
+        failTask(task, 'budget', `Đã chạm trần ${maxDay} lượt chạy mỗi ngày của agent (runtime_options.max_runs_day). Ngày mới sẽ chạy lại được.`);
+        deps.attention.raise({
+          key: `budget-day:${agent.id}:${dayStartIso(deps.config.timezone)}`, kind: 'budget', title: `${agent.name} đã chạm trần ${maxDay} lượt chạy hôm nay`,
+          detail: 'Tăng runtime_options.max_runs_day nếu cần chạy thêm.', link: `/agents/${agent.id}`, severity: 'warn',
         });
         return await finalize(task.id, null);
       }
@@ -218,7 +245,12 @@ export function createEngine(deps: AppDeps): Engine {
         ...(comments.length ? { comments } : {}),
         ...(history ? { history } : {}),
         resuming,
+        runtime: { maxPromptChars: runtime.capabilities.maxPromptChars, readsFiles: runtime.capabilities.readsFiles },
       });
+      if (built.overBudget) {
+        failTask(task, 'config', `${FAMILY_MESSAGE.config}: ${built.overBudget}`);
+        return await finalize(task.id, null);
+      }
 
       // 5) run
       run = deps.runs.start({
@@ -250,7 +282,7 @@ export function createEngine(deps: AppDeps): Engine {
         const detail = result.error?.message ?? '';
         const message = `${FAMILY_MESSAGE[family]}${detail ? `: ${detail}` : ''}`;
         run = deps.runs.finish(run.id, { status: 'failed', output: result.output || null, errorFamily: family, error: message, usage: result.usage ?? {}, ...(result.sessionId ? { sessionId: result.sessionId } : {}) });
-        failTask(task, family, message);
+        failTask(task, family, message, result.error?.retryAfter);
         return await finalize(task.id, run);
       }
 

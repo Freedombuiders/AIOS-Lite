@@ -203,36 +203,44 @@ export function AccessEditor({ agentId, access, runtimeLabel, onSaved }: { agent
         )}
       </Card>
 
-      <Card title="Kết nối">
-        {conns.data?.items.length === 0 && <div class="hint">Chưa có kết nối nào (config/connections.yaml).</div>}
-        <div class="flex flex-col gap-2">
-          {(conns.data?.items ?? []).map((c) => {
-            const grant = draft.connections[c.id];
-            const on = grant !== undefined;
-            const patterns = Array.isArray(grant) ? grant.join(', ') : '';
-            return (
-              <div key={c.id} class="flex flex-wrap items-center gap-2">
-                <Toggle size="sm" on={on} onChange={() => { const next = { ...draft.connections }; if (on) delete next[c.id]; else next[c.id] = true; patch({ connections: next }); }} ariaLabel={`Cấp kết nối ${c.id}`} />
-                <span class="w-36 text-[12.5px] font-medium">{c.id}</span>
-                <Pill>{c.type}</Pill>
-                {!c.ready && <Pill tone="warn">chưa sẵn sàng</Pill>}
-                {on && c.type === 'mcp' && (
-                  <input
-                    class="field mono"
-                    style={{ flex: 1, minWidth: 200 }}
-                    placeholder="Mẫu tên công cụ, ví dụ search_*  (trống = mọi công cụ)"
-                    value={patterns}
-                    onChange={(e) => { const list = globs((e.target as HTMLInputElement).value); patch({ connections: { ...draft.connections, [c.id]: list.length ? list : true } }); }}
-                  />
-                )}
-                {on && c.type !== 'mcp' && <span class="hint">cấp toàn bộ</span>}
-              </div>
-            );
-          })}
-        </div>
-      </Card>
+      {enf.data?.mcp === false ? (
+        <Card title="Kết nối và integration">
+          <div class="hint">{runtimeLabel} không dùng được kết nối MCP hay integration (xem ghi chú ở trên), nên phần cấp quyền này được ẩn. Quyền đã cấp vẫn nằm trong agent.yaml nhưng không có tác dụng với runtime này.</div>
+        </Card>
+      ) : (
+        <>
+          <Card title="Kết nối">
+            {conns.data?.items.length === 0 && <div class="hint">Chưa có kết nối nào (config/connections.yaml).</div>}
+            <div class="flex flex-col gap-2">
+              {(conns.data?.items ?? []).map((c) => {
+                const grant = draft.connections[c.id];
+                const on = grant !== undefined;
+                const patterns = Array.isArray(grant) ? grant.join(', ') : '';
+                return (
+                  <div key={c.id} class="flex flex-wrap items-center gap-2">
+                    <Toggle size="sm" on={on} onChange={() => { const next = { ...draft.connections }; if (on) delete next[c.id]; else next[c.id] = true; patch({ connections: next }); }} ariaLabel={`Cấp kết nối ${c.id}`} />
+                    <span class="w-36 text-[12.5px] font-medium">{c.id}</span>
+                    <Pill>{c.type}</Pill>
+                    {!c.ready && <Pill tone="warn">chưa sẵn sàng</Pill>}
+                    {on && c.type === 'mcp' && (
+                      <input
+                        class="field mono"
+                        style={{ flex: 1, minWidth: 200 }}
+                        placeholder="Mẫu tên công cụ, ví dụ search_*  (trống = mọi công cụ)"
+                        value={patterns}
+                        onChange={(e) => { const list = globs((e.target as HTMLInputElement).value); patch({ connections: { ...draft.connections, [c.id]: list.length ? list : true } }); }}
+                      />
+                    )}
+                    {on && c.type !== 'mcp' && <span class="hint">cấp toàn bộ</span>}
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
 
-      <IntegrationGrants agentId={agentId} />
+          <IntegrationGrants agentId={agentId} />
+        </>
+      )}
 
       <Card title="Module (quyền theo module đang bật)">
         {enabledModules.length === 0 && <div class="hint">Chưa bật module nào. Vào trang Module để thêm.</div>}

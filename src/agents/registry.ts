@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { parse, stringify } from 'yaml';
+import { protectAgentSecrets } from '../core/secret-env.js';
 import type { AgentConfig } from '../core/types.js';
 import type { AgentInput, AgentLoadError, AgentRegistry, AgentRegistryOptions } from './contracts.js';
 import { AGENT_ID_RE, AgentValidationError, agentToYamlObject, parseAgentConfig, validateAgentId } from './schema.js';
@@ -18,6 +19,11 @@ export function createAgentRegistry(opts: AgentRegistryOptions): AgentRegistryWi
   const repoRoot = path.dirname(agentsDir);
   const agents = new Map<string, AgentConfig>();
   let errors: AgentLoadError[] = [];
+  /** Every loaded or written agent goes through here, so a `key_env` is protected before any run can start. */
+  const put = (id: string, cfg: AgentConfig) => {
+    protectAgentSecrets(cfg.runtimeOptions);
+    agents.set(id, cfg);
+  };
 
   function loadOne(id: string): AgentConfig {
     const dir = path.join(agentsDir, id);
@@ -47,7 +53,7 @@ export function createAgentRegistry(opts: AgentRegistryOptions): AgentRegistryWi
       const id = ent.name;
       const file = path.join(agentsDir, id, 'agent.yaml');
       try {
-        agents.set(id, loadOne(id));
+        put(id, loadOne(id));
       } catch (e) {
         errors.push({ id, file, message: (e as Error).message });
       }
@@ -106,7 +112,7 @@ export function createAgentRegistry(opts: AgentRegistryOptions): AgentRegistryWi
       const { persona, ...rest } = input;
       const cfg = validated({ ...merge(seed, rest), persona: persona ?? input.description ?? '' });
       write(cfg, cfg.persona);
-      agents.set(id, cfg);
+      put(id, cfg);
       fs.mkdirSync(cfg.workspace, { recursive: true });
       return cfg;
     },
@@ -116,7 +122,7 @@ export function createAgentRegistry(opts: AgentRegistryOptions): AgentRegistryWi
       const { persona, ...rest } = patch;
       const cfg = validated({ ...merge(cur, rest), persona: persona ?? cur.persona });
       write(cfg, persona !== undefined ? persona : undefined);
-      agents.set(id, cfg);
+      put(id, cfg);
       return cfg;
     },
 
@@ -139,7 +145,7 @@ export function createAgentRegistry(opts: AgentRegistryOptions): AgentRegistryWi
       fs.cpSync(src, dest, { recursive: true });
       try {
         const cfg = loadOne(newId);
-        agents.set(newId, cfg);
+        put(newId, cfg);
         fs.mkdirSync(cfg.workspace, { recursive: true });
         return cfg;
       } catch (e) {

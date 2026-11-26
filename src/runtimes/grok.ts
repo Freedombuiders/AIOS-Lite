@@ -33,6 +33,8 @@ export const GROK_CAPABILITIES: RuntimeCapabilities = {
   images: false,
   documents: false,
   noTools: true,
+  mcp: true,
+  readsFiles: true,
   enforces: {
     context: 'hard',
     mcp: 'soft',

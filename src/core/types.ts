@@ -1,7 +1,7 @@
 // Domain types shared by every layer. Contracts in src/*/contracts.ts build on these.
 
-export type RuntimeId = 'claude' | 'codex' | 'grok' | 'hermes' | 'mock';
-export const RUNTIME_IDS: readonly RuntimeId[] = ['claude', 'codex', 'grok', 'hermes', 'mock'];
+export type RuntimeId = 'claude' | 'codex' | 'grok' | 'hermes' | 'genbot' | 'mock';
+export const RUNTIME_IDS: readonly RuntimeId[] = ['claude', 'codex', 'grok', 'hermes', 'genbot', 'mock'];
 
 export type Permission = 'safe' | 'full';
 export type ContextProfile = 'standard' | 'lean';

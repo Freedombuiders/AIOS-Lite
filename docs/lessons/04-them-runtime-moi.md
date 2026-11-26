@@ -11,7 +11,7 @@ Bài này có ví dụ chạy được thật: adapter `zeta` bên dưới đã 
 
 ## 4.1 Vì sao một runtime chỉ là một adapter nhỏ
 
-Engine không biết CLI nào đang chạy. Nó chỉ thấy interface ở `src/runtimes/contracts.ts:87`:
+Engine không biết CLI nào đang chạy. Nó chỉ thấy interface ở `src/runtimes/contracts.ts:102`:
 
 ```ts
 interface Runtime {
@@ -23,7 +23,7 @@ interface Runtime {
 }
 ```
 
-Một lượt chạy là một vòng: **dịch yêu cầu thành dòng lệnh, chạy tiến trình, đọc từng dòng đầu ra, trả `RunResult`**.
+Với runtime dạng CLI, một lượt chạy là một vòng: **dịch yêu cầu thành dòng lệnh, chạy tiến trình, đọc từng dòng đầu ra, trả `RunResult`**. Runtime không phải CLI (GenBot, gọi qua HTTP) đi vòng khác, xem mục 4.9.
 
 ```mermaid
 flowchart LR
@@ -38,7 +38,7 @@ flowchart LR
   FAIL --> E
 ```
 
-### `RunRequest` (`contracts.ts:32`): adapter nhận gì
+### `RunRequest` (`contracts.ts:35`): adapter nhận gì
 
 | Trường | Ý nghĩa |
 |---|---|
@@ -49,10 +49,11 @@ flowchart LR
 | `sessionId` | Nối phiên cũ nếu `capabilities.resume` |
 | `tools` | `'none'` cho lượt `lean`: không công cụ, một lượt |
 | `images` | Đường dẫn ảnh (chỉ khi `capabilities.images`) |
+| `documents` | Đường dẫn file PDF (chỉ khi `capabilities.documents`) |
 | `signal`, `timeoutMs` | Huỷ và giới hạn thời gian |
 | `onEvent` | Gọi cho mỗi sự kiện để UI hiện tiến trình trực tiếp |
 
-### `RunResult` (`contracts.ts:58`): adapter trả gì
+### `RunResult` (`contracts.ts:63`): adapter trả gì
 
 | Trường | Quy tắc |
 |---|---|
@@ -62,7 +63,7 @@ flowchart LR
 | `error` | `{ family, message, retryAfter? }` với `family` thuộc `ErrorFamily` |
 | `usage` | **Thiếu thì để trống, không bao giờ điền 0.** 0 nghĩa là "không tốn", còn thiếu nghĩa là "không biết" |
 
-### `capabilities` (`contracts.ts:19`): lời khai trung thực
+### `capabilities` (`contracts.ts:20`): lời khai trung thực
 
 Mỗi adapter khai CLI của nó làm được gì và chặn được gì:
 
@@ -70,7 +71,10 @@ Mỗi adapter khai CLI của nó làm được gì và chặn được gì:
 |---|---|
 | `resume` | Có nối phiên được không |
 | `systemPrompt` | `native` (CLI có cờ riêng) hay `inline` (adapter ghép vào đầu prompt) |
-| `reportsCost`, `images`, `noTools` | Báo chi phí, nhận ảnh, chạy được không công cụ (lượt `lean`) |
+| `reportsCost`, `images`, `documents`, `noTools` | Báo chi phí, nhận ảnh, nhận PDF, chạy được không công cụ (lượt `lean`). `noTools` chỉ nói "chạy được khi tắt công cụ", **không** có nghĩa "không dùng được MCP" |
+| `mcp` | Nhận được máy chủ MCP ở lượt thường. Chính sách quyền chỉ cấp `aios-integrations` khi trường này là `true` |
+| `readsFiles` | Mở được file theo đường dẫn. `false` thì bộ dựng ngữ cảnh không đưa danh sách đường dẫn skill vào prompt |
+| `maxPromptChars` | Trần tổng `systemPrompt + prompt`. Bộ dựng ngữ cảnh co các khối (skill, bộ nhớ, brain, lịch sử…) cho vừa; vẫn không vừa thì việc thất bại với lỗi `config` trước khi gọi runtime |
 | `enforces` | Mức chặn `hard`, `soft`, `none` cho `context`, `mcp`, `fileRead`, `fileWrite`, `shell` và một ghi chú tiếng Việt |
 
 `enforces` hiện nguyên văn ở tab Quyền của agent (bài 3). **Khai thật, đừng khai đẹp.** Một test (`src/runtimes/index.test.ts`) kiểm tra bảng này: ví dụ Codex phải khai `fileRead: 'none'`.
@@ -134,7 +138,7 @@ Những cái bẫy đã gặp khi kiểm với CLI thật (xem `docs/dev/runtime
 4. Cảnh báo giới hạn (ví dụ Codex: không chặn đọc file).
 5. Chỉ khi `probe: true`: gửi thử một câu "hello" bằng `probeCheck` (`src/runtimes/probe.ts:38`). Việc này **tốn một lượt gọi thật**, nên mặc định không làm.
 
-`GET /api/runtimes` gọi `doctor()` cho từng runtime (không probe); thêm `?probe=1` để gửi thử. Trang **Cài đặt** hiển thị kết quả.
+`GET /api/runtimes` gọi `doctor()` cho từng runtime (không probe); thêm `?probe=1` để gửi thử. Trang **Cài đặt** hiển thị kết quả. `doctor` là kiểm **chung** cho runtime ("dùng được không"); nó không nhận agent. Runtime cấu hình theo từng agent (GenBot) có thêm một hàm kiểm riêng, xem 4.9.
 
 ## 4.6 Test bằng CLI giả
 
@@ -183,7 +187,10 @@ export const ZETA_CAPABILITIES: RuntimeCapabilities = {
   systemPrompt: 'inline', // Zeta không có cờ system prompt: adapter ghép vào đầu prompt
   reportsCost: false,
   images: false,
+  documents: false,
   noTools: true,
+  mcp: false, // Zeta không có MCP
+  readsFiles: true,
   enforces: {
     context: 'hard', // bộ nhớ, Second Brain, dữ liệu module do AIOS quyết định đưa vào prompt: luôn chặn cứng
     mcp: 'none',
@@ -321,9 +328,18 @@ for (const rt of [createClaudeRuntime(cmd.claude, env), createCodexRuntime(cmd.c
 
 `cmd.zeta` cho phép ghi đè đường dẫn lệnh (tuỳ chọn `commands` của `createRuntimeRegistry`), dùng trong test.
 
-### Bước 4. Nhãn trên giao diện
+### Bước 4. Các bảng tra theo id runtime
 
-Hai bảng tra theo `RuntimeId` buộc bạn phải bổ sung (trình biên dịch sẽ báo nếu quên):
+Hai bảng kiểu `Record<RuntimeId, …>` buộc bạn bổ sung (trình biên dịch sẽ báo nếu quên). Các bảng còn lại là `Record<string, …>` hoặc mảng: trình biên dịch **không** báo, phải tự nhớ.
+
+| File | Bảng | Trình biên dịch báo? |
+|---|---|---|
+| `web/src/lib/labels.ts:3` | `RUNTIME_LABEL` (nhãn) | Có |
+| `web/src/pages/agents/AgentsPage.tsx:23` | `TONE` (màu thẻ agent, tên phải có trong `web/src/styles/agents.css`) | Có |
+| `web/src/lib/teams.ts:4` | `RUNTIMES` (ô chọn runtime khi cài gói đội) | Không |
+| `web/src/components/costs/format.ts:4` | `RUNTIME_COLORS` (màu biểu đồ chi phí) | Không |
+| `src/modules/compat/provider.ts:26` | `BY_RUNTIME` (provider của agent `main` cho module cũ) | Không |
+| `modules/video/server/edit/turn.ts:9-10` | `RUNTIME_PROVIDER`, `RUNTIME_LABEL` của Video Studio | Không |
 
 ```ts
 // web/src/lib/labels.ts
@@ -332,7 +348,9 @@ export const RUNTIME_LABEL: Record<RuntimeId, string> = { /* ... */ zeta: 'Zeta'
 const TONE: Record<AgentSummary['runtime'], string> = { /* ... */ zeta: 'slate', mock: 'sand' };
 ```
 
-> **Lưu ý về tài liệu thiết kế.** `ARCHITECTURE.md` nói "thêm runtime mới chỉ cần thêm một file". Thực tế là **một file adapter cộng ba chỗ khai báo** (`types.ts`, `index.ts` và các bảng nhãn của web). Vẫn nhỏ, nhưng đừng bất ngờ.
+Những chỗ đọc `RUNTIME_IDS` tự nhận id mới: `src/agents/schema.ts`, `src/api/routes/agents.ts`, `src/api/routes/teams.ts`, `src/agent-market/service.ts`, `src/teams/install.ts`, `src/teams/package.ts`. Riêng `src/work/engine.ts` chỉ nối skill vào thư mục làm việc cho `claude` và `grok`; runtime mới không đọc skill thì không cần sửa.
+
+> **Lưu ý về tài liệu thiết kế.** `ARCHITECTURE.md` nói "thêm runtime mới chỉ cần thêm một file". Thực tế là **một file adapter cộng chừng tám chỗ khai báo** (`types.ts`, `index.ts`, `index.test.ts` và các bảng ở trên). Vẫn nhỏ, nhưng đừng bất ngờ.
 
 ### Bước 5. CLI giả: `test-fixtures/runtimes/fake-zeta.mjs`
 
@@ -435,7 +453,7 @@ Kết quả khi chạy thật trên bản sao: `9 passed`.
 
 ### Bước 7. Cập nhật test danh sách runtime
 
-`src/runtimes/index.test.ts` kiểm tra danh sách id đầy đủ. Thêm `'zeta'` vào mảng mong đợi (sắp xếp theo thứ tự chữ cái: `['claude', 'codex', 'grok', 'hermes', 'mock', 'zeta']`). Nếu quên bước này, đó là test duy nhất sẽ đỏ (đã gặp khi thử: 1 test lỗi trên 120, sau khi sửa cả 120 đều xanh).
+`src/runtimes/index.test.ts` kiểm tra danh sách id đầy đủ. Thêm `'zeta'` vào mảng mong đợi (sắp xếp theo thứ tự chữ cái: `['claude', 'codex', 'genbot', 'grok', 'hermes', 'mock', 'zeta']`). Nếu quên bước này, đó là test duy nhất sẽ đỏ (đã gặp khi thử: 1 test lỗi trên 120, sau khi sửa cả 120 đều xanh).
 
 ### Bước 8. Dùng thử
 
@@ -462,10 +480,31 @@ npx vitest run src/runtimes
 - [ ] `doctor` báo thiếu lệnh, phiên bản, đăng nhập, giới hạn đã biết.
 - [ ] Cập nhật `docs/dev/runtime-verification.md` với kết quả kiểm thật.
 
+## 4.9 Runtime không phải CLI: GenBot qua HTTP
+
+`src/runtimes/genbot.ts` là ví dụ thật của một runtime không chạy tiến trình nào: mỗi lượt là một `POST {base_url}/hooks/api/bots/{bot_id}/messages` tới Bot API của GenBot. Khác với adapter CLI:
+
+| Việc | Adapter CLI | GenBot |
+|---|---|---|
+| Cấu hình | Đường dẫn lệnh chung cho mọi agent | Theo từng agent: `runtime_options.base_url`, `bot_id`, `key_env` |
+| Khoá | CLI tự đăng nhập | Khoá nằm trong `.env`, `key_env` chỉ là **tên** biến và phải có dạng `GENBOT_KEY_*`. Tên đó bị gỡ khỏi môi trường của mọi tiến trình con (`src/core/secret-env.ts`, `buildChildEnv`), giá trị bị che trong log, lỗi và `RunEvent` |
+| Đường truyền | Không có | `http://` chỉ tới máy này (127.0.0.1, localhost), còn lại phải `https://`. Không theo chuyển hướng (`redirect: 'manual'`), để khoá không bị mang sang máy khác |
+| Huỷ, hết giờ | `runProcess` giết tiến trình | Một hạn chót duy nhất (`timeoutMs`) cho cả lúc xếp hàng, `POST` và đọc lại. `AbortSignal.any([req.signal, hẹn giờ])` nối vào `fetch`: huỷ là ngắt kết nối HTTP thật |
+| Trả lời chậm | Đọc dòng tới khi xong | `POST` chờ tối đa 50 giây (`wait`), sau đó `202 working` thì đọc lại `GET …/messages?thread=<id>` mỗi 2 giây. GET không tốn lượt |
+| Gửi lại | Nối phiên lỗi thì chạy lại một lần | **Không bao giờ** gửi lại `POST`: Bot API không có khoá chống trùng, gửi lại là mở luồng thứ hai |
+| Giới hạn | Không | Mỗi bot (`base_url` + `bot_id`): 10 lượt `POST` mỗi 60 giây và tối đa 4 lượt mở cùng lúc, giữ trong bộ nhớ (`createBotGate`) |
+| Ngữ cảnh | Không giới hạn tổng | `maxPromptChars: 20000`, `readsFiles: false`: bộ dựng ngữ cảnh co cho vừa, adapter vẫn từ chối tin quá 20.000 ký tự như lớp chặn cuối |
+| `doctor` | Tìm lệnh, phiên bản, đăng nhập | Chỉ báo "gọi qua HTTP, cấu hình theo agent". Kiểm một agent bằng `checkGenbotAgent` (route `POST /api/runtimes/genbot/check`): đủ ba giá trị, có khoá, kết nối TCP; `probe` gửi một tin "ping" thật |
+| Test | CLI giả (`fake-*.mjs`) chạy bằng `runProcess` | Máy chủ `node:http` giả `test-fixtures/runtimes/fake-genbot.mjs` |
+
+Bảng đổi mã HTTP sang `ErrorFamily` nằm trong `FAMILY_BY_STATUS` của `genbot.ts`; chi tiết ở `docs/dev/runtime-verification.md` mục 9. Hai điểm dễ sai: `200` với câu trả lời rỗng **không** phải thành công (GET đọc một lượt đã lỗi thành chuỗi rỗng), và `202 needs_approval` trả `access` kèm mã luồng; engine nổi mục "Cần bạn" cho nhóm lỗi `access` để chủ mở app GenBot duyệt.
+
+`enforces.context: 'hard'` chỉ nói về phần AIOS đưa vào prompt. Bot GenBot còn trả lời từ chỉ dẫn thường trực và bộ nhớ của chính nó, nằm ngoài quyền brain của AIOS. Vì thế mỗi công ty nên có một bot GenBot riêng.
+
 ## Bài tập
 
 1. Chạy thật bài này trên một bản sao repo: tạo các file ở 4.7, chạy test của `zeta`. Cố ý sửa `fake-zeta.mjs` (đổi `rate limit reached` thành `boom`). Test nào đỏ, và `family` mới là gì (gợi ý: `classifyMessage`)?
 2. Thêm kịch bản `resumefail` vào CLI giả: khi có `--resume` thì in `{"type":"error","message":"unknown session z-9"}` và thoát mã 1. Viết test chứng minh adapter thử lại một lần và trả `clearSession: true`.
 3. Thêm hỗ trợ `runtime_options.mode`: khi bằng `fast`, thêm cờ `--fast` vào lệnh. Viết test cho `buildZetaArgs`. Đọc `runtimeOptionString` trong `shared.ts` để lấy giá trị.
 4. Thử đặt `FAKE_SCENARIO=noise` trong test hiện có và quan sát: banner không phải JSON bị bỏ qua. Vì sao điều này quan trọng với CLI thật?
-5. (Đọc mã) So `createCodexRuntime` (`codex.ts:173`) với `createZetaRuntime`: adapter Codex có thêm gì (gợi ý: `exec resume`, `--ephemeral`, biến môi trường cho MCP)? Vì sao Zeta không cần?
+5. (Đọc mã) So `createCodexRuntime` (`codex.ts:174`) với `createZetaRuntime`: adapter Codex có thêm gì (gợi ý: `exec resume`, `--ephemeral`, biến môi trường cho MCP)? Vì sao Zeta không cần?

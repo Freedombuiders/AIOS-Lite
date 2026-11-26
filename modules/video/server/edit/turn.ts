@@ -6,8 +6,8 @@
 import { moduleCtx } from '../host.js';
 import type { VideoEditAgent } from './types.js';
 
-const RUNTIME_PROVIDER: Record<string, string> = { claude: 'claude', codex: 'openai', grok: 'grok', hermes: 'hermes', mock: 'mock' };
-const RUNTIME_LABEL: Record<string, string> = { claude: 'Claude', codex: 'Codex', grok: 'Grok', hermes: 'Hermes', mock: 'Mock' };
+const RUNTIME_PROVIDER: Record<string, string> = { claude: 'claude', codex: 'openai', grok: 'grok', hermes: 'hermes', genbot: 'genbot', mock: 'mock' };
+const RUNTIME_LABEL: Record<string, string> = { claude: 'Claude', codex: 'Codex', grok: 'Grok', hermes: 'Hermes', genbot: 'GenBot', mock: 'Mock' };
 
 const agentsOf = () => moduleCtx()?.agents.list().filter((a) => a.enabled) ?? [];
 

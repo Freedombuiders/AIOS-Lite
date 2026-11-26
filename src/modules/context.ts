@@ -3,7 +3,7 @@ import path from 'node:path';
 import { Cron } from 'croner';
 import type { AppDeps } from '../core/deps.js';
 import { redactString } from '../core/redact.js';
-import type { Run } from '../core/types.js';
+import type { ErrorFamily, Run, Task } from '../core/types.js';
 import { integrationServiceFor } from '../integrations/mount.js';
 import { sanitizeOutbound } from './outbound.js';
 import type { LeanRunInput, LeanRunResult, ModuleContext, ModuleManifest } from './sdk.js';
@@ -21,6 +21,13 @@ export interface ContextHelpers {
 }
 
 const latest = (runs: Run[]): Run | null => runs.reduce<Run | null>((a, r) => (!a || r.id > a.id ? r : a), null);
+
+/** Family and retry time of a failed lean task (the engine keeps them in task.meta; runs keep the family). */
+function failureOf(task: Task, runFamily: ErrorFamily | null | undefined): Pick<LeanRunResult, 'family' | 'retryAfter'> {
+  const family = (typeof task.meta.errorFamily === 'string' ? task.meta.errorFamily : runFamily ?? (task.status === 'cancelled' ? 'cancelled' : undefined)) as ErrorFamily | undefined;
+  const retryAfter = typeof task.meta.retryAfter === 'string' ? task.meta.retryAfter : undefined;
+  return { ...(family ? { family } : {}), ...(retryAfter ? { retryAfter } : {}) };
+}
 
 export function createModuleContext(
   deps: AppDeps,
@@ -64,6 +71,7 @@ export function createModuleContext(
         taskId: task.id,
         runId: run?.id ?? null,
         ...(ok ? {} : { error: run?.error ?? done.error ?? `Việc kết thúc ở trạng thái ${done.status}.` }),
+        ...(ok ? {} : failureOf(done, run?.errorFamily)),
         ...(usage && Object.keys(usage).length ? { usage } : {}),
       };
     } catch (err) {
@@ -79,6 +87,7 @@ export function createModuleContext(
         taskId: task.id,
         runId: null,
         error: aborted ? 'Đã huỷ.' : `Hết thời gian chờ agent (${redactString(err instanceof Error ? err.message : String(err))}).`,
+        family: aborted ? 'cancelled' : 'timeout',
       };
     }
   }
