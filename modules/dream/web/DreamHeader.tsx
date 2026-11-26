@@ -1,4 +1,4 @@
-// Header of the Dream 100 pages: title, the two sections, and the setup bar (notes folder, labelling agent, tools).
+// Header of the Dream 100 pages: title, the four sections, and the setup bar (notes folder, labelling agent, tools).
 import { useState } from 'preact/hooks';
 import { Link } from 'wouter-preact';
 import { apiPut, errorText } from '@/lib/api';
@@ -16,14 +16,24 @@ export function useOverview(): FetchState<Overview> {
   return useFetch<Overview>('/api/m/dream/overview');
 }
 
-export function DreamHeader({ active, overview, aside }: { active: 'channels' | 'videos'; overview: FetchState<Overview>; aside?: string }) {
+export type DreamSection = 'channels' | 'videos' | 'formulas' | 'ideas';
+
+const SECTIONS: [DreamSection, string, string][] = [
+  ['channels', '/m/dream', 'Kênh theo dõi'],
+  ['videos', '/m/dream/videos', 'Video đã phân tích'],
+  ['formulas', '/m/dream/formulas', 'Công thức'],
+  ['ideas', '/m/dream/ideas', 'Đề xuất hôm nay'],
+];
+
+export function DreamHeader({ active, overview, aside }: { active: DreamSection; overview: FetchState<Overview>; aside?: string }) {
   return (
     <header class="mb-4 flex flex-col gap-3">
       <div class="flex flex-wrap items-center gap-3">
         <h1 class="m-0 text-[20px] font-bold">Dream 100</h1>
         <nav aria-label="Các phần của Dream 100" class="flex flex-wrap gap-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-1">
-          <Link href="/m/dream" class={`${SEG} ${active === 'channels' ? SEG_ON : SEG_OFF}`} aria-current={active === 'channels' ? 'page' : undefined}>Kênh theo dõi</Link>
-          <Link href="/m/dream/videos" class={`${SEG} ${active === 'videos' ? SEG_ON : SEG_OFF}`} aria-current={active === 'videos' ? 'page' : undefined}>Video đã phân tích</Link>
+          {SECTIONS.map(([key, href, label]) => (
+            <Link key={key} href={href} class={`${SEG} ${active === key ? SEG_ON : SEG_OFF}`} aria-current={active === key ? 'page' : undefined}>{label}</Link>
+          ))}
         </nav>
         {aside && <span class="text-[13px] text-[var(--color-text-muted)]">{aside}</span>}
       </div>

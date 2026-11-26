@@ -14,6 +14,7 @@ import { startCommentsWorker, stopCommentsWorker } from './comments/worker.js';
 import { startPublisher, stopPublisher } from './core/publisher.js';
 import { createKolBridge } from './kol-bridge.js';
 import { createContentFeed } from './feed.js';
+import { createIdeaIntake } from './idea-intake.js';
 import { buildAgentContext } from './agent-context.js';
 import { marketingActions } from './actions.js';
 import { registerFbStudioRoutes } from './routes.js';
@@ -82,6 +83,8 @@ export default defineModule({
     // Durable feed of published posts and changed metric snapshots, read with the consumer's own cursor,
     // plus a read of one post with its lineage and snapshots (contract: modules/_lib/content-feed.ts).
     contentFeed: createContentFeed(),
+    // Another module hands the studio an idea with its lineage (contract: modules/_lib/idea-intake.ts).
+    ideaIntake: createIdeaIntake(),
     // Returns the shared FbAdsOrganicRow shape (modules/_lib/fb-types.ts) the ads module reads.
     topPosts(pageId?: string, days = 28): FbAdsOrganicRow[] {
       const since = Math.floor(Date.now() / 1000) - days * DAY;

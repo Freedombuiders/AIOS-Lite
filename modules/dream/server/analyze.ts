@@ -8,6 +8,7 @@ import path from 'node:path';
 import type { ModuleContext } from '../../../src/modules/sdk.js';
 import { locateMediaTool, missingToolHint } from '../../_lib/media-tools/index.js';
 import { getChannel, newId, slugify } from './channels.js';
+import { afterVideo } from './formulas.js';
 import { LABEL_TEXT, labelVideo, type LabelOutcome } from './label.js';
 import { cutStats, download, hookFrames, MeasureError, probeDuration, publicInfo, sceneTimes, type CutStats, type PublicInfo, type ToolPaths } from './measure.js';
 import { ToolStartError, ToolTimeoutError } from './run.js';
@@ -45,12 +46,14 @@ export interface VideoRow {
   agent_id: string | null;
   task_id: number | null;
   note_path: string | null;
+  /** formula (cong-thuc/<slug>.md) the video was matched to */
+  formula_slug: string | null;
   created_at: number;
   started_at: number | null;
   finished_at: number | null;
 }
 
-export type DreamCtx = Pick<ModuleContext, 'db' | 'brain' | 'agents' | 'settings' | 'log' | 'dataDir' | 'events'>;
+export type DreamCtx = Pick<ModuleContext, 'db' | 'brain' | 'agents' | 'settings' | 'log' | 'dataDir' | 'events' | 'attention' | 'audit'>;
 
 export const MAX_URLS_PER_PASTE = 20;
 
@@ -308,6 +311,8 @@ export async function runJob(ctx: DreamCtx, id: string, tools: ToolPaths = machi
     }
   }
   set(ctx, id, { status: reason ? 'failed' : 'done', step: null, reason, note_path: notePath, finished_at: Date.now() });
+  // a labelled video joins a formula, or counts toward a proposal to make one (never throws)
+  if (!reason) afterVideo(ctx, id);
   ctx.events.emit('video', { id, status: reason ? 'failed' : 'done' });
   return getVideo(ctx, id)!;
 }
