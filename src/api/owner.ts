@@ -138,6 +138,8 @@ export const OWNER_ROUTES: ReadonlyArray<readonly [Method, string, string]> = [
   // crm and learn: every route that changes anything (today only learn sync; a new write route is covered by default)
   ['*', '/api/m/crm/*', 'ghi dữ liệu CRM'],
   ['*', '/api/m/learn/*', 'đồng bộ, ghi bài học'],
+  // Dream 100: adding channels and videos starts downloads and agent runs; settings pick the brain folder
+  ['*', '/api/m/dream/*', 'kênh, video tham khảo và cài đặt Dream 100'],
   // owner sessions
   ['POST', '/api/owner/pair-link', 'tạo mã ghép cho thiết bị khác'],
 ];

@@ -98,6 +98,7 @@ describe('owner route list', () => {
     for (const [m, p] of [
       ['POST', '/api/packs/:id/preview'], ['POST', '/api/packs/:id/install'], ['POST', '/api/packs/:id/uninstall/preview'], ['POST', '/api/packs/:id/uninstall'],
       ['POST', '/api/cloud/login/start'], ['POST', '/api/m/learn/sync'], ['POST', '/api/m/crm/anything-new'],
+      ['POST', '/api/m/dream/channels'], ['POST', '/api/m/dream/videos'], ['DELETE', '/api/m/dream/videos/x'], ['PUT', '/api/m/dream/settings'],
       ['PUT', '/api/m/care/conversations/:id/pause'], ['DELETE', '/api/m/care/conversations/:id/pause'],
       ['PUT', '/api/m/care/conversations/:id/ai'], ['PUT', '/api/m/care/conversations/:id/customer-care'], ['PUT', '/api/m/care/runtime/switches'],
     ] as const) expect(isOwnerRoute(m, p), `${m} ${p}`).toBe(true);
