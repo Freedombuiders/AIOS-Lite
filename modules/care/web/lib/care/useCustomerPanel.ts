@@ -29,8 +29,9 @@ export function useMediaQuery(query: string): boolean {
   return on;
 }
 
-export function useCustomerPanel() {
-  const wide = useMediaQuery(WIDE_QUERY);
+/** `allowColumn` false: always an on-demand drawer (the T07 inbox keeps its right column for the bot panel). */
+export function useCustomerPanel(allowColumn = true) {
+  const wide = useMediaQuery(WIDE_QUERY) && allowColumn;
   const [wideOpen, setWideOpen] = useState(() => initialWideOpen(storage()?.getItem(PANEL_STORAGE_KEY) ?? null));
   const [drawerOpen, setDrawerOpen] = useState(false);
   const open = wide ? wideOpen : drawerOpen;

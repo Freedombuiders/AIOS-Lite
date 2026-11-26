@@ -10,16 +10,35 @@ import type { CareCannedReplyDto, CareInlineDraftDto, CareNoteDto } from './dto'
 import { pendingDrafts, validDraft, validNote } from './inlineDrafts';
 
 // ── agents ────────────────────────────────────────────────────────────────────────────────────
-export interface AgentLite { id: string; name: string }
+export interface AgentLite {
+  id: string;
+  name: string;
+  enabled?: boolean;
+  /** Scopes of the care module this agent holds (`access.modules.care`). */
+  careScopes?: string[];
+}
+
+/** Bots the owner can pick for a chat: enabled agents holding the care scope `reply.draft` (without it no draft is ever made). */
+export function botAgents(agents: readonly AgentLite[]): AgentLite[] {
+  return agents.filter((a) => a.enabled !== false && (a.careScopes ?? []).includes('reply.draft'));
+}
+
+interface RawAgent { id: string; name?: string; enabled?: boolean; access?: { modules?: Record<string, string[]> } }
+
+export function toAgentLite(a: RawAgent): AgentLite {
+  const scopes = a.access?.modules?.care;
+  return { id: a.id, name: a.name || a.id, enabled: a.enabled !== false, careScopes: Array.isArray(scopes) ? scopes.filter((x) => typeof x === 'string') : [] };
+}
 
 let agentsCache: AgentLite[] | null = null;
 let agentsInflight: Promise<AgentLite[]> | null = null;
 
 function loadAgents(): Promise<AgentLite[]> {
   if (agentsCache) return Promise.resolve(agentsCache);
-  agentsInflight = agentsInflight ?? apiGet<{ agents?: Array<{ id: string; name?: string }> }>('/api/agents')
+  agentsInflight = agentsInflight ?? apiGet<{ items?: RawAgent[]; agents?: RawAgent[] }>('/api/agents')
     .then((r) => {
-      agentsCache = (r.agents ?? []).filter((a) => a && typeof a.id === 'string' && a.id !== 'main').map((a) => ({ id: a.id, name: a.name || a.id }));
+      // GET /api/agents answers `{ items }` (older builds of this screen read `agents`, which was always empty)
+      agentsCache = (r.items ?? r.agents ?? []).filter((a) => a && typeof a.id === 'string' && a.id !== 'main').map(toAgentLite);
       return agentsCache;
     })
     .catch(() => [] as AgentLite[])

@@ -531,9 +531,9 @@
     "msg": {
       "role": {
         "customer": "Khách",
-        "self": "Tài khoản",
-        "operator": "Nhân viên",
-        "agent": "Agent",
+        "self": "Bạn (điện thoại)",
+        "operator": "Bạn (trong app)",
+        "agent": "Bot",
         "system": "Hệ thống"
       },
       "deleted": "Tin nhắn đã bị xóa hoặc thu hồi.",
@@ -565,7 +565,8 @@
       "telegramMediaWhy": {
         "restricted": "nội dung được Telegram bảo vệ",
         "unsupported": "định dạng chưa hỗ trợ"
-      }
+      },
+      "outsideApp": "gửi ngoài app"
     },
     "email": {
       "frameTitle": "Nội dung thư",
@@ -2123,6 +2124,251 @@
         "doneAt": "Xong {date} {time}",
         "openConversation": "Mở hội thoại"
       }
+    },
+    "bot": {
+      "title": "Bot chăm cuộc chat này",
+      "open": "Bot",
+      "backToChat": "Về cuộc chat",
+      "state": {
+        "review": "Chờ bạn duyệt",
+        "active": "Bot đang chăm",
+        "yielded": "Bot nhường bạn",
+        "handoff": "Chuyển cho bạn",
+        "none": "Chưa gán bot"
+      },
+      "yield": {
+        "paused": "Đang tạm dừng",
+        "taken_over": "Bạn đang tiếp quản cuộc chat này.",
+        "human_reply": "Bạn vừa nhắn, bot nhường cuộc chat này {n} phút."
+      },
+      "pick": {
+        "label": "Bot chăm",
+        "none": "Không gán bot",
+        "none_help": "Không có bot nào trả lời",
+        "noAgents": "Chưa có bot nào dùng được. Bật một agent và cho nó quyền “Soạn nháp trả lời” của Chăm sóc khách hàng.",
+        "manage": "Mở trang Agent",
+        "saved": "Đã đổi bot: {name}",
+        "failed": "Chưa đổi được bot"
+      },
+      "scope": {
+        "label": "Áp dụng cho",
+        "account": "Cả nick",
+        "conversation": "Riêng cuộc chat này",
+        "accountNote": "Đang theo cài đặt chung của {nick}.",
+        "conversationNote": "Cuộc chat này có cài đặt riêng, đè lên cài đặt của nick.",
+        "noNick": "nick này"
+      },
+      "mode": {
+        "label": "Bot được làm gì",
+        "observe": "Chỉ theo dõi",
+        "draft": "Soạn nháp",
+        "auto": "Tự trả lời",
+        "off": "Tắt bot"
+      },
+      "modeNote": {
+        "account": {
+          "observe": "Bot đọc nhưng không soạn gì.",
+          "draft": "Bot chỉ soạn, tin nào cũng chờ bạn bấm Gửi.",
+          "auto": "Bot tự gửi câu trả lời. Gặp từ khoá cần duyệt hay giờ nghỉ thì dừng ở nháp."
+        },
+        "conversation": {
+          "off": "Bot không đọc, không trả lời cuộc chat này. Bạn tự chăm.",
+          "draft": "Cuộc chat này luôn chỉ soạn nháp, dù nick cho phép tự trả lời.",
+          "auto": "Theo mức của nick: nick cho tự trả lời thì bot tự gửi, nick chỉ soạn nháp thì vẫn là nháp."
+        }
+      },
+      "effective": {
+        "active": "Đang áp dụng: {mode}, do {agent} chăm.",
+        "none": "Chưa có luật nào áp dụng cho cuộc chat này. Chọn một bot ở trên.",
+        "denied": "Luật gán bot đang tắt riêng cho cuộc chat này.",
+        "conflict": "Hai luật trùng ưu tiên nên bot không chạy. Sửa ở trang Quy tắc.",
+        "tier": {
+          "conversation": "luật riêng của cuộc chat",
+          "customer": "luật của khách",
+          "identity": "luật của người gửi",
+          "domain": "luật của tên miền",
+          "account": "luật của cả nick",
+          "channel": "luật của kênh",
+          "global": "luật chung"
+        }
+      },
+      "toast": {
+        "mode": "Đã đổi chế độ: {mode}",
+        "pause": "Bot tạm dừng: {what}",
+        "resume": "Đã bật lại bot",
+        "giveBack": "Đã giao lại cho bot",
+        "undo": "Hoàn tác",
+        "undone": "Đã hoàn tác",
+        "failed": "Chưa đổi được",
+        "undoFailed": "Chưa hoàn tác được"
+      },
+      "pause": {
+        "title": "Tạm dừng bot",
+        "m30": "Dừng 30 phút",
+        "h2": "Dừng 2 giờ",
+        "open": "Đến khi bật lại",
+        "resume": "Bật lại bot",
+        "until": "Tạm dừng đến {time}",
+        "openEnded": "Tạm dừng đến khi bạn bật lại",
+        "what30": "30 phút",
+        "what120": "2 giờ",
+        "whatOpen": "đến khi bạn bật lại"
+      },
+      "handoff": {
+        "title": "Khách đòi gặp người thật",
+        "body": "Khách nhắn “{keyword}” lúc {time}. Bot đã dừng, các tin bot định gửi đã bị huỷ. Chỉ bạn trả lại được cho bot.",
+        "bodyNoKeyword": "Khách đòi gặp người thật lúc {time}. Bot đã dừng, các tin bot định gửi đã bị huỷ. Chỉ bạn trả lại được cho bot.",
+        "give": "Giao lại cho bot"
+      },
+      "group": {
+        "only": "Bot không trả lời trong nhóm",
+        "note": "Bot chỉ lưu lịch sử của nhóm, không trả lời trong nhóm. Bạn vẫn nhắn vào nhóm được như trước."
+      },
+      "rules": {
+        "title": "Bot luôn giữ các luật này",
+        "debounce": "Chờ {n} giây sau tin cuối của khách, gom các tin liền nhau rồi trả lời một lần.",
+        "debounceOff": "Trả lời từng tin ngay, không gom.",
+        "human": "Bạn vừa nhắn thì bot nhường {n} phút.",
+        "humanOff": "Bạn nhắn xong bot vẫn có thể trả lời ngay.",
+        "handoff": "Khách nói {keywords} thì dừng {n} phút và báo bạn.",
+        "handoffOff": "Chưa đặt cụm từ nào để chuyển cho bạn.",
+        "cap": "Tối đa {n} câu trả lời mỗi ngày trong một cuộc chat.",
+        "quiet": "Giờ nghỉ {start} đến {end}: bot không tự gửi, chỉ soạn nháp.",
+        "autoOn": "Tự động gửi đang bật.",
+        "autoOff": "Tự động gửi đang tắt: mọi câu trả lời dừng ở nháp chờ bạn duyệt.",
+        "aiOff": "Công tắc dừng khẩn cấp đang tắt bot ở mọi cuộc chat.",
+        "unreadable": "Chưa đọc được các luật. Mở Quy tắc để xem.",
+        "manage": "Sửa ở trang Quy tắc",
+        "quietOff": "Chưa đặt giờ nghỉ: bot trả lời cả đêm."
+      },
+      "log": {
+        "title": "Bot đã làm gì ở đây",
+        "empty": "Bot chưa làm gì ở cuộc chat này.",
+        "drafted": "Soạn nháp, chờ bạn duyệt",
+        "draftedAuto": "Soạn câu trả lời, tự gửi sau độ trễ",
+        "draftedManual": "Soạn nháp theo lời nhờ của bạn",
+        "skipped": "Bỏ qua: {why}",
+        "failed": "Lỗi: {why}",
+        "running": "Đang soạn…"
+      },
+      "draft": {
+        "title": "{name} soạn sẵn, chưa gửi",
+        "titleNoName": "Bot soạn sẵn, chưa gửi",
+        "stop": "Bot dừng lại vì {why}",
+        "sources": "Lấy từ brain",
+        "noSources": "Chưa ghi nguồn brain cho nháp này.",
+        "send": "Gửi",
+        "edit": "Sửa rồi gửi",
+        "sendEdited": "Gửi bản sửa",
+        "cancelEdit": "Thôi sửa",
+        "discard": "Bỏ",
+        "sent": "Đã duyệt, tin sẽ hiện ở bên phải khi gửi xong.",
+        "discarded": "Đã bỏ nháp.",
+        "failed": "Chưa gửi được nháp",
+        "discardFailed": "Chưa bỏ được nháp",
+        "stale": "Nháp vừa được sửa ở nơi khác. Hãy xem lại rồi gửi.",
+        "editLabel": "Sửa nháp trước khi gửi"
+      },
+      "draftStop": {
+        "needs_review": "bot thấy câu này cần bạn xem trước",
+        "review_keyword": "câu có từ khoá cần duyệt “{detail}”",
+        "quiet_hours": "đang trong giờ nghỉ, bot không tự gửi",
+        "kill_switch_auto_send": "tự động gửi đang tắt trong cài đặt",
+        "conversation_ai_draft": "cuộc chat này đặt chế độ Soạn nháp",
+        "agent_scope_missing_send": "bot chưa có quyền tự gửi",
+        "draft_mode": "bot đang ở chế độ Soạn nháp, tin nào cũng chờ bạn",
+        "manual_request": "bạn nhờ bot soạn nên chờ bạn duyệt",
+        "quiet_hours_defer": "tin chờ hết giờ nghỉ mới gửi"
+      },
+      "nick": {
+        "label": "Nick",
+        "all": "Tất cả nick",
+        "connected": "Đang kết nối",
+        "degraded": "Kết nối chập chờn",
+        "error": "Mất kết nối",
+        "paused": "Tạm dừng",
+        "disconnected": "Đã ngắt",
+        "sent": "hôm nay đã gửi {used}/{limit} tin",
+        "sentNoCap": "hôm nay đã gửi {used} tin",
+        "pick": "Chọn nick"
+      },
+      "list": {
+        "title": "Hộp thư Zalo",
+        "titleAny": "Hộp thư",
+        "back": "Danh sách",
+        "searchLabel": "Tìm theo tên, số điện thoại, nội dung",
+        "searchPlaceholder": "Tìm trong lịch sử chat",
+        "filterLabel": "Lọc cuộc chat",
+        "all": "Tất cả",
+        "unread": "Chưa đọc",
+        "unanswered": "Chưa trả lời"
+      },
+      "composer": {
+        "askBot": "Nhờ bot soạn",
+        "askBotWorking": "Đang nhờ bot…",
+        "yieldNote": "Bạn tự nhắn thì bot nhường cuộc chat này {n} phút.",
+        "textOnly": "Chỉ gửi được chữ từ đây."
+      },
+      "timeline": {
+        "outsideApp": "gửi ngoài app",
+        "loadOlder": "Đang tải tin cũ…"
+      }
+    },
+    "skip": {
+      "telegram_ai_blocked": "Bot không chạy trên Telegram.",
+      "kill_switch_module": "Module Chăm sóc khách hàng đang tắt.",
+      "kill_switch_ai": "Công tắc “Cho agent trả lời khách” đang tắt.",
+      "kill_switch_auto_send": "Tự động gửi đang tắt trong cài đặt.",
+      "account_inactive": "Nick này đang không hoạt động.",
+      "write_owner_not_core": "Nick này vẫn do module cũ quản lý.",
+      "account_ai_disabled": "Nick này đang tắt bot.",
+      "account_sync_disabled": "Nick này đang tắt đồng bộ tin.",
+      "account_send_disabled": "Nick này đang tắt gửi tin.",
+      "account_unhealthy": "Nick đang lỗi kết nối nên bot không tự gửi.",
+      "context_source_not_permitted": "Nguồn ngữ cảnh thêm không được phép dùng.",
+      "no_assignment": "Chưa có luật gán bot cho cuộc chat này.",
+      "assignment_disabled": "Luật gán bot đang tắt cho cuộc chat này.",
+      "observe_only": "Bot đang ở chế độ chỉ theo dõi, không soạn.",
+      "not_inbound": "Không phải tin khách gửi đến.",
+      "not_live_origin": "Tin cũ đồng bộ về, không phải tin mới.",
+      "not_customer_message": "Không phải tin của khách.",
+      "trigger_deleted": "Khách đã thu hồi tin này.",
+      "unsupported_type": "Loại tin này bot chưa đọc được (sticker, ghi âm…).",
+      "not_directed": "Tin trong nhóm không gọi tên bot.",
+      "opted_out": "Khách đã từ chối nhận tin.",
+      "noise": "Tin chỉ là lời đệm (ok, cảm ơn…), không cần trả lời.",
+      "empty_body": "Tin không có chữ.",
+      "internal_sender": "Tin do người nội bộ gửi.",
+      "own_address": "Tin do chính tài khoản của bạn gửi.",
+      "automated": "Thư tự động, bot không trả lời.",
+      "category_not_primary": "Thư không nằm ở hộp thư chính.",
+      "before_care_since": "Tin có từ trước khi bật chăm sóc.",
+      "stale_trigger": "Tin đã quá cũ để trả lời tự động.",
+      "conversation_paused": "Cuộc chat đang tạm dừng bot.",
+      "human_active": "Bạn vừa trả lời nên bot nhường.",
+      "stale_context": "Có tin mới hơn trong lúc bot soạn nên bỏ bản đã soạn.",
+      "thread_quota": "Đã đủ số câu trả lời tối đa trong ngày cho cuộc chat này.",
+      "agent_quota": "Bot đã đủ số lượt trả lời trong ngày.",
+      "account_quota": "Nick đã gửi đủ số tin tối đa trong ngày.",
+      "cooldown_active": "Nick đang nghỉ để tránh bị khoá.",
+      "quiet_hours": "Đang trong giờ nghỉ.",
+      "marketing_consent_missing": "Khách chưa đồng ý nhận tin quảng cáo.",
+      "conversation_taken_over": "Bạn đang tiếp quản cuộc chat này.",
+      "ai_mode_off": "Bot đang tắt ở cuộc chat này.",
+      "assignment_conflict": "Hai luật trùng ưu tiên, bot không chọn bừa.",
+      "trigger_not_found": "Không còn thấy tin cần trả lời.",
+      "agent_scope_missing": "Bot chưa có quyền “Soạn nháp trả lời”.",
+      "boundary_unverifiable": "Không kiểm chứng được bot chạy ở chế độ không công cụ.",
+      "boundary_unenforced": "Runtime không giữ được chế độ không công cụ nên bot không chạy.",
+      "prompt_too_long": "Hội thoại dài quá giới hạn của runtime.",
+      "media_needs_owner": "Khách chỉ gửi ảnh hoặc PDF mà bot không đọc được, để bạn xử lý.",
+      "timeout": "Bot trả lời quá lâu.",
+      "runner_error": "Runtime của bot báo lỗi.",
+      "restricted_tool_use": "Bot định dùng công cụ không được phép nên bị chặn.",
+      "invalid_output": "Bot trả lời sai định dạng nên bỏ.",
+      "agent_skip": "Bot tự bỏ qua tin này.",
+      "agent_handoff_suggested": "Bot đề nghị chuyển cho bạn.",
+      "draft_sink_error": "Chưa lưu được nháp."
     }
   }
 }

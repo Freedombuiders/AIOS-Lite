@@ -1,4 +1,4 @@
-import { AtSign, Loader2, Send, Smile } from 'lucide-preact';
+import { AtSign, Bot, Loader2, Send, Smile } from 'lucide-preact';
 import { useCallback, useState } from 'preact/hooks';
 import { RichTextPreview, RichToolbar, type RichToolbarLabels } from '@/components/RichTextEditor';
 import { ComposerNotice, SendUnavailable } from './ComposerNotice';
@@ -32,7 +32,7 @@ const TOOLBAR_LABELS: RichToolbarLabels = {
 };
 
 /** Chat reply box (text, rich formatting where the channel supports it; attachments and other channel extras come from `care.composerExtras`). No email fields exist here; the email composer is a separate component. */
-export function ChatComposer({ conversation, messages, replyEnabled, account, canned, tab, onTab, onAccepted }: {
+export function ChatComposer({ conversation, messages, replyEnabled, account, canned, tab, onTab, onAccepted, onAskBot, askBusy, yieldMinutes }: {
   conversation: CareConversationDto;
   messages: CareMessageDto[];
   replyEnabled: boolean | null;
@@ -41,6 +41,11 @@ export function ChatComposer({ conversation, messages, replyEnabled, account, ca
   tab: ComposerTab;
   onTab: (t: ComposerTab) => void;
   onAccepted: () => void;
+  /** T07 "Nhờ bot soạn": enqueues the existing draft-on-demand route. Absent: no button. */
+  onAskBot?: () => void;
+  askBusy?: boolean;
+  /** Minutes the bot steps back after the owner writes; null = say nothing. */
+  yieldMinutes?: number | null;
 }) {
   const delivery = account?.delivery;
   const sendEnabled = !account || account.sendEnabled;
@@ -133,6 +138,11 @@ export function ChatComposer({ conversation, messages, replyEnabled, account, ca
               )}
             </>
           )}
+          {onAskBot && (
+            <button type="button" class="cc-button" disabled={blocked || askBusy} onClick={onAskBot} data-testid="care-ask-bot">
+              {askBusy ? <Loader2 size={13} class="animate-spin" aria-hidden="true" /> : <Bot size={13} aria-hidden="true" />} {askBusy ? ct('bot.composer.askBotWorking') : ct('bot.composer.askBot')}
+            </button>
+          )}
           {extras.map((Extra, i) => (
             <Extra
               key={i}
@@ -146,6 +156,7 @@ export function ChatComposer({ conversation, messages, replyEnabled, account, ca
             />
           ))}
           <span class="care-faint care-composer-hint">{ct('inbox2.composer.sendHint')}</span>
+          {yieldMinutes ? <span class="care-faint care-composer-hint" data-testid="care-yield-note">{ct('bot.composer.yieldNote', { n: yieldMinutes })}</span> : null}
         </div>
       </div>
       <CannedMenu picker={picker} id={listId} hasItems={canned.length > 0} />

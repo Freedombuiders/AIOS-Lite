@@ -13,6 +13,7 @@ import type { CareOutboxService } from '../application/outbox-service.js';
 import type { ConnectorRegistry } from '../connectors/registry.js';
 import type { BacklogSource } from '../runtime/backlog.js';
 import type { CareWorkflowService } from '../workflow/contract.js';
+import type { CareBotSettingsDto } from './dto-inbox.js';
 
 export interface CareApiContext {
   /** Throws a typed 503 when the store/handle is not available (never a raw SQLite error). */
@@ -37,6 +38,8 @@ export interface CareApiContext {
   media: Pick<CareMediaCache, 'get'> | undefined;
   /** Channel connectors (names and avatars); absent: the profiles route answers 404 and rows carry no picture. */
   connectors: ConnectorRegistry | undefined;
+  /** T07: the module settings the bot panel lists as rules (read on each request, so a change shows at once). Absent: the panel says it cannot read them. */
+  botSettings: (() => CareBotSettingsDto) | undefined;
 }
 
 const MAX_BODY_CHARS = 300_000;

@@ -1,20 +1,20 @@
-import { Inbox, Loader2, MessageSquareText, X } from 'lucide-preact';
+import { ArrowLeft, Inbox, Loader2, MessageSquareText, X } from 'lucide-preact';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { useLocation, useRoute, useSearch } from 'wouter-preact';
-import { CareTabs } from '@modules/care/web/components/care/CareTabs';
 import { ConnectionBanner } from '@modules/care/web/components/care/ConnectionBanner';
 import { ConversationPane, type WorkflowEvent } from '@modules/care/web/components/care/ConversationPane';
 import { ConversationRow } from '@modules/care/web/components/care/ConversationRow';
-import { FilterBar } from '@modules/care/web/components/care/FilterBar';
+import { InboxHeader, type InboxTab } from '@modules/care/web/components/care/inbox/InboxHeader';
+import { BotPanel } from '@modules/care/web/components/care/inbox/BotPanel';
 import { AlertToggles } from '@modules/care/web/components/care/inbox/AlertToggles';
 import { snoozeUntilText } from '@modules/care/web/components/care/inbox/format';
 import { SearchHits } from '@modules/care/web/components/care/SearchHits';
-import { PageHeader } from '@/components/PageHeader';
 import { PageState } from '@/components/PageState';
 import { careApi } from '@modules/care/web/lib/care/client';
 import { snapshotIsAhead } from '@modules/care/web/lib/care/cursor';
 import { ct } from '@modules/care/web/lib/care/i18n';
-import { EMPTY_FILTERS, effectiveQuery, filterKey, hasActiveFilters, reconcileAccount, type InboxFilters } from '@modules/care/web/lib/care/filters';
+import { EMPTY_FILTERS, effectiveQuery, filterKey, reconcileAccount, type InboxFilters } from '@modules/care/web/lib/care/filters';
+import { useZaloUsage } from '@modules/care/web/lib/care/useZaloUsage';
 import { DEFAULT_WAIT_MINUTES, titleCount } from '@modules/care/web/lib/care/inboxView';
 import { useBrowserAlerts, useInboxTitle } from '@modules/care/web/lib/care/useBrowserAlerts';
 import { useCareMeta, useInboxList, useMessageSearch } from '@modules/care/web/lib/care/useInbox';
@@ -27,6 +27,7 @@ import { pushToast } from '@/lib/toasts';
 import { useDebouncedValue } from '@/lib/useDebounce';
 import '@modules/care/web/styles/care.css';
 import '@modules/care/web/styles/care-inbox.css';
+import '@modules/care/web/styles/care-bot.css';
 
 const BASE = '/m/care/inbox';
 const NOW_TICK_MS = 30_000;
@@ -57,7 +58,10 @@ export function CareInbox() {
   // `?channel=zalo|email` pre-selects the channel filter
   const channelParam = channelFromSearch(search);
 
-  const [filters, setFilters] = useState<InboxFilters>({ ...EMPTY_FILTERS, channel: channelParam });
+  // T07: "Tất cả" shows every conversation whatever its status; the other two tabs narrow it.
+  const [tab, setTab] = useState<InboxTab>('all');
+  const [botScreen, setBotScreen] = useState(false);
+  const [filters, setFilters] = useState<InboxFilters>({ ...EMPTY_FILTERS, wf: 'all', channel: channelParam });
   useEffect(() => {
     if (channelParam) setFilters((f) => (f.channel === channelParam ? f : { ...f, channel: channelParam, accountId: '' }));
   }, [channelParam]);
@@ -65,7 +69,7 @@ export function CareInbox() {
   const meta = useCareMeta(stream.listTick, stream.accountsTick, stream.resyncTick);
   // Typing is debounced; every other filter applies immediately.
   const debouncedQ = useDebouncedValue(filters.q, 300);
-  const applied = useMemo(() => ({ ...filters, q: debouncedQ }), [filters, debouncedQ]);
+  const applied = useMemo(() => ({ ...filters, q: debouncedQ, wf: tab === 'unanswered' ? ('open' as const) : ('all' as const), unread: tab === 'unread' }), [filters, debouncedQ, tab]);
   const inbox = useInboxList(applied, stream.listTick, stream.resyncTick);
   const hits = useMessageSearch(applied, stream.resyncTick);
   const { list, counts, inboxCounts, truncated } = inbox.state;
@@ -82,6 +86,16 @@ export function CareInbox() {
   }, [stream.snapshotTick]);
 
   const accounts = meta.accounts;
+  // Counts on the tabs: the last answer for "Tất cả" (a narrowed list counts only itself).
+  const [allCounts, setAllCounts] = useState<{ unread: number | null; unanswered: number | null }>({ unread: null, unanswered: null });
+  useEffect(() => {
+    if (tab === 'all' && !effectiveQuery(applied.q) && counts) setAllCounts({ unread: counts.unread, unanswered: counts.waiting });
+  }, [counts, tab, applied.q]);
+  // Today's sent / cap of the picked Zalo nick, refetched when the stream says something changed (no timer).
+  // With a single nick there is nothing to choose: the picker shows that nick's state and numbers.
+  const shownAccountId = filters.accountId || (accounts.length === 1 ? accounts[0]!.id : '');
+  const pickedAccount = accounts.find((a) => a.id === shownAccountId);
+  const usage = useZaloUsage(pickedAccount?.channel === 'zalo' ? pickedAccount.id : null, stream.listTick);
   const accountById = useMemo(() => new Map(accounts.map((a) => [a.id, a])), [accounts]);
 
   function setFilterState(next: InboxFilters): void {
@@ -103,17 +117,18 @@ export function CareInbox() {
   const searching = effectiveQuery(applied.q).length > 0;
   const showAccount = accounts.length > 1 && !filters.accountId;
   const titleOf = (id: string) => list.items.find((c) => c.id === id)?.title;
-  const noAccounts = meta.accountsLoaded && accounts.length === 0 && !inbox.state.loading && list.items.length === 0 && !hasActiveFilters(filters);
+  const narrowed = tab !== 'all' || Boolean(filters.accountId) || Boolean(filters.channel) || searching;
+  const noAccounts = meta.accountsLoaded && accounts.length === 0 && !inbox.state.loading && list.items.length === 0 && !narrowed;
   const waitThresholdMin = DEFAULT_WAIT_MINUTES;
 
   // Tab title "(N) Hộp thư chung": N = conversations that need the owner, measured on the default scope (status Mở, every
   // channel and account) so browsing another tab or channel does not make the number jump.
   const [needsMe, setNeedsMe] = useState<number | null>(null);
   useEffect(() => {
-    const defaultScope = filters.wf === 'open' && !filters.channel && !filters.accountId && !filters.unread && !searching;
+    const defaultScope = tab === 'all' && !filters.channel && !filters.accountId && !searching;
     const n = defaultScope ? titleCount(inboxCounts) : null;
     if (n !== null) setNeedsMe(n);
-  }, [inboxCounts, filters.wf, filters.channel, filters.accountId, filters.unread, searching]);
+  }, [inboxCounts, tab, filters.channel, filters.accountId, searching]);
   useInboxTitle(ct('page.title'), needsMe);
 
   const alerts = useBrowserAlerts({
@@ -142,32 +157,27 @@ export function CareInbox() {
     }
   }
 
-  const emptyKey = hasActiveFilters(filters) ? `inbox2.empty.${filters.wf}` : null;
+  const emptyKey = tab === 'unread' ? 'inbox2.empty.unread' : tab === 'unanswered' ? 'inbox2.empty.open' : null;
+  const screen = selectedId ? (botScreen ? 'bot' : 'chat') : 'list';
+  // Opening another conversation always starts on its chat, not on the bot screen of the last one.
+  useEffect(() => { setBotScreen(false); }, [selectedId]);
 
   return (
-    <div class="care-page module-fill" data-testid="care-inbox">
-      <PageHeader
-        compact
-        breadcrumb={ct('page.breadcrumb')}
-        title={ct('page.title')}
-        tabs={<CareTabs current="inbox" />}
-        actions={status && (
-          <span class="care-totals" data-testid="care-totals" aria-label={ct('counts.global')}>
-            <span>{ct('counts.total', { n: status.conversations.total })}</span>
-            <span class="is-waiting">{ct('counts.waiting', { n: status.conversations.waiting })}</span>
-            <span class="is-unread">{ct('counts.unread', { n: status.conversations.unread })}</span>
-          </span>
-        )}
-      />
+    <div class="care-page module-fill care-inbox3" data-testid="care-inbox">
       <ConnectionBanner stream={stream} onRetry={retry} />
 
-      <div class="care-layout" data-selected={selectedId ? 'true' : 'false'}>
+      <div class="care-layout" data-selected={selectedId ? 'true' : 'false'} data-screen={screen}>
         <aside class="care-list" aria-label={ct('a11y.listRegion')}>
-          <FilterBar
-            filters={filters}
+          <InboxHeader
             accounts={accounts}
-            counts={searching ? null : inboxCounts}
-            onChange={setFilterState}
+            accountId={shownAccountId}
+            usage={usage}
+            query={filters.q}
+            tab={tab}
+            counts={allCounts}
+            onAccount={(id) => setFilterState({ ...filters, accountId: id, channel: id ? accounts.find((a) => a.id === id)?.channel ?? '' : filters.channel })}
+            onQuery={(q) => setFilterState({ ...filters, q })}
+            onTab={setTab}
             extra={<AlertToggles settings={alerts.settings} permission={alerts.permission} onSound={alerts.toggleSound} onNotify={() => void alerts.toggleNotify()} />}
           />
           {searching && !counts && <p class="care-faint care-search-note" data-testid="care-counts">{ct('counts.hidden')}</p>}
@@ -196,7 +206,7 @@ export function CareInbox() {
               <div class="care-empty" data-testid="care-empty">
                 <Inbox size={20} aria-hidden="true" />
                 <p>{searching ? ct('list.noMatch') : emptyKey ? ct(emptyKey) : noAccounts ? ct('list.empty') : accounts.length > 0 ? ct('inbox2.empty.open') : ct('list.noMatch')}</p>
-                {!hasActiveFilters(filters) && noAccounts && <p class="care-faint">{ct('list.emptyHint')}</p>}
+                {!narrowed && noAccounts && <p class="care-faint">{ct('list.emptyHint')}</p>}
               </div>
             )}
             <div role="list">
@@ -234,6 +244,7 @@ export function CareInbox() {
               onOpenConversation={open}
               onConversation={inbox.patchConversation}
               onWorkflow={onWorkflow}
+              onOpenBot={() => setBotScreen(true)}
             />
           ) : (
             <div class="care-placeholder-pane">
@@ -242,6 +253,23 @@ export function CareInbox() {
             </div>
           )}
         </div>
+
+        {selectedId && (
+          <div class="care-botcol">
+            <button type="button" class="care-back care-bot-back" onClick={() => setBotScreen(false)} data-testid="care-bot-back">
+              <ArrowLeft size={14} aria-hidden="true" /> {ct('bot.backToChat')}
+            </button>
+            <BotPanel
+              key={selectedId}
+              conversationId={selectedId}
+              accounts={accounts}
+              agents={agents}
+              convTick={stream.convTicks[selectedId] ?? 0}
+              resyncTick={stream.resyncTick}
+              onConversation={inbox.patchConversation}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

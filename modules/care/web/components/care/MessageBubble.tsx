@@ -76,6 +76,7 @@ export function MessageBubble({ message: m, channel, profiles, highlighted, inte
           <span class="care-sender">
             {view.isEmail && meta.fromName ? meta.fromName : personName || ct(`msg.role.${m.senderRole}`)}
           </span>
+          {m.senderRole === 'self' && <span class="care-chip is-outside" data-testid="care-outside-app">{ct('msg.outsideApp')}</span>}
           {m.origin !== 'live' && <span class="care-faint">{m.origin}</span>}
           <time class="care-faint" dateTime={new Date(m.sentAtMs).toISOString()} title={fullTime(m.sentAtMs)}>{clockTime(m.sentAtMs)}</time>
           {highlighted && <span class="care-chip is-hit">{ct('msg.hit')}</span>}

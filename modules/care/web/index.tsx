@@ -55,9 +55,10 @@ export default defineWebModule({
     { group: 'sales', label: 'Nhật ký CSKH', path: '/m/care/activity', icon: asIcon(ScrollText), order: 16 },
   ],
   routes: [
-    { path: '/m/care', component: CareInbox },
-    { path: '/m/care/inbox', component: CareInbox },
-    { path: '/m/care/inbox/:id', component: CareInbox },
+    // The inbox has its own composer: the bottom command bar would sit on top of it (T07).
+    { path: '/m/care', component: CareInbox, hideCommandBar: true },
+    { path: '/m/care/inbox', component: CareInbox, hideCommandBar: true },
+    { path: '/m/care/inbox/:id', component: CareInbox, hideCommandBar: true },
     { path: '/m/care/drafts', component: CareDrafts },
     { path: '/m/care/customers', component: CareCustomersEntry },
     { path: '/m/care/followups', component: CareTasks },

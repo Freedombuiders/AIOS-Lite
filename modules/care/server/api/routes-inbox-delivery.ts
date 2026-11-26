@@ -11,13 +11,14 @@ import type { OutboxIntentRecord } from '../persistence/outbox-store.js';
 import type { CareApiChannel } from './dto.js';
 import type { CareInlineDraftDto } from './dto-inbox.js';
 import { notFound } from './errors.js';
+import { draftSourcesOf, draftStopOf } from './draft-stop.js';
 import type { CareApiContext } from './context.js';
 import { idParam, intParam } from './util.js';
 
 /** Core intents that wait for a person: agent drafts, and drafts held back for review. */
 const CORE_PENDING = ['draft', 'needs_review'] as const;
 
-function coreDraftDto(i: OutboxIntentRecord): CareInlineDraftDto | null {
+function coreDraftDto(i: OutboxIntentRecord, decision: Record<string, unknown> | null): CareInlineDraftDto | null {
   if (!i.conversationId) return null;
   const p = i.payload;
   return {
@@ -32,11 +33,24 @@ function coreDraftDto(i: OutboxIntentRecord): CareInlineDraftDto | null {
     reviewReason: i.status === 'needs_review' ? i.statusReason : null,
     status: i.status === 'needs_review' ? 'needs_review' : 'draft',
     createdAtMs: i.createdAtMs,
+    payloadRevision: i.payloadRevision,
+    stop: draftStopOf(decision),
+    sources: draftSourcesOf(decision),
   };
 }
 
 const newestFirst = (a: CareInlineDraftDto, b: CareInlineDraftDto): number =>
   b.createdAtMs - a.createdAtMs || (a.id < b.id ? 1 : a.id > b.id ? -1 : 0);
+
+/** The decision of the agent run that proposed the draft (decrypted), null for a draft a person made or a missing run. */
+function decisionOf(m: ReturnType<CareApiContext['model']>, i: OutboxIntentRecord): Record<string, unknown> | null {
+  if (!i.sourceRunId) return null;
+  try {
+    return m.stores.agentRuns.getRun(i.sourceRunId)?.decision ?? null;
+  } catch {
+    return null; // a run that cannot be read never blocks the draft
+  }
+}
 
 export function registerInboxDeliveryRoutes(sub: Hono, ctx: CareApiContext): void {
   sub.get('/conversations/:id/drafts', (c) => {
@@ -47,7 +61,7 @@ export function registerInboxDeliveryRoutes(sub: Hono, ctx: CareApiContext): voi
 
     const items: CareInlineDraftDto[] = [];
     for (const i of m.stores.outbox.listIntents({ conversationId: id, statuses: [...CORE_PENDING], limit: 50 })) {
-      const d = coreDraftDto(i);
+      const d = coreDraftDto(i, decisionOf(m, i));
       if (d) items.push(d);
     }
     return c.json({ items: items.sort(newestFirst) });
@@ -58,7 +72,7 @@ export function registerInboxDeliveryRoutes(sub: Hono, ctx: CareApiContext): voi
     const limit = intParam(c.req.query('limit'), 'limit', { min: 1, max: 200, fallback: 100 });
     const items: CareInlineDraftDto[] = [];
     for (const i of m.stores.outbox.listIntents({ statuses: [...CORE_PENDING], limit })) {
-      const d = coreDraftDto(i);
+      const d = coreDraftDto(i, decisionOf(m, i));
       if (d) items.push(d);
     }
     return c.json({ items: items.filter((d) => ctx.canReadSource(d.accountId)).sort(newestFirst).slice(0, limit) });

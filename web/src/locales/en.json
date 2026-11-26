@@ -531,9 +531,9 @@
     "msg": {
       "role": {
         "customer": "Customer",
-        "self": "Account",
-        "operator": "Staff",
-        "agent": "Agent",
+        "self": "You (phone)",
+        "operator": "You (in app)",
+        "agent": "Bot",
         "system": "System"
       },
       "deleted": "This message was deleted or recalled.",
@@ -565,7 +565,8 @@
       "telegramMediaWhy": {
         "restricted": "protected by Telegram",
         "unsupported": "format not supported"
-      }
+      },
+      "outsideApp": "sent outside the app"
     },
     "email": {
       "frameTitle": "Email content",
@@ -2123,6 +2124,251 @@
         "doneAt": "Done {date} {time}",
         "openConversation": "Open conversation"
       }
+    },
+    "bot": {
+      "title": "Bot for this chat",
+      "open": "Bot",
+      "backToChat": "Back to chat",
+      "state": {
+        "review": "Waiting for you to review",
+        "active": "Bot is handling",
+        "yielded": "Bot stepped back",
+        "handoff": "Handed to you",
+        "none": "No bot assigned"
+      },
+      "yield": {
+        "paused": "Paused",
+        "taken_over": "You have taken over this chat.",
+        "human_reply": "You just wrote, so the bot steps back for {n} minutes."
+      },
+      "pick": {
+        "label": "Bot",
+        "none": "No bot",
+        "none_help": "No bot answers",
+        "noAgents": "No usable bot yet. Enable an agent and give it the Customer care “Draft replies” permission.",
+        "manage": "Open Agents",
+        "saved": "Bot changed: {name}",
+        "failed": "Could not change the bot"
+      },
+      "scope": {
+        "label": "Applies to",
+        "account": "Whole account",
+        "conversation": "This chat only",
+        "accountNote": "Following the shared settings of {nick}.",
+        "conversationNote": "This chat has its own settings, overriding the account.",
+        "noNick": "this account"
+      },
+      "mode": {
+        "label": "What the bot may do",
+        "observe": "Observe only",
+        "draft": "Draft",
+        "auto": "Auto reply",
+        "off": "Bot off"
+      },
+      "modeNote": {
+        "account": {
+          "observe": "The bot reads but drafts nothing.",
+          "draft": "The bot only drafts; every reply waits for your Send.",
+          "auto": "The bot sends replies by itself. A review keyword or quiet hours stop it at a draft."
+        },
+        "conversation": {
+          "off": "The bot does not read or answer this chat. You handle it.",
+          "draft": "This chat only gets drafts, even if the account allows auto replies.",
+          "auto": "Follows the account: if the account allows auto replies the bot sends, if it only drafts it stays a draft."
+        }
+      },
+      "effective": {
+        "active": "In effect: {mode}, handled by {agent}.",
+        "none": "No rule applies to this chat. Pick a bot above.",
+        "denied": "The bot rule is switched off for this chat.",
+        "conflict": "Two rules tie on priority, so the bot does not run. Fix it in Rules.",
+        "tier": {
+          "conversation": "this chat’s own rule",
+          "customer": "the customer’s rule",
+          "identity": "the sender’s rule",
+          "domain": "the domain’s rule",
+          "account": "the whole-account rule",
+          "channel": "the channel rule",
+          "global": "the global rule"
+        }
+      },
+      "toast": {
+        "mode": "Mode changed: {mode}",
+        "pause": "Bot paused: {what}",
+        "resume": "Bot is back on",
+        "giveBack": "Handed back to the bot",
+        "undo": "Undo",
+        "undone": "Undone",
+        "failed": "Could not change",
+        "undoFailed": "Could not undo"
+      },
+      "pause": {
+        "title": "Pause the bot",
+        "m30": "Pause 30 min",
+        "h2": "Pause 2 h",
+        "open": "Until switched on",
+        "resume": "Resume the bot",
+        "until": "Paused until {time}",
+        "openEnded": "Paused until you switch it back on",
+        "what30": "30 minutes",
+        "what120": "2 hours",
+        "whatOpen": "until you switch it back on"
+      },
+      "handoff": {
+        "title": "The customer asked for a person",
+        "body": "The customer wrote “{keyword}” at {time}. The bot stopped and its queued replies were cancelled. Only you can hand the chat back to the bot.",
+        "bodyNoKeyword": "The customer asked for a person at {time}. The bot stopped and its queued replies were cancelled. Only you can hand the chat back to the bot.",
+        "give": "Hand back to the bot"
+      },
+      "group": {
+        "only": "The bot does not answer in groups",
+        "note": "The bot only keeps the group history and never answers in a group. You can still write to the group yourself."
+      },
+      "rules": {
+        "title": "The bot always keeps these rules",
+        "debounce": "Waits {n} seconds after the customer’s last message, groups messages sent in a row and answers once.",
+        "debounceOff": "Answers each message at once, no grouping.",
+        "human": "When you write, the bot steps back for {n} minutes.",
+        "humanOff": "After you write the bot may still answer at once.",
+        "handoff": "If the customer says {keywords} it pauses {n} minutes and tells you.",
+        "handoffOff": "No phrase is set for handing over to you.",
+        "cap": "At most {n} replies a day in one chat.",
+        "quiet": "Quiet hours {start} to {end}: the bot does not send by itself, only drafts.",
+        "autoOn": "Automatic sending is on.",
+        "autoOff": "Automatic sending is off: every reply stops at a draft for you.",
+        "aiOff": "The emergency switch turns the bot off in every chat.",
+        "unreadable": "Could not read the rules. Open Rules to see them.",
+        "manage": "Edit in Rules",
+        "quietOff": "No quiet hours are set: the bot answers all night."
+      },
+      "log": {
+        "title": "What the bot did here",
+        "empty": "The bot has not done anything in this chat yet.",
+        "drafted": "Drafted, waiting for you",
+        "draftedAuto": "Drafted a reply, sends after the delay",
+        "draftedManual": "Drafted because you asked",
+        "skipped": "Skipped: {why}",
+        "failed": "Error: {why}",
+        "running": "Drafting…"
+      },
+      "draft": {
+        "title": "{name} drafted, not sent",
+        "titleNoName": "Bot drafted, not sent",
+        "stop": "The bot stopped because {why}",
+        "sources": "From the brain",
+        "noSources": "No brain source was recorded for this draft.",
+        "send": "Send",
+        "edit": "Edit then send",
+        "sendEdited": "Send the edit",
+        "cancelEdit": "Stop editing",
+        "discard": "Discard",
+        "sent": "Approved; the message appears on the right once sent.",
+        "discarded": "Draft discarded.",
+        "failed": "Could not send the draft",
+        "discardFailed": "Could not discard the draft",
+        "stale": "The draft was just edited elsewhere. Review it and send again.",
+        "editLabel": "Edit the draft before sending"
+      },
+      "draftStop": {
+        "needs_review": "the bot thinks you should look at this first",
+        "review_keyword": "the message has the review keyword “{detail}”",
+        "quiet_hours": "it is quiet hours, the bot does not send by itself",
+        "kill_switch_auto_send": "automatic sending is off in settings",
+        "conversation_ai_draft": "this chat is set to Draft",
+        "agent_scope_missing_send": "the bot lacks permission to send by itself",
+        "draft_mode": "the bot is in Draft mode, every reply waits for you",
+        "manual_request": "you asked the bot to draft, so it waits for you",
+        "quiet_hours_defer": "the message waits for quiet hours to end"
+      },
+      "nick": {
+        "label": "Account",
+        "all": "All accounts",
+        "connected": "Connected",
+        "degraded": "Unstable connection",
+        "error": "Disconnected",
+        "paused": "Paused",
+        "disconnected": "Disconnected",
+        "sent": "sent {used}/{limit} messages today",
+        "sentNoCap": "sent {used} messages today",
+        "pick": "Pick an account"
+      },
+      "list": {
+        "title": "Zalo inbox",
+        "titleAny": "Inbox",
+        "back": "List",
+        "searchLabel": "Search by name, phone, content",
+        "searchPlaceholder": "Search the chat history",
+        "filterLabel": "Filter chats",
+        "all": "All",
+        "unread": "Unread",
+        "unanswered": "Unanswered"
+      },
+      "composer": {
+        "askBot": "Ask the bot to draft",
+        "askBotWorking": "Asking the bot…",
+        "yieldNote": "When you write yourself the bot steps back from this chat for {n} minutes.",
+        "textOnly": "Only text can be sent from here."
+      },
+      "timeline": {
+        "outsideApp": "sent outside the app",
+        "loadOlder": "Loading older messages…"
+      }
+    },
+    "skip": {
+      "telegram_ai_blocked": "The bot does not run on Telegram.",
+      "kill_switch_module": "The Customer care module is off.",
+      "kill_switch_ai": "The “Let the agent answer customers” switch is off.",
+      "kill_switch_auto_send": "Automatic sending is off in settings.",
+      "account_inactive": "This account is not active.",
+      "write_owner_not_core": "This account is still managed by the old module.",
+      "account_ai_disabled": "The bot is off for this account.",
+      "account_sync_disabled": "Message sync is off for this account.",
+      "account_send_disabled": "Sending is off for this account.",
+      "account_unhealthy": "The account has a connection error, so the bot does not send by itself.",
+      "context_source_not_permitted": "The extra context source is not allowed.",
+      "no_assignment": "No bot is assigned to this chat.",
+      "assignment_disabled": "The bot rule is off for this chat.",
+      "observe_only": "The bot only observes and does not draft.",
+      "not_inbound": "Not a message from the customer.",
+      "not_live_origin": "An old synced message, not a new one.",
+      "not_customer_message": "Not a customer message.",
+      "trigger_deleted": "The customer recalled this message.",
+      "unsupported_type": "The bot cannot read this kind of message yet (sticker, voice…).",
+      "not_directed": "The group message does not address the bot.",
+      "opted_out": "The customer opted out of messages.",
+      "noise": "Only filler (ok, thanks…), no answer needed.",
+      "empty_body": "The message has no text.",
+      "internal_sender": "Sent by an internal person.",
+      "own_address": "Sent by your own account.",
+      "automated": "Automated mail, the bot does not answer.",
+      "category_not_primary": "The mail is not in the primary inbox.",
+      "before_care_since": "The message predates customer care.",
+      "stale_trigger": "The message is too old to answer automatically.",
+      "conversation_paused": "The bot is paused in this chat.",
+      "human_active": "You just replied, so the bot stepped back.",
+      "stale_context": "A newer message arrived while the bot was drafting, so the draft was dropped.",
+      "thread_quota": "The daily reply limit for this chat is reached.",
+      "agent_quota": "The bot reached its daily reply limit.",
+      "account_quota": "The account reached its daily send limit.",
+      "cooldown_active": "The account is cooling down to avoid a lock.",
+      "quiet_hours": "It is quiet hours.",
+      "marketing_consent_missing": "The customer has not agreed to marketing messages.",
+      "conversation_taken_over": "You have taken over this chat.",
+      "ai_mode_off": "The bot is off in this chat.",
+      "assignment_conflict": "Two rules tie on priority, the bot will not pick one.",
+      "trigger_not_found": "The message to answer is gone.",
+      "agent_scope_missing": "The bot lacks the “Draft replies” permission.",
+      "boundary_unverifiable": "Could not verify the bot runs without tools.",
+      "boundary_unenforced": "The runtime cannot keep the no-tools mode, so the bot did not run.",
+      "prompt_too_long": "The conversation is longer than the runtime allows.",
+      "media_needs_owner": "The customer sent only an image or PDF the bot cannot read; left for you.",
+      "timeout": "The bot took too long.",
+      "runner_error": "The bot runtime reported an error.",
+      "restricted_tool_use": "The bot tried to use a tool that is not allowed, so it was blocked.",
+      "invalid_output": "The bot answered in the wrong format, so it was dropped.",
+      "agent_skip": "The bot chose to skip this message.",
+      "agent_handoff_suggested": "The bot suggests handing over to you.",
+      "draft_sink_error": "The draft could not be saved."
     }
   }
 }
