@@ -61,6 +61,10 @@ listAccounts(channel?): CareAccountRecord[]
 
 Trả lời gửi đi luôn qua `connector.dispatch()` của kênh nên giới hạn chống khoá nick nằm ở kênh. Connector có thể thêm `careManagedSync` (để `care` định kỳ gọi `sync()`) và `commitSync(accountId, result, { failedEventIds })`; mặc định kênh tự đẩy tin bằng `ingest`.
 
+### Số liệu cho module khác
+
+`ctx.modules.get('care')?.draftStats({ fromMs, toMs })` (chỉ đọc, `server/draft-stats.ts`) trả số nháp do bot soạn (có `source_run_id`, không phải tin tự gửi) tạo trong khoảng: `sentUnchanged` (gửi với `payload_revision = 1`, tức chưa ai sửa), `sentEdited`, `discarded`, `notDelivered`, `open`, và `unchangedRate` = gửi nguyên ÷ mọi nháp đã xử lý (gửi, sửa rồi gửi, bỏ, huỷ). `payload_revision = approved_revision` không dùng được: nó chỉ nói bản hiện tại đã được duyệt. Module `learn` dùng hàm này cho thước đo "nháp gửi nguyên"; không module nào đọc thẳng bảng của `care`.
+
 ### Điểm mở rộng giao diện
 
 Module kênh khai báo trong `provides` của web module; `care` render mọi component được cung cấp và component tự trả `null` nếu `channel` không phải của nó.

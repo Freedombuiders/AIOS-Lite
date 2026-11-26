@@ -59,6 +59,7 @@ const scoreBody = z.object({
   hasVideo: z.boolean().optional(),
   videoLengthS: z.number().positive().max(36_000).nullable().optional(),
   timezone: z.string().max(60).optional(),
+  hook: z.boolean().optional(),
 });
 
 export function registerLoopRoutes(app: Hono, ctx: ModuleContext, state: () => LoopState | null): void {
@@ -221,7 +222,7 @@ export function registerLoopRoutes(app: Hono, ctx: ModuleContext, state: () => L
     if (s instanceof Response) return s;
     const b = await body(c, scoreBody);
     if (!b.ok) return c.json(err('bad_request', b.message), 400);
-    if (!folder()) return c.json({ matched: 0, checkable: 0, lessons: [], unchecked: [], hook: { moDau: null, label: null, source: 'none', note: null }, facts: {}, state: 'no-folder' });
+    if (!folder()) return c.json({ matched: 0, checkable: 0, lessons: [], unchecked: [], hook: { moDau: null, label: null, source: 'none', note: null }, needsHook: false, facts: {}, state: 'no-folder' });
     return c.json({ ...(await s.scorer.score(b.value)), state: 'ok' });
   });
 }

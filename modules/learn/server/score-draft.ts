@@ -21,6 +21,8 @@ export interface ScoreInput {
   videoLengthS?: number | null;
   /** timezone of the Page; default Asia/Ho_Chi_Minh */
   timezone?: string;
+  /** false: code checks only, no agent run (the composer checks as you type, the agent only on request) */
+  hook?: boolean;
 }
 
 export interface ScoredLesson {
@@ -38,6 +40,8 @@ export interface ScoreResult {
   /** verified lessons without machine-checkable rules (shown, not counted) */
   unchecked: Array<{ path: string; title: string }>;
   hook: { moDau: string | null; label: string | null; source: 'cache' | 'agent' | 'none'; note: string | null };
+  /** some lesson is about the opening and it was not read this time */
+  needsHook: boolean;
   facts: PostFacts;
 }
 
@@ -127,7 +131,15 @@ export function createScorer(deps: ScoreDeps): Scorer {
       const facts = factsOfDraft({ ...input, text });
       const needHook = lessons.some((l) => l.rules.moDau);
       let hook: ScoreResult['hook'] = { moDau: null, label: null, source: 'none', note: null };
-      if (needHook && text.trim()) {
+      let needsHook = false;
+      if (needHook && text.trim() && input.hook === false) {
+        // a cached answer costs nothing; otherwise wait until the person asks
+        const hit = cached(textHash(text));
+        if (hit !== undefined) {
+          hook = { moDau: MO_DAU.includes(hit) ? hit : null, label: MO_DAU.includes(hit) ? (MO_DAU_LABELS[hit] ?? hit) : null, source: 'cache', note: null };
+          facts.moDau = MO_DAU.includes(hit) ? hit : 'khac';
+        } else needsHook = true;
+      } else if (needHook && text.trim()) {
         try {
           const c = await classify(text);
           hook = { moDau: c.moDau, label: c.moDau ? (MO_DAU_LABELS[c.moDau] ?? c.moDau) : null, source: c.source, note: c.note };
@@ -149,7 +161,7 @@ export function createScorer(deps: ScoreDeps): Scorer {
         const result = checks.some((c) => c.ok === false) ? 'chua-khop' : checks.every((c) => c.ok === true) ? 'khop' : 'chua-ro';
         scored.push({ path: l.path, title: l.title, checks, result });
       }
-      return { matched: scored.filter((s) => s.result === 'khop').length, checkable: scored.length, lessons: scored, unchecked, hook, facts };
+      return { matched: scored.filter((s) => s.result === 'khop').length, checkable: scored.length, lessons: scored, unchecked, hook, needsHook, facts };
     },
   };
 }

@@ -65,6 +65,11 @@ describe('score-draft', () => {
     expect(d.hook.source).toBe('cache');
     await s.score({ text: 'Một nội dung khác', format: 'reel' });
     expect(runLean).toHaveBeenCalledTimes(2);
+    // checking as you type (hook: false) never runs the agent; a cached text still gets its opening
+    const typing = await s.score({ text: 'Đang gõ dở', format: 'reel', hook: false });
+    expect(typing).toMatchObject({ needsHook: true, matched: 0, checkable: 1 });
+    expect((await s.score({ text, format: 'reel', hook: false })).matched).toBe(1);
+    expect(runLean).toHaveBeenCalledTimes(2);
   });
 
   it('a failed run is not cached; no agent means the opening is "chưa rõ"', async () => {
