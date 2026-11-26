@@ -16,6 +16,7 @@ import { mountIntegrationRoutes, RUN_TOKEN_PATHS } from './routes/integrations.j
 import { memoryRoutes } from './routes/memory.js';
 import { miscRoutes } from './routes/misc.js';
 import { modulesRoutes } from './routes/modules.js';
+import { CLOUD_CALLBACK_PATH, packsRoutes } from './routes/packs.js';
 import { runsRoutes } from './routes/runs.js';
 import { skillsAdminRoutes } from './routes/skills-admin.js';
 import { schedulesRoutes } from './routes/schedules.js';
@@ -58,7 +59,8 @@ export function createApiServer(deps: AppDeps, opts: ApiServerOptions = {}): Api
   app.notFound((c) => c.json(errorBody('not_found', 'Không tìm thấy đường dẫn này.'), 404));
 
   app.use('/api/*', async (c, next) => {
-    if (token && !RUN_TOKEN_PATHS.includes(c.req.path)) {
+    // the cloud sign-in callback is a browser redirect: it cannot carry the token, and its `state` guards it
+    if (token && !RUN_TOKEN_PATHS.includes(c.req.path) && c.req.path !== CLOUD_CALLBACK_PATH) {
       const header = c.req.header('authorization') ?? '';
       const bearer = header.toLowerCase().startsWith('bearer ') ? header.slice(7).trim() : '';
       const query = c.req.path === '/api/events' ? (c.req.query('token') ?? '') : '';
@@ -78,6 +80,7 @@ export function createApiServer(deps: AppDeps, opts: ApiServerOptions = {}): Api
   schedulesRoutes(app, deps);
   chatRoutes(app, deps);
   brainRoutes(app, deps);
+  packsRoutes(app, deps);
   memoryRoutes(app, deps);
   skillsAdminRoutes(app, deps);
   miscRoutes(app, deps);

@@ -1,0 +1,7 @@
+# Khoá công khai Ed25519 của người phát hành gói dữ liệu (Kho dữ liệu, T22).
+# App chỉ cài gói có chữ ký kiểm được bằng một khoá trong danh sách này; gói ký bằng khoá lạ bị từ chối
+# trước khi mở zip. Mỗi dòng: <mã khoá>: <khoá công khai base64, 32 byte>, đúng như lệnh
+# `npm run pack -- keygen` trong thư mục cloud/ in ra (và như PACK_SIGNING_KEYS của cloud).
+# Biến môi trường AIOS_PACK_KEYS='{"<mã khoá>":"<base64>"}' được cộng thêm (dùng khi thử với wrangler dev).
+# Chỉ thêm khoá của người phát hành bạn tin. Khoá bí mật không bao giờ nằm ở đây.
+keys: {}

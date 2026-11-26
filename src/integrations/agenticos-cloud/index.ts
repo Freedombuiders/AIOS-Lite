@@ -25,9 +25,14 @@ const PURPOSES = ['post-media', 'avatar'] as const;
 
 export interface CloudDeps { fetchImpl?: FetchImpl }
 
+/** A client for the stored values; throws IntegrationUsageError when the owner has not signed in. */
+export function cloudClientFor(values: IntegrationValues | null | undefined, deps: CloudDeps = {}, signal?: AbortSignal): CloudClient {
+  return clientFor(values ?? {}, deps, signal);
+}
+
 function clientFor(values: IntegrationValues, deps: CloudDeps, signal?: AbortSignal): CloudClient {
   const token = values.session_token?.trim();
-  if (!token) throw new IntegrationUsageError('Chưa có phiên đăng nhập cloud. Chủ nhập ở trang Kết nối.');
+  if (!token) throw new IntegrationUsageError('Chưa đăng nhập AgenticOS Cloud. Chủ bấm "Đăng nhập cloud" ở trang Kết nối hoặc Kho dữ liệu.');
   return createCloudClient({ baseUrl: normaliseCloudUrl(values.cloud_url), token, fetchImpl: deps.fetchImpl, signal });
 }
 
@@ -106,12 +111,11 @@ export const agenticosCloudIntegration: IntegrationDefinition = {
   id: 'agenticos-cloud',
   name: 'AgenticOS Cloud',
   category: 'Hệ thống',
-  description: 'Tài khoản của bạn trên AgenticOS Cloud. Agent tải ảnh, video lên kho tạm để có đường dẫn công khai cho các nền tảng đăng bài lấy file. Ảnh đăng bài tự xoá sau 7 ngày; cloud không giữ dữ liệu khách của shop.',
+  description: 'Tài khoản của bạn trên AgenticOS Cloud: tải gói dữ liệu ở trang Kho dữ liệu, và cho agent tải ảnh, video lên kho tạm để có đường dẫn công khai cho các nền tảng đăng bài lấy file. Ảnh đăng bài tự xoá sau 7 ngày; cloud không giữ dữ liệu khách của shop.',
   authKind: 'api-key',
   setupSteps: [
-    'Trong thư mục cloud của AIOS-Lite, chạy: npm run login -- --url <địa chỉ cloud>. Trình duyệt mở trang đăng nhập Google.',
-    'Đăng nhập xong, lệnh in ra mã phiên của máy này (hạn 90 ngày).',
-    'Dán địa chỉ cloud và mã phiên vào hai ô dưới rồi bấm Lưu & kiểm tra. Mã phiên được mã hoá khi lưu.',
+    'Cách nhanh: nhập địa chỉ cloud rồi bấm "Đăng nhập cloud". Trình duyệt mở trang đăng nhập Google; xong thì phiên của máy (hạn 90 ngày) được lưu mã hoá, không cần dán gì.',
+    'Cách thủ công: trong thư mục cloud của AIOS-Lite chạy npm run login -- --url <địa chỉ cloud>, rồi dán địa chỉ cloud và mã phiên in ra vào hai ô dưới và bấm Lưu & kiểm tra.',
   ],
   fields: [
     { key: 'cloud_url', label: 'Địa chỉ cloud', kind: 'text', required: true, placeholder: 'https://cloud.example.com' },

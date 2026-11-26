@@ -1,5 +1,5 @@
 import {
-  Bot, Brain, Cable, CircleDollarSign, ClipboardList, Calendar, House, Library, Lightbulb, MessageSquare, Mic, Network, Package,
+  Bot, Boxes, Brain, Cable, CircleDollarSign, ClipboardList, Calendar, House, Library, Lightbulb, MessageSquare, Mic, Network, Package,
   Puzzle, ScrollText, Settings, Sparkles, Store, Wallet, Gauge, Wrench, Handshake, Megaphone, Landmark, Workflow, Wand2,
 } from 'lucide-preact';
 import type { LucideIcon } from 'lucide-preact';
@@ -20,6 +20,7 @@ const VOICE: CoreNavItem = { label: 'Gọi trợ lý', path: '/voice', icon: Mic
 const CHAT: CoreNavItem = { label: 'Trò chuyện', path: '/chat', icon: MessageSquare };
 const GRAPH: CoreNavItem = { label: 'Đồ thị', path: '/brain/graph', icon: Network };
 const BRAIN: CoreNavItem = { label: 'Second Brain', path: '/brain', icon: Brain, match: ['/brain/search', '/brain/all'] };
+const PACKS: CoreNavItem = { label: 'Kho dữ liệu', path: '/packs', icon: Boxes };
 const AGENTS: CoreNavItem = { label: 'Agents', path: '/agents', icon: Bot };
 const TASKS: CoreNavItem = { label: 'Công việc', path: '/tasks', icon: ClipboardList };
 const SCHEDULES: CoreNavItem = { label: 'Lịch định kỳ', path: '/schedules', icon: Calendar };
@@ -40,7 +41,7 @@ export const ADVANCED_NAV: CoreNavItem[] = [MARKET, TEAMS, SKILLS, MEMORY, RECOS
 
 /** Every core page that has a route, for the breadcrumb and the quick-search palette. */
 export const CORE_NAV: CoreNavItem[] = [
-  HOME, VOICE, CHAT, GRAPH, BRAIN, AGENTS, TASKS, SCHEDULES, CONNECTIONS, SETTINGS, ...ADVANCED_NAV.filter((i) => i !== AUDIT && i !== MODULES),
+  HOME, VOICE, CHAT, GRAPH, BRAIN, PACKS, AGENTS, TASKS, SCHEDULES, CONNECTIONS, SETTINGS, ...ADVANCED_NAV.filter((i) => i !== AUDIT && i !== MODULES),
 ];
 
 /** Kept for the palette, which lists these under "Hệ thống". */
@@ -76,7 +77,7 @@ export interface NavSectionDef {
 
 export const NAV_SECTIONS: NavSectionDef[] = [
   { id: 'top', items: [HOME, VOICE, CHAT], tone: 'workspace' },
-  { id: 'brain', label: 'BRAIN', items: [GRAPH, BRAIN], tone: 'intelligence' },
+  { id: 'brain', label: 'BRAIN', items: [GRAPH, BRAIN, PACKS], tone: 'intelligence' },
   { id: 'care', label: 'CHĂM KHÁCH', items: [], tone: 'care' },
   { id: 'marketing', label: 'MARKETING', items: [], tone: 'marketing' },
   { id: 'system', label: 'ĐỘI AI VÀ HỆ THỐNG', items: [AGENTS, TASKS, SCHEDULES, CONNECTIONS, SETTINGS], tone: 'collaborate' },

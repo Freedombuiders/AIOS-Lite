@@ -37,6 +37,7 @@ import BudgetsPage from '@/pages/Budgets';
 import TeamsPage from '@/pages/Teams';
 import AgentMarketPage from '@/pages/AgentMarket';
 import RecosPage from '@/pages/Recos';
+import PacksPage from '@/pages/packs/PacksPage';
 
 function NotFound() {
   return (
@@ -101,6 +102,8 @@ const CORE_ROUTES: AppRoute[] = [
   { path: '/brain/search', component: BrainSearchPage },
   { path: '/brain/all', component: SecondBrains },
   { path: '/memory', component: MemoryPage },
+  { path: '/packs', component: PacksPage },
+  { path: '/packs/:id', component: PacksPage },
   { path: '/skills', component: SkillsPage },
   { path: '/modules', component: ModulesPage },
   { path: '/connections', component: ConnectionsPage },
