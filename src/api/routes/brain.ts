@@ -61,6 +61,37 @@ export function brainRoutes(app: Hono, deps: AppDeps): void {
     }
   });
 
+  // Whole-file save from the note editor. `vault`/`revision` are the names the web editor sends.
+  // An existing note needs the version it was read at (expectMtimeMs / revision, or expectHash): else 400.
+  const fileInput = z
+    .object({
+      folder: z.string().min(1).optional(),
+      vault: z.string().min(1).optional(),
+      path: z.string().min(1),
+      content: z.string(),
+      expectMtimeMs: z.number().nonnegative().optional(),
+      expectHash: z.string().regex(/^[0-9a-f]{64}$/).optional(),
+      revision: z.string().optional(),
+    })
+    .refine((v) => v.folder || v.vault, { message: 'Thiếu thư mục (folder).', path: ['folder'] });
+
+  app.put('/api/brain/file', async (c) => {
+    const input = await body(c, fileInput);
+    const id = folder(input.folder ?? input.vault);
+    let expect = input.expectMtimeMs;
+    if (expect === undefined && input.revision !== undefined && input.revision !== '') {
+      expect = Number(input.revision);
+      if (!Number.isFinite(expect)) throw badRequest('revision không hợp lệ.');
+    }
+    const note = deps.notes.owner().write({ folderId: id, relPath: input.path }, input.content, {
+      message: `Sửa ${input.path} trên web`,
+      ...(expect !== undefined ? { expectMtimeMs: expect } : {}),
+      ...(input.expectHash ? { expectHash: input.expectHash } : {}),
+    });
+    deps.audit.log({ actor: 'user', action: 'brain.write', target: `${id}:${note.relPath}`, detail: { bytes: Buffer.byteLength(input.content) } });
+    return c.json({ folder: id, path: note.relPath, mtimeMs: note.mtimeMs, hash: note.hash, content: input.content, revision: String(note.mtimeMs) });
+  });
+
   app.get('/api/brain/search', (c) => {
     const q = c.req.query('q')?.trim();
     if (!q) throw badRequest('Thiếu từ khoá tìm kiếm (q).');

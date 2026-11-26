@@ -29,6 +29,11 @@ export interface BrainService {
   reloadConfig(): void;
   /** incremental unless full; only re-reads files whose mtime changed */
   reindex(opts?: { full?: boolean; folderId?: string }): Promise<{ indexed: number; removed: number; durationMs: number }>;
+  /**
+   * Index (or drop from the index) just these files, now. For callers that know what changed (a note write,
+   * a watcher event) so they do not rescan the whole folder. Missing, non-markdown or symlinked files are removed.
+   */
+  indexPaths(folderId: string, relPaths: string[]): { indexed: number; removed: number };
   /** full-text search (accent-insensitive). `folders` limits the search; omit = all folders. */
   search(query: string, opts?: { folders?: string[]; limit?: number }): BrainHit[];
   /** search restricted to what `access.readDirs` allows (folder + glob) */
@@ -36,6 +41,8 @@ export interface BrainService {
   /** read one markdown file; throws on path traversal or unknown folder */
   read(folderId: string, relPath: string): { title: string; content: string; mtimeMs: number };
   tree(folderId: string, opts?: { depth?: number }): BrainTreeNode[];
+  /** paths (same folder) of notes linking here with [[slug]] or [[dir/slug]], from brain_links */
+  backlinks(folderId: string, relPath: string): string[];
   /** write a note (used by modules/agents with write grants; caller checks access) */
   write(folderId: string, relPath: string, content: string): void;
 }

@@ -43,6 +43,24 @@ function titleOf(content: string, relPath: string): string {
   return path.basename(relPath, path.extname(relPath));
 }
 
+/** `[[target]]`, `[[target|nhãn]]`, `[[target#heading]]`, `![[embed]]` → target. */
+const WIKI_LINK_RE = /\[\[([^\[\]|#\r\n]+)(?:#[^\[\]|\r\n]*)?(?:\|[^\[\]\r\n]*)?\]\]/g;
+
+/** Link target as stored in brain_links: trimmed, lowercased, posix, without a trailing ".md". */
+export function linkSlug(target: string): string {
+  return target.trim().replace(/\\/g, '/').replace(/^\.?\//, '').replace(/\.md$/i, '').toLowerCase();
+}
+
+/** Every distinct wiki-link target in a note (frontmatter values and body alike). */
+export function extractLinks(text: string): string[] {
+  const out = new Set<string>();
+  for (const m of text.matchAll(WIKI_LINK_RE)) {
+    const slug = linkSlug(m[1]!);
+    if (slug) out.add(slug);
+  }
+  return [...out];
+}
+
 function within(root: string, target: string): boolean {
   return target === root || target.startsWith(root + path.sep);
 }
@@ -125,17 +143,24 @@ export function createBrainService(opts: BrainOptions): BrainService & { folderI
     ON CONFLICT(folder_id, path) DO UPDATE SET title=excluded.title, content=excluded.content,
       mtime_ms=excluded.mtime_ms, size=excluded.size, indexed_at=excluded.indexed_at`);
 
+  const delLinks = db.prepare('DELETE FROM brain_links WHERE folder_id = ? AND src_path = ?');
+  const addLink = db.prepare('INSERT OR IGNORE INTO brain_links (folder_id, src_path, dst_slug) VALUES (?, ?, ?)');
+
   function indexFile(folderId: string, rel: string, abs: string, st: fs.Stats, content?: string): void {
     const text = content ?? fs.readFileSync(abs, 'utf8');
-    upsert.run({
-      folder_id: folderId,
-      path: rel,
-      title: titleOf(text, rel),
-      content: text,
-      mtime_ms: Math.floor(st.mtimeMs),
-      size: st.size,
-      indexed_at: nowIso(),
-    });
+    db.transaction(() => {
+      upsert.run({
+        folder_id: folderId,
+        path: rel,
+        title: titleOf(text, rel),
+        content: text,
+        mtime_ms: Math.floor(st.mtimeMs),
+        size: st.size,
+        indexed_at: nowIso(),
+      });
+      delLinks.run(folderId, rel);
+      for (const slug of extractLinks(text)) addLink.run(folderId, rel, slug);
+    })();
   }
 
   /** Markdown files under root (posix relative paths). Symlinks are skipped on purpose. */
@@ -235,6 +260,7 @@ export function createBrainService(opts: BrainOptions): BrainService & { folderI
           for (const p of have.keys()) {
             if (seen.has(p)) continue;
             db.prepare('DELETE FROM brain_docs WHERE folder_id = ? AND path = ?').run(f.id, p);
+            delLinks.run(f.id, p);
             removed++;
           }
         })();
@@ -243,12 +269,57 @@ export function createBrainService(opts: BrainOptions): BrainService & { folderI
         // folders removed from config
         const ids = folders.map((f) => f.id);
         const stale = (db.prepare('SELECT DISTINCT folder_id FROM brain_docs').all() as { folder_id: string }[]).map((r) => r.folder_id).filter((id) => !ids.includes(id));
-        for (const id of stale) removed += db.prepare('DELETE FROM brain_docs WHERE folder_id = ?').run(id).changes;
+        for (const id of stale) {
+          removed += db.prepare('DELETE FROM brain_docs WHERE folder_id = ?').run(id).changes;
+          db.prepare('DELETE FROM brain_links WHERE folder_id = ?').run(id);
+        }
       }
       return { indexed, removed, durationMs: Date.now() - t0 };
     },
 
+    indexPaths(folderId, relPaths) {
+      const f = folderOf(folderId);
+      let indexed = 0;
+      let removed = 0;
+      for (const relPath of new Set(relPaths)) {
+        const rel = normalizeRel(relPath);
+        if (!rel || !rel.toLowerCase().endsWith('.md') || rel.split('/').some((seg) => SKIP_DIRS.has(seg))) continue;
+        let st: fs.Stats | undefined;
+        let abs: string | undefined;
+        try {
+          abs = safePath(f, rel).abs;
+          const l = fs.lstatSync(abs);
+          st = l.isFile() && l.size <= MAX_FILE_BYTES ? l : undefined;
+        } catch {
+          st = undefined;
+        }
+        try {
+          if (st && abs) {
+            indexFile(f.id, rel, abs, st);
+            indexed++;
+          } else {
+            delLinks.run(f.id, rel);
+            if (db.prepare('DELETE FROM brain_docs WHERE folder_id = ? AND path = ?').run(f.id, rel).changes) removed++;
+          }
+        } catch (e) {
+          log.warn({ file: rel, err: (e as Error).message }, 'không đọc được ghi chú');
+        }
+      }
+      return { indexed, removed };
+    },
+
     search,
+
+    backlinks(folderId, relPath) {
+      const rel = normalizeRel(relPath);
+      if (!rel) return [];
+      const noExt = linkSlug(rel);
+      const base = noExt.split('/').pop()!;
+      const rows = db
+        .prepare('SELECT DISTINCT src_path FROM brain_links WHERE folder_id = ? AND dst_slug IN (?, ?) AND src_path != ? ORDER BY src_path')
+        .all(folderId, noExt, base, rel) as { src_path: string }[];
+      return rows.map((r) => r.src_path);
+    },
 
     searchForAccess(query, access: EffectiveAccess, limit = 5) {
       if (!access.readDirs.length) return [];

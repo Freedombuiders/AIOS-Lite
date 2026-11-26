@@ -130,7 +130,7 @@ export function createModuleContext(
         return deps.memory.recall(agentId, query, { ...grant, limit });
       },
     },
-    brain: { search: (query, opts) => deps.brain.search(query, opts) },
+    brain: { search: (query, opts) => deps.brain.search(query, opts), notes: deps.notes.forModule(id) },
     settings: {
       get: <T = unknown>(key: string, fallback?: T) => (helpers.settings.all(id)[key] ?? fallback) as T,
       set: (key, value) => helpers.settings.patch(id, { [key]: value }, manifest.version),

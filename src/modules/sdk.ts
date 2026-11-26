@@ -12,6 +12,7 @@ import type { DB } from '../core/db.js';
 import type { Logger } from '../core/log.js';
 import type { AgentConfig, BrainHit, Memory, Run, Task, Usage } from '../core/types.js';
 import type { CreateTaskInput } from '../work/contracts.js';
+import type { ModuleNotes } from '../shared/notes.js';
 import type { IntegrationDefinition } from '../integrations/types.js';
 
 export interface ModuleSettingSpec {
@@ -117,6 +118,12 @@ export interface ModuleContext {
   };
   brain: {
     search(query: string, opts?: { folders?: string[]; limit?: number }): BrainHit[];
+    /**
+     * Read and write notes (frontmatter, managed blocks, history). Writes are signed 'module:<id>'; to act for
+     * an agent use notes.asAgent(agentId), which checks that agent's access.brain globs on every call.
+     * Modules never write brain files with fs directly.
+     */
+    notes: ModuleNotes;
   };
   settings: {
     get<T = unknown>(key: string, fallback?: T): T;

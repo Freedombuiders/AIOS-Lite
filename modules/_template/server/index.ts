@@ -35,6 +35,22 @@ export default defineModule({
       ctx.events.emit('note-added', { id: Number(info.lastInsertRowid) });
       return c.json({ ok: result.ok, answer: clean, taskId: result.taskId, error: result.error }, result.ok ? 200 : 502);
     });
+
+    // Ghi một ghi chú vào Second Brain. Module không tự fs.writeFile: mọi lần ghi đi qua ctx.brain.notes
+    // (kiểm đường dẫn, lập chỉ mục, phát brain:changed, commit git nếu thư mục là kho git).
+    app.post('/brain-note', async (c) => {
+      const { folder, slug, text } = (await c.req.json()) as { folder?: string; slug?: string; text?: string };
+      if (!folder || !slug || !/^[a-z0-9][a-z0-9-]{0,80}$/.test(slug)) {
+        return c.json({ error: { code: 'bad_request', message: 'Cần folder và slug (chữ thường, số, gạch ngang).' } }, 400);
+      }
+      const note = ctx.brain.notes.create(
+        { folderId: folder, relPath: `ghi-chu-mau/${slug}.md` },
+        { nguon: `module:${ctx.id}`, tao_luc: new Date().toISOString() },
+        `# ${slug}\n\n${text ?? ''}\n`,
+        { message: `Module mẫu tạo ghi chú ${slug}` },
+      );
+      return c.json({ path: note.relPath, mtimeMs: note.mtimeMs, hash: note.hash }, 201);
+    });
   },
 
   // Chạy khi Add và khi khởi động nếu module đang bật. Mọi timer tạo qua ctx.schedule tự dừng khi Remove.
