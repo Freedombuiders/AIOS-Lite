@@ -226,6 +226,21 @@ describe('list broadcast', () => {
       expect(calls).toHaveLength(3);
     });
 
+    it('leaves every recipient pending (not failed) when the sender refuses with MARKETING_OFF', async () => {
+      const a1 = makeThread(nick1, 'a1', 'A1');
+      const a2 = makeThread(nick1, 'a2', 'A2');
+      const b = newCampaign({ accountIds: [nick1] });
+      syncListRecipients(b);
+      const { deps, calls } = makeDeps({ failThreads: new Map([[a1.id, 'MARKETING_OFF'], [a2.id, 'MARKETING_OFF']]) });
+
+      const summary = await runListBroadcastBatch(deps, b.id, makeCtx());
+
+      expect(summary).toMatchObject({ sent: 0, failed: 0 });
+      expect(calls).toHaveLength(0);
+      expect(countZaloListRecipients(b.id)).toMatchObject({ pending: 2, failed: 0, sent: 0 });
+      expect(getZaloListBroadcast(b.id)!.state).toBe('active');
+    });
+
     it('leaves recipients pending when a nick hits a nick-level error, and keeps using other nicks', async () => {
       const a1 = makeThread(nick1, 'a1', 'A1');
       const a2 = makeThread(nick1, 'a2', 'A2');

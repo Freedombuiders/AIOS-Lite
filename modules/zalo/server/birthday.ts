@@ -84,7 +84,7 @@ const STEP_GAP_MIN_MS = 800;
 const STEP_GAP_MAX_MS = 2_500;
 
 /** Send errors that concern the nick (or the moment), not the greeting. */
-const NICK_LEVEL_CODES = new Set(['QUIET_HOURS', 'BULK_BUDGET', 'RATE_LIMITED', 'NOT_CONNECTED', 'CHAT_DISABLED', 'LOCKED']);
+const NICK_LEVEL_CODES = new Set(['QUIET_HOURS', 'BULK_BUDGET', 'MARKETING_OFF', 'RATE_LIMITED', 'NOT_CONNECTED', 'CHAT_DISABLED', 'LOCKED']);
 
 export interface BirthdayRuntime {
   now?: () => Date;

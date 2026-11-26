@@ -31,7 +31,7 @@ export interface SupervisorOptions {
   port: number;
   log: SupervisorLogger;
   /** Extra environment for the child (settings that only matter at spawn: ZALO_CARE_QUOTE, ZALO_MARKETING_ENABLED...). */
-  env?: Record<string, string>;
+  env?: Record<string, string> | (() => Record<string, string>);
   /** Override `node` arguments of the daemon entry (tests point this at a fake daemon script). */
   entryArgs?: string[];
   spawnImpl?: (command: string, args: string[], options: SpawnOptions) => ChildProcess;
@@ -115,7 +115,7 @@ export function createZaloSupervisor(opts: SupervisorOptions): ZaloSupervisor {
         env: {
           ...process.env,
           NODE_ENV: process.env.NODE_ENV || 'production',
-          ...opts.env,
+          ...(typeof opts.env === 'function' ? opts.env() : opts.env),
           ZALO_CONTROL_PORT: String(opts.port),
           ZALO_CONTROL_TOKEN: token,
           ZALO_DATA_DIR: opts.dataDir,

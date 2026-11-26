@@ -1,6 +1,7 @@
 // The zalo module through the real module manager: Add runs the migration and starts the REAL daemon child
 // (daemon.ts via tsx, file database, no Zalo network without a nick), Remove stops it; care registration is
 // exercised against an in-test fake `care` module. No call to Zalo is made.
+import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import net from 'node:net';
 import os from 'node:os';
@@ -16,6 +17,8 @@ import { createTestHarness, type TestHarness } from '../../../src/modules/test-d
 import { defineModule, type ModuleDefinition } from '../../../src/modules/sdk.js';
 import { isProcessAlive } from './compat.js';
 import { callZaloDaemon } from './control.js';
+import { adoptLegacyMarketingSetting, marketingOn } from './index.js';
+import type { ModuleContext } from '../../../src/modules/sdk.js';
 
 const ZALO_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -139,4 +142,97 @@ describe('zalo module lifecycle', () => {
     expect(await until(() => api.daemon().pid !== null)).toBe(true);
     await mgr.remove('zalo');
   }, 60_000);
+
+  describe('marketing is off by default', () => {
+    const daemonMarketing = async () => (await callZaloDaemon<{ marketing: { enabled: boolean; workers: number } }>('GET', '/status', { timeoutMs: 1_000 })).data.marketing;
+
+    it('fresh install: the setting is false and the real daemon starts no marketing worker', async () => {
+      await mgr.add('zalo');
+      expect(mgr.get('zalo')!.manifest.settings!.marketingEnabled!.default).toBe(false);
+      expect(mgr.get('zalo')!.state.settings.marketingEnabled).toBe(false);
+      expect(await until(async () => { try { return (await daemonMarketing()) !== undefined; } catch { return false; } })).toBe(true);
+      expect(await daemonMarketing()).toEqual({ enabled: false, workers: 0 });
+      // stays off after the AIOS process has pushed its config (the 5 s link tick)
+      await new Promise((r) => setTimeout(r, 6_000));
+      expect(await daemonMarketing()).toEqual({ enabled: false, workers: 0 });
+    }, 60_000);
+
+    it('an operator who switched marketing on gets the three workers at daemon start', async () => {
+      mgr.updateSettings('zalo', { marketingEnabled: true });
+      await mgr.add('zalo');
+      expect(await until(async () => { try { return (await daemonMarketing()).workers === 3; } catch { return false; } })).toBe(true);
+      expect(await daemonMarketing()).toEqual({ enabled: true, workers: 3 });
+    }, 60_000);
+
+    it('a daemon started by hand with no ZALO_MARKETING_ENABLED variable also stays off (the env var is the bootstrap path)', async () => {
+      h.deps.db.exec(fs.readFileSync(path.join(ZALO_DIR, 'migrations', '001_init.sql'), 'utf8'));
+      const port = await freePort();
+      const env = { ...process.env, ZALO_CONTROL_PORT: String(port), ZALO_CONTROL_TOKEN: 'tok-hand', ZALO_DATA_DIR: path.join(h.root, 'hand-data'), ZALO_DB_PATH: path.join(h.root, 'aios.db') };
+      delete env.ZALO_MARKETING_ENABLED;
+      const child = spawn(process.execPath, ['--import', 'tsx', path.join(ZALO_DIR, 'server', 'daemon.ts')], { cwd: path.resolve(ZALO_DIR, '..', '..'), env, stdio: 'ignore' });
+      try {
+        const status = async () => {
+          const res = await fetch(`http://127.0.0.1:${port}/status`, { headers: { 'x-zalo-token': 'tok-hand' } });
+          return (await res.json()) as { marketing: { enabled: boolean; workers: number } };
+        };
+        expect(await until(async () => { try { return (await status()).marketing !== undefined; } catch { return false; } })).toBe(true);
+        expect((await status()).marketing).toEqual({ enabled: false, workers: 0 });
+      } finally {
+        child.kill('SIGTERM');
+        await until(() => child.exitCode !== null || child.signalCode !== null, 10_000);
+      }
+    }, 60_000);
+  });
+
+  describe('existing installs keep their marketing setting', () => {
+    function stubCtx(): { ctx: ModuleContext; set: ReturnType<typeof vi.fn> } {
+      const set = vi.fn();
+      const ctx = {
+        id: 'zalo',
+        db: h.deps.db,
+        log: { info: () => {}, warn: () => {}, debug: () => {}, error: () => {} },
+        settings: { get: (k: string, fb?: unknown) => (mgr.get('zalo')!.state.settings[k] ?? fb), set, all: () => ({}) },
+      } as unknown as ModuleContext;
+      return { ctx, set };
+    }
+    const addTemplate = () => h.deps.db.prepare("INSERT INTO zalo_templates (name, body, created_at, updated_at) VALUES ('Chào', 'xin chào', 1, 1)").run();
+
+    it('no saved value and no marketing data (a fresh install): stays off', async () => {
+      await mgr.add('zalo');
+      await mgr.remove('zalo');
+      const { ctx, set } = stubCtx();
+      expect(adoptLegacyMarketingSetting(ctx)).toBe(false);
+      expect(set).not.toHaveBeenCalled();
+      expect(marketingOn(ctx)).toBe(false);
+    }, 60_000);
+
+    it('no saved value but templates or campaigns exist (an install from before the new default): saved as on', async () => {
+      await mgr.add('zalo');
+      await mgr.remove('zalo');
+      addTemplate();
+      const { ctx, set } = stubCtx();
+      expect(adoptLegacyMarketingSetting(ctx)).toBe(true);
+      expect(set).toHaveBeenCalledWith('marketingEnabled', true);
+    }, 60_000);
+
+    it('a value the operator saved is never overridden, even with data', async () => {
+      mgr.updateSettings('zalo', { marketingEnabled: false });
+      await mgr.add('zalo');
+      await mgr.remove('zalo');
+      addTemplate();
+      const { ctx, set } = stubCtx();
+      expect(adoptLegacyMarketingSetting(ctx)).toBe(false);
+      expect(set).not.toHaveBeenCalled();
+      expect(marketingOn(ctx)).toBe(false);
+    }, 60_000);
+
+    it('birthday greetings switched on count as marketing data', async () => {
+      await mgr.add('zalo');
+      await mgr.remove('zalo');
+      h.deps.db.prepare("INSERT INTO zalo_birthday_config (id, enabled, updated_at) VALUES (1, 1, 1)").run();
+      const { ctx, set } = stubCtx();
+      expect(adoptLegacyMarketingSetting(ctx)).toBe(true);
+      expect(set).toHaveBeenCalledWith('marketingEnabled', true);
+    }, 60_000);
+  });
 });

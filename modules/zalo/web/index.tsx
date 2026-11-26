@@ -12,6 +12,10 @@ import { ZaloAccounts } from './pages/ZaloAccounts';
 // lucide's icon props accept string sizes, the host contract only numbers: cast once here
 const icon = (c: unknown) => c as unknown as WebNavItem['icon'];
 
+// Marketing (templates, group and list broadcasts, birthday) is off by default: its menu items and pages exist only
+// while the module setting is on. The server refuses the same paths with 404 when it is off.
+const marketingOn = (settings: Record<string, unknown>) => settings.marketingEnabled === true;
+
 export default defineWebModule({
   id: 'zalo',
   nav: [
@@ -27,17 +31,17 @@ export default defineWebModule({
         return n > 0 ? n : undefined;
       },
     },
-    { group: 'marketing', label: 'Mẫu tin Zalo', path: '/m/zalo/templates', icon: icon(FileText), order: 10 },
-    { group: 'marketing', label: 'Gửi nhóm', path: '/m/zalo/group-broadcasts', icon: icon(UsersRound), order: 11 },
-    { group: 'marketing', label: 'Gửi 1-1', path: '/m/zalo/list-broadcasts', icon: icon(Send), order: 12 },
-    { group: 'marketing', label: 'Sinh nhật', path: '/m/zalo/birthday', icon: icon(Cake), order: 13 },
+    { group: 'marketing', label: 'Mẫu tin Zalo', path: '/m/zalo/templates', icon: icon(FileText), order: 10, visible: marketingOn },
+    { group: 'marketing', label: 'Gửi nhóm', path: '/m/zalo/group-broadcasts', icon: icon(UsersRound), order: 11, visible: marketingOn },
+    { group: 'marketing', label: 'Gửi 1-1', path: '/m/zalo/list-broadcasts', icon: icon(Send), order: 12, visible: marketingOn },
+    { group: 'marketing', label: 'Sinh nhật', path: '/m/zalo/birthday', icon: icon(Cake), order: 13, visible: marketingOn },
   ],
   routes: [
     { path: '/m/zalo', component: ZaloAccounts },
-    { path: '/m/zalo/templates', component: MarketingTemplates },
-    { path: '/m/zalo/group-broadcasts', component: MarketingGroupBroadcasts },
-    { path: '/m/zalo/list-broadcasts', component: MarketingListBroadcasts },
-    { path: '/m/zalo/birthday', component: MarketingBirthday },
+    { path: '/m/zalo/templates', component: MarketingTemplates, visible: marketingOn },
+    { path: '/m/zalo/group-broadcasts', component: MarketingGroupBroadcasts, visible: marketingOn },
+    { path: '/m/zalo/list-broadcasts', component: MarketingListBroadcasts, visible: marketingOn },
+    { path: '/m/zalo/birthday', component: MarketingBirthday, visible: marketingOn },
   ],
   widgets: [
     {
@@ -50,6 +54,6 @@ export default defineWebModule({
   provides: { 'care.channelPanel': ZaloChannelPanel },
   agentAccess: [
     { scope: 'messages.read', label: 'Đọc tin nhắn Zalo', description: 'Agent được xem hội thoại và ảnh khách gửi trên Zalo.' },
-    { scope: 'broadcast.manage', label: 'Quản lý chiến dịch Zalo', description: 'Agent được tạo mẫu tin và chiến dịch gửi tin hàng loạt.' },
+    { scope: 'broadcast.manage', label: 'Quản lý chiến dịch Zalo', description: 'Agent được tạo mẫu tin và chiến dịch gửi tin hàng loạt (chỉ dùng được khi bật marketing Zalo, mặc định tắt).' },
   ],
 });

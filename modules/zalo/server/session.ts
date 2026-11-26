@@ -57,6 +57,8 @@ interface Instance {
 }
 
 export interface SessionHooks {
+  /** Passed on to every IngestContext (see IngestContext.onContactSeen). Optional; the chat core never needs it. */
+  onContactSeen?: IngestContext['onContactSeen'];
   /** A live (not backfilled) message was stored. */
   onMessage(accountId: string, result: IngestResult): void;
   /** Session is up. `firstLogin` = this account has no threads yet. */
@@ -139,7 +141,7 @@ export class ZaloSessionPool {
 
   getContext(accountId: string): IngestContext | null {
     const inst = this.instances.get(accountId);
-    return inst?.status === 'connected' && inst.api ? { accountId, api: inst.api, ownUid: inst.ownUid, limiter: this.limiter } : null;
+    return inst?.status === 'connected' && inst.api ? { accountId, api: inst.api, ownUid: inst.ownUid, limiter: this.limiter, onContactSeen: this.hooks.onContactSeen } : null;
   }
 
   getLiveStatus(accountId: string): LiveStatus {
@@ -364,7 +366,7 @@ export class ZaloSessionPool {
       last_connected_at: Math.floor(Date.now() / 1000),
       manual_disconnect: 0,
     });
-    const ctx: IngestContext = { accountId, api, ownUid, limiter: this.limiter };
+    const ctx: IngestContext = { accountId, api, ownUid, limiter: this.limiter, onContactSeen: this.hooks.onContactSeen };
     this.attachListener(ctx, epoch);
     logger.info({ accountId, ownUid, fromQr: opts.fromQr }, 'zalo account connected');
     this.hooks.onConnected(accountId, ctx, firstLogin);

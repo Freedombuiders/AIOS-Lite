@@ -71,7 +71,7 @@ const INTRA_RECIPIENT_SEC = 1.65;
  * this batch and keep the recipient pending for a later try.
  */
 const NICK_LEVEL_CODES = new Set([
-  'QUIET_HOURS', 'BULK_BUDGET', 'RATE_LIMITED', 'NOT_CONNECTED', 'CHAT_DISABLED', 'LOCKED',
+  'QUIET_HOURS', 'BULK_BUDGET', 'MARKETING_OFF', 'RATE_LIMITED', 'NOT_CONNECTED', 'CHAT_DISABLED', 'LOCKED',
 ]);
 
 export function windowSpecOf(b: ZaloListBroadcast): WindowSpec {

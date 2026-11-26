@@ -14,12 +14,13 @@ import { _initTestDatabase } from './test-db.js';
 import { configureZaloControl } from './control.js';
 import { registerZaloRoutes } from './dashboard-routes.js';
 
-function app(): Hono {
+function app(opts: { marketing?: boolean; runLean?: () => Promise<never> } = {}): Hono {
   const a = new Hono();
   registerZaloRoutes(a, {
     supervisor: { pid: () => null, restart: async () => {} },
     agentIds: () => ['main'],
-    runLean: async () => ({ ok: true, output: '', taskId: 1, runId: null }),
+    runLean: (opts.runLean ?? (async () => ({ ok: true, output: '', taskId: 1, runId: null }))) as never,
+    ...(opts.marketing === undefined ? {} : { marketingEnabled: () => opts.marketing! }),
   });
   return a;
 }
@@ -162,5 +163,77 @@ describe('zalo dashboard routes', () => {
     expect(list.threads[0].optedOut).toBe(true);
     await post(a, `/threads/${threadId}/opt-out`, { optedOut: false });
     expect(getZaloThread(threadId)?.opted_out).toBe(0);
+  });
+
+  describe('marketing switch', () => {
+    const MARKETING_GETS = ['/templates', '/templates/variables', '/templates/1', '/group-broadcasts', '/group-broadcasts/1', '/list-broadcasts', '/list-broadcasts/1', '/birthday/config', '/birthday/stats', '/birthday/upcoming', '/media/1/raw'];
+    const MARKETING_POSTS = ['/templates', '/templates/render', '/templates/variants', '/media', '/group-broadcasts', '/group-broadcasts/preview-cost', '/list-broadcasts', '/list-broadcasts/estimate', '/birthday/greetings/by-key/skip'];
+
+    it('answers 404 on every marketing path by default (no switch given) and never calls the model', async () => {
+      let modelCalls = 0;
+      const a = app({ runLean: async () => { modelCalls++; throw new Error('must not run'); } });
+      for (const url of MARKETING_GETS) expect((await a.request(url)).status, `GET ${url}`).toBe(404);
+      for (const url of MARKETING_POSTS) expect((await post(a, url, {})).status, `POST ${url}`).toBe(404);
+      expect((await post(a, '/templates/variants', { text: 'xin chào', count: 2 })).status).toBe(404);
+      expect((await a.request(`/threads/${threadId}/birth-date`)).status).toBe(404);
+      expect((await a.request(`/threads/${threadId}/birth-date`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: '{}' })).status).toBe(404);
+      expect((await a.request('/templates/1', { method: 'DELETE' })).status).toBe(404);
+      expect(modelCalls).toBe(0);
+    });
+
+    it('keeps the chat routes working while marketing is off', async () => {
+      const a = app({ marketing: false });
+      expect((await a.request('/accounts')).status).toBe(200);
+      expect((await a.request('/threads')).status).toBe(200);
+      expect((await a.request('/overview?from=2026-11-01&to=2026-11-07&prevFrom=2026-10-25&prevTo=2026-10-31')).status).toBe(200);
+      expect((await a.request('/settings')).status).toBe(200);
+    });
+
+    it('serves the marketing routes again when the switch is on, read on every request', async () => {
+      let on = true;
+      const a = new Hono();
+      registerZaloRoutes(a, {
+        supervisor: { pid: () => null, restart: async () => {} },
+        agentIds: () => ['main'],
+        runLean: async () => ({ ok: true, output: '', taskId: 1, runId: null }),
+        marketingEnabled: () => on,
+      });
+      expect((await a.request('/templates')).status).toBe(200);
+      expect((await a.request('/group-broadcasts')).status).toBe(200);
+      expect((await a.request('/list-broadcasts')).status).toBe(200);
+      expect((await a.request('/birthday/config')).status).toBe(200);
+      on = false;
+      expect((await a.request('/templates')).status).toBe(404);
+      expect((await a.request('/birthday/config')).status).toBe(404);
+    });
+  });
+
+  describe('GET /accounts/:id/usage', () => {
+    it('counts what the nick sent today against its cap, and 404s for an unknown nick', async () => {
+      const a = app();
+      const before = await json<{ sentToday: number; cap: number; burst: { limit: number; windowSec: number }; accountId: string }>(await a.request(`/accounts/${accountId}/usage`));
+      expect(before).toMatchObject({ accountId, sentToday: 0, burst: { limit: 20, windowSec: 30 } });
+      expect(before.cap).toBe(1000);
+      expect((await json<{ cap: number }>(await a.request(`/accounts/${accountId}/usage`))).cap).toBe(1000);
+      for (const [i, senderType] of (['self', 'agent', 'operator'] as const).entries()) {
+        insertZaloMessage({ threadId, zaloMsgId: `s${i}`, senderType, body: 'trả lời', contentType: 'text', origin: 'live', sentAtMs: Date.now() });
+      }
+      // customer messages and backfilled history do not count
+      insertZaloMessage({ threadId, zaloMsgId: 'c1', senderType: 'customer', body: 'hỏi', contentType: 'text', origin: 'live', sentAtMs: Date.now() });
+      insertZaloMessage({ threadId, zaloMsgId: 'b1', senderType: 'self', body: 'cũ', contentType: 'text', origin: 'backfill', sentAtMs: Date.now() });
+      const after = await json<{ sentToday: number; cap: number; warmup: { enabled: boolean } }>(await a.request(`/accounts/${accountId}/usage`));
+      expect(after.sentToday).toBe(3);
+      expect(after.cap).toBe(1000);
+      expect(after.warmup.enabled).toBe(false);
+      expect((await a.request('/accounts/nope/usage')).status).toBe(404);
+    });
+
+    it('reports the warm-up cap (30, 80, 150 per week) for a new nick', async () => {
+      const a = app();
+      updateZaloAccountSettings(accountId, { warmup_enabled: 1, warmup_started_at: Math.floor(Date.now() / 1000) });
+      const week1 = await json<{ cap: number; warmup: { enabled: boolean; week: number; schedule: number[] } }>(await a.request(`/accounts/${accountId}/usage`));
+      expect(week1.warmup).toMatchObject({ enabled: true, week: 1, schedule: [30, 80, 150] });
+      expect(week1.cap).toBe(30);
+    });
   });
 });
