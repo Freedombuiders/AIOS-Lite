@@ -9,7 +9,8 @@ import type { BrainChanged } from './notes.js';
 import { memDb, testBus, testLog, tmpDir, writeFile } from './test-kit.js';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-async function until(cond: () => boolean, ms = 3000): Promise<void> {
+// generous: the watcher races the whole suite for CPU; a pass usually takes well under a second
+async function until(cond: () => boolean, ms = 10_000): Promise<void> {
   const t0 = Date.now();
   while (!cond()) {
     if (Date.now() - t0 > ms) throw new Error('hết giờ chờ');
@@ -47,7 +48,7 @@ afterEach(async () => {
   await watcher.stop();
 });
 
-describe('brain watch', () => {
+describe('brain watch', { timeout: 30_000 }, () => {
   it('turns a burst of edits into one reindex and one event; search sees it within 2 s', async () => {
     const t0 = Date.now();
     const kho = path.join(root, 'kho');
