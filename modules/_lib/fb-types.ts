@@ -120,6 +120,19 @@ export interface FbMedia {
   height?: number;
 }
 
+/**
+ * Where a post came from: set once when the row is created, never changed by later
+ * edits. Every field is null when unknown.
+ */
+export interface FbContentLineage {
+  ideaId: string | null;
+  formulaSlug: string | null;
+  formulaVersion: number | null;
+  sourceVideoSlug: string | null;
+  /** The expectation fixed when the idea was created (ratio to the baseline). */
+  expectedRatio: number | null;
+}
+
 export interface FbContentDto {
   id: number;
   pageId: string | null;
@@ -150,6 +163,8 @@ export interface FbContentDto {
   updatedAt: number;
   /** Latest snapshot for published posts. */
   metrics: { reach: number | null; er: number | null; comments: number | null } | null;
+  /** null when the post has no lineage at all. */
+  lineage: FbContentLineage | null;
 }
 
 export interface FbContentListDto {
@@ -172,6 +187,8 @@ export interface FbContentInput {
   media?: FbMedia[];
   status?: FbContentStatus;
   scheduledAt?: number | null;
+  /** Accepted only when creating a post; an update that carries it is refused. */
+  lineage?: Partial<FbContentLineage>;
 }
 
 export interface FbPublishLogDto {

@@ -9,7 +9,7 @@ import {
   type FbPageRow,
 } from '../store.js';
 import { pageEr28d } from '../analytics/service.js';
-import type { ConnStatus, FbContentDto, FbContentStatus, FbFormat, FbMedia, FbPageDto, FbPillar } from '../types.js';
+import type { ConnStatus, FbContentDto, FbContentLineage, FbContentStatus, FbFormat, FbMedia, FbPageDto, FbPillar } from '../types.js';
 import { startOfLocalWeek } from './time.js';
 
 const nowSec = (): number => Math.floor(Date.now() / 1000);
@@ -71,6 +71,18 @@ export function pageToDto(row: FbPageRow, now: number = nowSec()): FbPageDto {
   };
 }
 
+/** The row's lineage, or null when none of its parts is set. */
+export function lineageOf(row: FbContentRow): FbContentLineage | null {
+  const lineage: FbContentLineage = {
+    ideaId: row.idea_id ?? null,
+    formulaSlug: row.formula_slug ?? null,
+    formulaVersion: row.formula_version ?? null,
+    sourceVideoSlug: row.source_video_slug ?? null,
+    expectedRatio: row.expected_ratio ?? null,
+  };
+  return Object.values(lineage).every((v) => v === null) ? null : lineage;
+}
+
 export function contentToDto(row: FbContentRow, pageNames?: Map<string, string>): FbContentDto {
   let pageName: string | null = null;
   if (row.page_id) pageName = pageNames?.get(row.page_id) ?? getFbPage(row.page_id)?.name ?? null;
@@ -109,5 +121,6 @@ export function contentToDto(row: FbContentRow, pageNames?: Map<string, string>)
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     metrics,
+    lineage: lineageOf(row),
   };
 }

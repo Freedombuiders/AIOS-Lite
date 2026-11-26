@@ -13,12 +13,13 @@ import { startAnalyticsWorker, stopAnalyticsWorker } from './analytics/worker.js
 import { startCommentsWorker, stopCommentsWorker } from './comments/worker.js';
 import { startPublisher, stopPublisher } from './core/publisher.js';
 import { createKolBridge } from './kol-bridge.js';
+import { createContentFeed } from './feed.js';
 import { buildAgentContext } from './agent-context.js';
 import { marketingActions } from './actions.js';
 import { registerFbStudioRoutes } from './routes.js';
 import { setRuntime } from './runtime.js';
 import { configuredBudgetPerHour } from './settings.js';
-import { countFbApiCallsSince, getFbPage, listFbAdsOrganicRows, recordFbApiCall } from './store.js';
+import { countFbApiCallsSince, getFbPage, listFbAdsOrganicRows, recordFbApiCall, repairUnlinkedFbPublishes } from './store.js';
 
 const DAY = 86400;
 
@@ -46,6 +47,13 @@ export default defineModule({
         record: (area, ok) => recordFbApiCall(area, ok),
       },
     });
+    // Rows published before T14a with fb_post_id = null next to an imported copy: merge them once.
+    try {
+      const repaired = repairUnlinkedFbPublishes();
+      if (repaired.length) ctx.log.info({ repaired }, 'marketing: linked published posts to their Facebook ids');
+    } catch (err) {
+      ctx.log.error({ err }, 'marketing: repairing unlinked published posts failed');
+    }
     for (const [name, start] of [
       ['publisher', startPublisher],
       ['comments', startCommentsWorker],
@@ -71,6 +79,9 @@ export default defineModule({
   provides: () => ({
     // Used by KOL Studio to hand a post to the Fanpage queue (contract: modules/_lib/kol-bridge.ts).
     kolBridge: createKolBridge(),
+    // Durable feed of published posts and changed metric snapshots, read with the consumer's own cursor,
+    // plus a read of one post with its lineage and snapshots (contract: modules/_lib/content-feed.ts).
+    contentFeed: createContentFeed(),
     // Returns the shared FbAdsOrganicRow shape (modules/_lib/fb-types.ts) the ads module reads.
     topPosts(pageId?: string, days = 28): FbAdsOrganicRow[] {
       const since = Math.floor(Date.now() / 1000) - days * DAY;

@@ -23,6 +23,9 @@ export function createKolBridge(): MarketingKolBridge {
         page_id: page.id, title: d.title, caption: d.caption, format: d.format, pillar: d.pillar,
         media_json: JSON.stringify(d.media ?? []), status: scheduled ? 'scheduled' : 'review',
         scheduled_at: scheduled ? d.scheduledAt : null, source: 'kol',
+        idea_id: d.lineage?.ideaId ?? null, formula_slug: d.lineage?.formulaSlug ?? null,
+        formula_version: d.lineage?.formulaVersion ?? null, source_video_slug: d.lineage?.sourceVideoSlug ?? null,
+        expected_ratio: d.lineage?.expectedRatio ?? null,
       });
       setFbContentOrigin(id, 'kol');
       return id;

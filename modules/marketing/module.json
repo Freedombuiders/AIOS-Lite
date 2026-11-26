@@ -17,6 +17,7 @@
     "fb_settings",
     "fb_pages",
     "fb_content",
+    "fb_content_feed",
     "fb_publish_log",
     "fb_api_usage",
     "fb_comments",
