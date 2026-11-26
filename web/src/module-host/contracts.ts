@@ -3,7 +3,7 @@
 // The host loads every module's web entry with import.meta.glob and shows only the enabled ones (/api/modules).
 import type { ComponentType } from 'preact';
 
-export type NavGroup = 'studio' | 'sales' | 'marketing' | 'finance' | 'ops' | 'other';
+export type NavGroup = 'studio' | 'sales' | 'care' | 'brain' | 'marketing' | 'finance' | 'ops' | 'other';
 
 export interface WebNavItem {
   group: NavGroup;
@@ -23,6 +23,8 @@ export interface WebRoute {
   /** wouter pattern, e.g. '/m/care/inbox' or '/m/care/inbox/:id' */
   path: string;
   component: ComponentType<any>;
+  /** the page has its own composer (inbox, chat): the bottom command bar is hidden on it */
+  hideCommandBar?: boolean;
 }
 
 /** Period picked on Tổng quan, passed to every 'overview' widget. Dates are YYYY-MM-DD in Asia/Ho_Chi_Minh, inclusive. */

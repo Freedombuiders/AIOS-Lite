@@ -1,0 +1,58 @@
+/* Bottom command bar (components/CommandBar.tsx) and the "Chưa làm" placeholder page.
+   Sizes follow the design (48px targets); colours come from the theme tokens, so dark and light both work. */
+
+.cmdbar {
+  flex-shrink: 0; box-sizing: border-box; margin: 0; padding: 12px 24px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+  background: var(--color-sidebar); border-top: 1px solid var(--color-border); color: var(--color-text);
+}
+.cmdbar-bot {
+  position: relative; display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 12px 0 14px;
+  border: 1px solid var(--color-border-strong); border-radius: 12px; background: var(--color-card); font-weight: 600; cursor: pointer;
+}
+.cmdbar-bot:focus-within { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.cmdbar-bot select {
+  appearance: none; border: 0; background: transparent; color: inherit; font: inherit; font-weight: 600;
+  max-width: 180px; min-height: 44px; padding: 0 2px; cursor: pointer; text-overflow: ellipsis;
+}
+.cmdbar-bot select:focus { outline: none; }
+.cmdbar-bot select option { color: var(--color-text); background: var(--color-card); }
+.cmdbar-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--color-status-done); flex-shrink: 0; }
+.cmdbar-round, .cmdbar-square, .cmdbar-send {
+  display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; flex-shrink: 0; cursor: pointer;
+  border: 1px solid var(--color-border-strong); background: var(--color-card); color: var(--color-text);
+}
+.cmdbar-round { border-radius: 999px; }
+.cmdbar-square { border-radius: 12px; }
+.cmdbar-round:hover:not(:disabled), .cmdbar-square:hover:not(:disabled) { background: var(--color-control-hover); }
+.cmdbar-round:disabled { opacity: .45; cursor: not-allowed; }
+.cmdbar-send { border-radius: 12px; border-color: var(--color-accent); background: var(--color-accent); color: var(--color-on-accent); }
+.cmdbar-send:hover:not(:disabled) { background: var(--color-accent-hover); }
+.cmdbar-send:disabled { opacity: .5; cursor: not-allowed; }
+.cmdbar :is(button, input, select):focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.cmdbar-field { flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.cmdbar-input {
+  min-width: 0; min-height: 48px; box-sizing: border-box; padding: 0 16px; font: inherit; font-size: 15px;
+  border: 1px solid var(--color-border-strong); border-radius: 12px; background: var(--color-bg); color: var(--color-text);
+}
+.cmdbar-input::placeholder { color: var(--color-text-faint); }
+.cmdbar-input:focus { outline: 2px solid var(--color-accent); outline-offset: 1px; border-color: var(--color-accent); }
+.cmdbar-files { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.cmdbar-files li {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 2px 8px; border-radius: 999px;
+  background: var(--color-elevated); color: var(--color-text-muted); font-size: 12px;
+}
+.cmdbar-files button { display: inline-flex; align-items: center; color: var(--color-text-faint); cursor: pointer; }
+.cmdbar-files button:hover { color: var(--color-text); }
+
+/* phone width: tighter gutters; the field takes its own line, nothing scrolls sideways */
+@media (max-width: 767px) {
+  .cmdbar { padding: 10px 12px; gap: 8px; }
+  .cmdbar-field { flex: 1 1 calc(100% - 62px); order: 4; }
+  .cmdbar-bot { flex: 1 1 auto; min-width: 0; }
+  .cmdbar-bot select { max-width: none; flex: 1; min-width: 0; }
+  .cmdbar-send { order: 5; }
+}
+
+.coming-soon { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; max-width: 560px; color: var(--color-text-muted); }
+.coming-soon svg { color: var(--color-status-review); }

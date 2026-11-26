@@ -29,7 +29,7 @@ export interface ModuleManifest {
   version: string;
   icon?: string;
   /** sidebar group for the module's pages */
-  category: 'studio' | 'sales' | 'marketing' | 'finance' | 'ops' | 'other';
+  category: 'studio' | 'sales' | 'care' | 'brain' | 'marketing' | 'finance' | 'ops' | 'other';
   requires?: {
     /** modules that must be added first */
     modules?: string[];

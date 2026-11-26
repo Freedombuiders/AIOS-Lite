@@ -14,6 +14,7 @@ import AuditPage from './Audit';
 import BrainSearch from './Brain';
 import ChatPage from './Chat';
 import ConnectionsPage from './Connections';
+import { GraphPlaceholder, VoicePlaceholder } from './ComingSoon';
 import HomeDashboard from './HomeDashboard';
 import MemoryPage from './MemoryPage';
 import MissionTaskDetail from './MissionTaskDetail';
@@ -38,6 +39,10 @@ describe('pages with the mock api', () => {
 
   const cases: [string, string, () => preact.VNode, RegExp][] = [
     ['/', 'dashboard', () => <HomeDashboard />, /Cần bạn/],
+    ['/', 'dashboard: AI đã tự làm', () => <HomeDashboard />, /AI đã tự làm/],
+    ['/', 'dashboard: Đội AI', () => <HomeDashboard />, /Đội AI[\s\S]*Trợ lý chính/],
+    ['/voice', 'voice placeholder', () => <VoicePlaceholder />, /Gọi trợ lý[\s\S]*Chưa làm/],
+    ['/brain/graph', 'graph placeholder', () => <GraphPlaceholder />, /Đồ thị[\s\S]*Chưa làm/],
     ['/agents', 'agents', () => <AgentsPage />, /Trợ lý chính/],
     ['/agents/main', 'agent detail', () => <AgentDetail id="main" />, /Persona/],
     ['/tasks', 'tasks', () => <TasksPage />, /Chờ duyệt/],
@@ -53,7 +58,7 @@ describe('pages with the mock api', () => {
     ['/audit', 'audit', () => <AuditPage />, /task\.create/],
     ['/modules', 'modules', () => <ModulesPage />, /Chăm sóc khách hàng/],
     ['/settings', 'settings', () => <SettingsPage />, /Runtime/],
-    ['/', 'sidebar', () => <Sidebar />, /Tổng quan/],
+    ['/', 'sidebar', () => <Sidebar />, /Hôm nay/],
   ];
 
   it.each(cases)('%s (%s)', async (path, _name, make, expected) => {
