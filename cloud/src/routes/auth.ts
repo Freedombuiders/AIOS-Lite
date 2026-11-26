@@ -1,5 +1,6 @@
 import { Hono, type Context } from 'hono';
 import { z } from 'zod';
+import type { AuthResponse } from '../../../packages/api-types/src/index';
 import type { AppEnv } from '../app-types';
 import { verifyGoogleIdToken } from '../auth/google';
 import { createSession, hashToken } from '../auth/session';
@@ -28,7 +29,7 @@ async function signIn(c: Context<AppEnv>, profile: GoogleProfile): Promise<UserR
 async function issue(c: Context<AppEnv>, user: UserRow, kind: SessionKind, sessionLabel?: string) {
   const { token, session } = await createSession(c.env, user.id, kind, sessionLabel);
   c.env.log.info('session created', { userId: user.id, sessionId: session.id, kind });
-  return c.json({ token, user: userJson(user), session: sessionJson(session, session.id) });
+  return c.json({ token, user: userJson(user), session: sessionJson(session, session.id) } satisfies AuthResponse);
 }
 
 function redirectUri(c: Context<AppEnv>): string {

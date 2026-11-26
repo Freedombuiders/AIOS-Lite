@@ -1,4 +1,5 @@
 /** D1 rows and JSON shapes for packs and releases. */
+import type { ApiPack, ApiRelease } from '../../../packages/api-types/src/index';
 import type { Env } from '../env';
 import type { PackManifest, PackModule } from '../packs/format';
 import { compareSemver } from '../packs/format';
@@ -34,7 +35,11 @@ export interface ReleaseRow {
   yanked_at: number | null;
 }
 
-const iso = (ms: number | null) => (ms === null ? null : new Date(ms).toISOString());
+function iso(ms: number): string;
+function iso(ms: number | null): string | null;
+function iso(ms: number | null): string | null {
+  return ms === null ? null : new Date(ms).toISOString();
+}
 
 /** Where an admin's upload lands; finalize copies it to `r2_key`, so the signed upload URL can never overwrite a checked release. */
 export const incomingKey = (releaseId: string) => `incoming/packs/${releaseId}.zip`;
@@ -44,7 +49,7 @@ export function manifestOf(r: ReleaseRow): PackManifest | null {
   return r.manifest_json ? (JSON.parse(r.manifest_json) as PackManifest) : null;
 }
 
-export function releaseJson(r: ReleaseRow) {
+export function releaseJson(r: ReleaseRow): ApiRelease {
   const m = manifestOf(r);
   return {
     id: r.id,
@@ -63,7 +68,7 @@ export function releaseJson(r: ReleaseRow) {
   };
 }
 
-export async function packJson(env: Env, p: PackRow) {
+export async function packJson(env: Env, p: PackRow): Promise<ApiPack> {
   return {
     id: p.id,
     module: p.module,

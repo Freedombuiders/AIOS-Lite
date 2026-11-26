@@ -1,0 +1,125 @@
+/** Vietnamese, the default. `en.ts` must carry exactly the same keys. */
+export const vi = {
+  'app.name': 'Open AgenticOS',
+
+  'tabs.attention': 'Cần bạn',
+  'tabs.inbox': 'Hộp thư',
+  'tabs.store': 'Kho dữ liệu',
+  'tabs.settings': 'Cài đặt',
+
+  'common.retry': 'Thử lại',
+  'common.cancel': 'Huỷ',
+  'common.loading': 'Đang tải…',
+  'common.back': 'Quay lại',
+  'common.unknown': 'Chưa rõ',
+
+  'coming.title': 'Sắp có',
+  'coming.attention.body':
+    'Đây sẽ là nơi các việc cần bạn duyệt xuất hiện. Nó cần ghép điện thoại với máy tính ở nhà, phần này chưa có trong bản này.',
+  'coming.inbox.body':
+    'Đây sẽ là hộp thư khách nhắn tới. Nó cần ghép điện thoại với máy tính ở nhà, phần này chưa có trong bản này.',
+
+  'errors.network': 'Không kết nối được mạng. Kiểm tra Wi-Fi hoặc 4G rồi thử lại.',
+  'errors.timeout': 'Máy chủ phản hồi quá lâu. Thử lại sau ít phút.',
+  'errors.server': 'Máy chủ đang gặp sự cố. Thử lại sau ít phút.',
+  'errors.rateLimited': 'Bạn thao tác quá nhanh. Đợi một chút rồi thử lại.',
+  'errors.notFound': 'Không tìm thấy mục này. Có thể nó đã bị gỡ.',
+  'errors.forbidden': 'Bạn không có quyền làm việc này.',
+  'errors.invalidResponse': 'Máy chủ trả về dữ liệu lạ. Hãy cập nhật app hoặc thử lại sau.',
+  'errors.generic': 'Có lỗi xảy ra. Thử lại sau.',
+  'errors.notConfigured':
+    'App chưa được cấu hình địa chỉ cloud (EXPO_PUBLIC_CLOUD_URL). Xem mobile/README.md.',
+
+  'signIn.title': 'Đăng nhập',
+  'signIn.subtitle': 'Kho dữ liệu và cài đặt tài khoản Open AgenticOS, ngay trên điện thoại.',
+  'signIn.google': 'Đăng nhập bằng Google',
+  'signIn.dev': 'Đăng nhập thử (chỉ bản dev)',
+  'signIn.busy': 'Đang đăng nhập…',
+  'signIn.expired': 'Phiên đăng nhập đã hết hạn hoặc bị thu hồi. Hãy đăng nhập lại.',
+  'signIn.disabled': 'Tài khoản này đã bị khoá. Hãy liên hệ quản trị viên.',
+  'signIn.credentials': 'Google không xác nhận được tài khoản này. Thử đăng nhập lại.',
+  'signIn.needsDevBuild':
+    'Đăng nhập Google cần bản dựng riêng (development build), không chạy trong Expo Go hay trên web.',
+  'signIn.noToken': 'Google không trả về mã đăng nhập. Thử lại.',
+  'signIn.playServices': 'Cần cập nhật Google Play Services để đăng nhập.',
+  'signIn.notConfigured':
+    'Chưa đặt client id Google (EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID). Xem mobile/README.md.',
+  'signIn.privacy':
+    'App chỉ giữ mã đăng nhập trong kho an toàn của máy. Không lưu tin nhắn hay dữ liệu khách trên điện thoại.',
+  'signIn.language': 'Ngôn ngữ',
+
+  'boot.checking': 'Đang kiểm tra phiên đăng nhập…',
+  'boot.unreachable': 'Chưa kiểm tra được phiên đăng nhập vì không kết nối được cloud.',
+  'boot.signOut': 'Đăng xuất',
+
+  'store.title': 'Kho dữ liệu',
+  'store.searchPlaceholder': 'Tìm gói dữ liệu',
+  'store.searchLabel': 'Tìm gói dữ liệu',
+  'store.clearSearch': 'Xoá tìm kiếm',
+  'store.filterLabel': 'Lọc theo nhóm',
+  'store.filterAll': 'Tất cả',
+  'store.loading': 'Đang tải kho dữ liệu…',
+  'store.emptyTitle': 'Kho chưa có gói nào',
+  'store.emptyBody': 'Khi có gói dữ liệu được phát hành, chúng sẽ hiện ở đây.',
+  'store.emptyFilteredTitle': 'Không có gói nào khớp',
+  'store.emptyFilteredBody': 'Thử bỏ bộ lọc hoặc đổi từ khoá.',
+  'store.errorTitle': 'Không tải được kho dữ liệu',
+  'store.version': 'Bản {version}',
+  'store.openPack': 'Mở gói {name}',
+
+  'module.brain': 'Bộ não',
+  'module.learn': 'Bài học',
+  'module.dream': 'Dream 100',
+  'module.crm': 'Khách hàng',
+
+  'pack.title': 'Gói dữ liệu',
+  'pack.errorTitle': 'Không tải được gói này',
+  'pack.latestVersion': 'Bản mới nhất',
+  'pack.size': 'Kích thước',
+  'pack.license': 'Giấy phép',
+  'pack.author': 'Tác giả',
+  'pack.industry': 'Ngành',
+  'pack.notes': 'Số ghi chú',
+  'pack.noRelease': 'Gói này chưa có bản phát hành.',
+  'pack.files': 'Các file trong gói ({count})',
+  'pack.filesEmpty': 'Chưa có danh sách file.',
+  'pack.install': 'Cài xuống máy tính',
+  'pack.installComing':
+    'Sắp có: cài gói này xuống máy tính ở nhà. Điện thoại không tải gói về, và bản này chưa ghép được với máy tính.',
+  'pack.noSummary': 'Gói này chưa có mô tả.',
+
+  'settings.title': 'Cài đặt',
+  'settings.account': 'Tài khoản',
+  'settings.noName': 'Chưa đặt tên',
+  'settings.admin': 'Quản trị viên',
+  'settings.language': 'Ngôn ngữ',
+  'settings.languageVi': 'Tiếng Việt',
+  'settings.languageEn': 'English',
+  'settings.sessions': 'Thiết bị đang đăng nhập',
+  'settings.sessionsHint': 'Thu hồi một phiên để buộc thiết bị đó đăng nhập lại.',
+  'settings.sessionThis': 'Thiết bị này',
+  'settings.sessionKindMobile': 'Điện thoại',
+  'settings.sessionKindMachine': 'Máy tính',
+  'settings.sessionKindWeb': 'Trình duyệt',
+  'settings.sessionSince': 'Từ {date}',
+  'settings.sessionExpires': 'Hết hạn {date}',
+  'settings.revoke': 'Thu hồi',
+  'settings.revokeLabel': 'Thu hồi phiên {name}',
+  'settings.sessionsError': 'Không tải được danh sách phiên.',
+  'settings.sessionsEmpty': 'Không có phiên nào.',
+  'settings.revokeFailed': 'Không thu hồi được phiên này.',
+  'settings.signOut': 'Đăng xuất',
+  'settings.about': 'Về app',
+  'settings.version': 'Phiên bản {version}',
+  'settings.danger': 'Vùng nguy hiểm',
+  'settings.deleteAccount': 'Xoá tài khoản',
+  'settings.deleteTitle': 'Xoá tài khoản vĩnh viễn?',
+  'settings.deleteBody':
+    'Cloud sẽ xoá tài khoản này, mọi phiên đăng nhập và mọi tệp bạn đã tải lên. Việc này không hoàn tác được. Dữ liệu trên máy tính ở nhà của bạn không bị đụng tới.',
+  'settings.deleteConfirm': 'Xoá vĩnh viễn',
+  'settings.deleteBusy': 'Đang xoá…',
+  'settings.deleteFailed': 'Không xoá được tài khoản. Thử lại sau.',
+} as const;
+
+export type MessageKey = keyof typeof vi;
+export type Messages = { [K in MessageKey]: string };
