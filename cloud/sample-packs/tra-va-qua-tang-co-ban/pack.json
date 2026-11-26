@@ -1,0 +1,11 @@
+{
+  "id": "tra-va-qua-tang-co-ban",
+  "version": "1.0.0",
+  "name": "Trà và quà tặng: bộ khởi đầu",
+  "module": "learn",
+  "summary": "3 bài học nội dung và 2 công thức video ngắn cho shop trà, quà tặng. Gói mẫu để thử kho dữ liệu.",
+  "industry": "tra-qua-tang",
+  "minAppVersion": "0.1.0",
+  "license": "CC-BY-4.0",
+  "author": "Open AgenticOS"
+}

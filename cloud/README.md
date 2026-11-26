@@ -149,3 +149,43 @@ Lỗi có dạng `{ "error": { "code", "message" } }`, cùng định dạng vớ
 Phiên là mã 32 byte ngẫu nhiên; cloud chỉ lưu SHA-256. Hạn 90 ngày cho `mobile`, `machine`; 12 giờ cho `web`. Khoá tài khoản thu hồi mọi phiên của người đó trong cùng một giao dịch.
 
 Luồng đăng nhập trên máy tính: app trên máy mở trình duyệt tới `/auth/web/start` với `return` trỏ về cổng cục bộ của nó và một `state` ngẫu nhiên. Google gọi lại `/auth/web/callback`; cloud kiểm ID token (kể cả `nonce`, có PKCE), rồi đưa trình duyệt về `return?code=…&state=…`. Mã sống 2 phút, dùng một lần, phải đi kèm đúng `state` ở `POST /auth/exchange`.
+
+### Kho dữ liệu
+
+| Method | Path | Ai | Trả về |
+|---|---|---|---|
+| GET | `/packs` `?module=&industry=&q=` | người dùng | `{ items }`, mỗi gói kèm bản phát hành mới nhất |
+| GET | `/packs/:id` | người dùng | Gói, giấy phép, các bản phát hành, danh sách file trong bản mới nhất |
+| POST | `/packs/:id/releases/:version/download` | người dùng | `{ url, expiresAt, sha256, signature, keyId, size }` |
+| GET | `/packs/updates` `?have=id@ver,id@ver` | người dùng | `{ items }`: gói có bản mới hơn, hoặc bản đang có đã bị thu hồi |
+| POST | `/admin/packs` | quản trị | Tạo gói `{ id, module, name, summary?, industry?, visibility? }` |
+| PATCH | `/admin/packs/:id` | quản trị | Sửa tên, mô tả, ngành, chế độ hiển thị |
+| POST | `/admin/packs/:id/releases` | quản trị | `{ version, size }` → `{ releaseId, uploadUrl, headers, expiresAt }` |
+| POST | `/admin/releases/:id/finalize` | quản trị | Kiểm zip, lưu manifest, chờ phát hành |
+| POST | `/admin/releases/:id/publish` | quản trị | `{ signature, keyId }`, kiểm chữ ký rồi phát hành |
+| POST | `/admin/releases/:id/yank` | quản trị | Thu hồi: ẩn khỏi danh sách, không xoá file |
+
+Định dạng gói, luật kiểm và nội dung được ký: xem `sample-packs/README.md`.
+
+Đường tải về là đường dẫn R2 ký sẵn, sống 5 phút; Worker không chuyển tiếp dữ liệu. Mỗi người tải tối đa 60 lượt mỗi giờ. Bản đã phát hành không sửa được: zip được tải lên vào `incoming/`, `finalize` kiểm rồi chép sang `packs/<id>/<version>.zip`, nên đường tải lên cũ không ghi đè được bản đã kiểm.
+
+#### Phát hành một gói
+
+Khoá bí mật chỉ nằm trên máy người phát hành.
+
+```sh
+# Một lần: tạo cặp khoá, chép khoá công khai vào PACK_SIGNING_KEYS
+npm run pack -- keygen --out ~/.agenticos-keys --key-id k2026
+
+# Mỗi bản phát hành
+npm run pack -- build sample-packs/tra-va-qua-tang-co-ban --out tra.zip
+npm run pack -- sign tra.zip --key ~/.agenticos-keys/k2026.pem --key-id k2026
+export AGENTICOS_CLOUD_URL=https://cloud.example.com
+export AGENTICOS_CLOUD_TOKEN=…      # phiên của một quản trị viên
+npm run pack -- publish tra.zip --sig tra.zip.sig.json
+
+# Kiểm: tải về, so SHA-256 và chữ ký
+npm run pack -- download tra-va-qua-tang-co-ban 1.0.0 --pubkey <khoá công khai base64>
+```
+
+Thử trên `wrangler dev`: chạy với `--var DEV_MODE:1 --var ADMIN_EMAILS:… --var 'PACK_SIGNING_KEYS:{"k2026":"…"}'`, lấy token bằng `POST /auth/dev`. Khi chưa có khoá R2, `DEV_MODE` cấp đường dẫn tới `/_dev/blobs/…` trên chính Worker cục bộ thay cho đường dẫn R2 thật. Đường này chỉ tồn tại khi bật `DEV_MODE` và gọi qua `localhost`.

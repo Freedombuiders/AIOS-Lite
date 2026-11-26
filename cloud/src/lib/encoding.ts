@@ -32,7 +32,7 @@ export const encodeUtf8 = (text: string): Uint8Array => utf8.encode(text);
 
 export async function sha256(data: Uint8Array | string): Promise<Uint8Array> {
   const bytes = typeof data === 'string' ? utf8.encode(data) : data;
-  return new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
+  return new Uint8Array(await crypto.subtle.digest('SHA-256', bytes as Uint8Array<ArrayBuffer>));
 }
 
 export async function sha256Hex(data: Uint8Array | string): Promise<string> {

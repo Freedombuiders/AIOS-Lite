@@ -4,14 +4,13 @@ import type { AppEnv } from '../app-types';
 import {
   auditStmt, countActiveAdmins, decodeCursor, encodeCursor, getUser, revokeAllSessionsStmt, userJson, type UserRow,
 } from '../db/users';
-import { requireAdmin, requireSession } from '../http/auth';
+
 import { badRequest, conflict, notFound, readJson } from '../http/errors';
 
 const PAGE = 50;
 
 export const adminUserRoutes = new Hono<AppEnv>();
 
-adminUserRoutes.use('*', requireSession, requireAdmin);
 
 adminUserRoutes.get('/users', async (c) => {
   const q = c.req.query('q')?.trim().toLowerCase();

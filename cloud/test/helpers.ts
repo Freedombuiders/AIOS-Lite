@@ -54,7 +54,7 @@ export interface TestHarness {
   clock: { now: number };
   logs: string[];
   /** Calls the app; `token` adds the Authorization header, `json` a JSON body. */
-  call(method: string, path: string, opts?: { token?: string; json?: unknown; headers?: Record<string, string> }): Promise<Response>;
+  call(method: string, path: string, opts?: { token?: string; json?: unknown; body?: BodyInit; headers?: Record<string, string> }): Promise<Response>;
   /** Signs in through POST /auth/google and returns the session token and user id. */
   login(claims?: IdTokenClaims, kind?: string): Promise<{ token: string; userId: string }>;
 }
@@ -112,7 +112,7 @@ export async function harness(opts: { vars?: ConfigVars; fetch?: FetchLike; blob
     if (o.token) headers.authorization = `Bearer ${o.token}`;
     if (o.json !== undefined) headers['content-type'] = 'application/json';
     const url = path.startsWith('http') ? path : `https://cloud.test${path}`;
-    return app.request(url, { method, headers, body: o.json === undefined ? undefined : JSON.stringify(o.json) }, env);
+    return app.request(url, { method, headers, body: o.json === undefined ? o.body : JSON.stringify(o.json) }, env);
   };
   const login: TestHarness['login'] = async (claims = {}, kind = 'mobile') => {
     const res = await call('POST', '/auth/google', { json: { idToken: await idToken(claims, { now: clock.now }), kind } });

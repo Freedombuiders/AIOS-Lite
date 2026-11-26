@@ -8,7 +8,7 @@
     "dev": "wrangler dev --var DEV_MODE:1",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p scripts",
     "pack": "tsx scripts/pack.ts"
   },
   "dependencies": {
