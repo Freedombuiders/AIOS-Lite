@@ -1,9 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { parse } from 'yaml';
 import type { Logger } from '../core/log.js';
 import type { Skill } from '../core/types.js';
 import type { SkillLibrary } from './contracts.js';
+import { parseFrontmatter } from './frontmatter.js';
 
 interface Root {
   dir: string;
@@ -13,16 +13,11 @@ interface Root {
 const MANIFEST = '.aios-managed.json';
 
 function parseSkillFile(text: string, id: string): { name: string; description: string } {
-  const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
-  if (m) {
-    try {
-      const fm = parse(m[1]!) as Record<string, unknown> | null;
-      if (fm && typeof fm === 'object') {
-        return { name: String(fm.name ?? id), description: String(fm.description ?? '').trim() };
-      }
-    } catch {
-      // fall through to the heuristic
-    }
+  try {
+    const fm = parseFrontmatter(text);
+    if (fm.has) return { name: String(fm.data.name ?? id), description: String(fm.data.description ?? '').trim() };
+  } catch {
+    // fall through to the heuristic
   }
   const first = text.split(/\r?\n/).find((l) => l.trim() && !l.startsWith('#') && l.trim() !== '---');
   return { name: id, description: first?.trim() ?? '' };

@@ -5,7 +5,10 @@ import { prefillChatDock } from '@/lib/chat-dock';
 
 type Snapshot = { content: string; revision: string };
 function errorText(error: unknown): string {
-  if (error instanceof ApiError && error.body && typeof error.body === 'object' && 'error' in error.body) return String(error.body.error);
+  if (error instanceof ApiError && error.body && typeof error.body === 'object' && 'error' in error.body) {
+    const e = error.body.error as unknown;
+    return e && typeof e === 'object' && 'message' in e ? String(e.message) : String(e);
+  }
   return 'Không kết nối được máy chủ. Bản đang sửa vẫn được giữ lại.';
 }
 

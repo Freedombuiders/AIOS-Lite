@@ -6,6 +6,7 @@ import { Cron } from 'croner';
 import { parse } from 'yaml';
 import { AGENT_ID_RE } from '../agents/schema.js';
 import { RUNTIME_IDS, type RuntimeId } from '../core/types.js';
+import { parseFrontmatter } from '../shared/frontmatter.js';
 import {
   AGENT_YAML_TEMPLATE,
   TEAM_ENTRYPOINT,
@@ -33,13 +34,6 @@ export const PLACEHOLDER_RE = /\{\{\s*([A-Za-z0-9_.-]+)\s*\}\}/g;
 
 const isRecord = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const asString = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v.trim() : null);
-
-export function parseFrontmatter(text: string): { data: Record<string, unknown>; body: string; has: boolean } {
-  const m = /^﻿?---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(text);
-  if (!m) return { data: {}, body: text, has: false };
-  const parsed = parse(m[1]!);
-  return { data: isRecord(parsed) ? parsed : {}, body: m[2] ?? '', has: true };
-}
 
 /** Reason a package-relative path is unacceptable, or null. */
 export function badPackagePath(rel: string): string | null {

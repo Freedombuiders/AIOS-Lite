@@ -4,6 +4,7 @@ import type { AgentRegistry } from '../agents/contracts.js';
 import type { ModuleManager } from '../modules/contracts.js';
 import type { RuntimeRegistry } from '../runtimes/contracts.js';
 import type { BoardService, BrainService, ContextBuilder, MemoryService, SkillLibrary } from '../shared/contracts.js';
+import type { NotesService } from '../shared/notes.js';
 import type {
   AttentionService,
   ChatService,
@@ -39,6 +40,8 @@ export interface AppDeps {
   audit: AuditService;
 
   brain: BrainService;
+  /** the one writer of brain notes (frontmatter, schema, write grants) */
+  notes: NotesService;
   memory: MemoryService;
   skills: SkillLibrary;
   board: BoardService;
@@ -66,6 +69,7 @@ export interface AppDeps {
  *   access/policy.ts       createAccessPolicy({ agents, brain, connections, skills, isModuleEnabled })
  *   access/audit.ts        createAuditService({ db, bus })
  *   shared/brain.ts        createBrainService({ db, configFile, rootDir, log })
+ *   shared/notes.ts        createNotesService({ brain, canWrite, log })
  *   shared/memory.ts       createMemoryService({ db, bus })
  *   shared/skills.ts       createSkillLibrary({ dirs, log })
  *   shared/board.ts        createBoardService({ db, bus })
