@@ -40,7 +40,8 @@ Cấp trong `agent.yaml`, mục `access.modules.marketing`. Agent trả lời b�
 `contentFeed` (hợp đồng ở `modules/_lib/content-feed.ts`) là luồng bền của bài đã đăng và số đo:
 
 - `since(cursor, limit)` trả các sự kiện `published` (bài vừa lên Facebook) và `snapshot` (số đo một mốc của bài vừa đổi) theo thứ tự, kèm con trỏ mới. Module đọc tự giữ con trỏ và gọi lại lúc khởi động để đọc bù. Không dùng `ctx.events`: SDK tự thêm tiền tố id module của bên nghe, và sự kiện trong bộ nhớ mất khi khởi động lại.
-- `get(contentId)` trả bài kèm dòng dõi và mọi số đo theo mốc. Trả `undefined` khi bài đã bị xoá hoặc là bản nhập trùng đã gộp vào bài gốc.
+- `get(contentId)` trả bài kèm dòng dõi và mọi số đo theo mốc; mỗi số đo kèm `er` tính bằng `erOf` của bộ phân tích (null khi không biết). Trả `undefined` khi bài đã bị xoá hoặc là bản nhập trùng đã gộp vào bài gốc.
+- `publishedSince(sinceSec, afterId, limit)` trả mã các bài `published` đăng từ `sinceSec`, theo mã tăng dần, để module đọc ghi bù lần đầu (module `learn` dùng cho 90 ngày gần nhất).
 
 Sự kiện được ghi vào bảng `fb_content_feed` trong cùng giao dịch với thay đổi. Lần ghi số đo không đổi con số nào thì không sinh sự kiện.
 
