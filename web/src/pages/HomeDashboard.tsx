@@ -1,18 +1,23 @@
 /**
- * Tổng quan: the business view. One period switch (7 / 30 / 90 ngày) drives the module sections in the
- * 'overview' slot: revenue & costs (finance), content performance (marketing), sales over Zalo (zalo).
- * Above them "Cần bạn"; below them the small module cards ('dashboard' slot). Agent lists live on /agents.
+ * Hôm nay: what needs the owner now and what the AI did on its own today.
+ * Left: "Cần bạn" (GET /api/attention, live via the 'attention' event) and "AI đã tự làm" (today's successful runs).
+ * Right: "Đội AI" (enabled agents and what they are running). Below: the business sections of enabled modules in the
+ * 'overview' slot, driven by one period switch (7 / 30 / 90 ngày), then the small module cards ('dashboard' slot).
  * A missing source shows an empty state, never a made-up number.
  */
 import { ArrowUpRight, Bot, CircleCheck, Clock3, Coins, LayoutGrid, RefreshCw, TriangleAlert } from 'lucide-preact';
 import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 import { Link } from 'wouter-preact';
+import { useAgents } from '@/lib/agents';
+import { formatRelativeTime } from '@/lib/format';
 import { approvalIdFromKey } from '@/lib/integrations';
 import { ApprovalButtons } from '@/pages/connections/ApprovalButtons';
-import type { AttentionItem } from '@core/types';
+import type { AttentionItem, Run, Task } from '@core/types';
 import { apiPost, errorText } from '@/lib/api';
 import { invalidateFetchCache, useFetch } from '@/lib/useFetch';
-import { fmtLongDate, fmtTime, greeting, HOME_POLL_MS, localParts } from '@/lib/home-dashboard';
+import { BOT_STATE_LABEL, botInitials, botState, doneToday, fmtLongDate, fmtTime, HOME_POLL_MS, localParts } from '@/lib/home-dashboard';
+import type { BotState } from '@/lib/home-dashboard';
+import { resolveAgentName } from '@/lib/format';
 import { OVERVIEW_DAYS, OVERVIEW_DAYS_KEY, overviewRange, parseOverviewDays, type OverviewDays } from '@/lib/overview-range';
 import { useEvents } from '@/lib/sse';
 import { pushToast } from '@/lib/toasts';
@@ -110,6 +115,68 @@ function NeedsYou({ items, loaded, error, onChanged }: { items: AttentionItem[];
   );
 }
 
+function DoneFeed({ rows, loaded }: { rows: ReturnType<typeof doneToday>; loaded: boolean }) {
+  return (
+    <section class="hd-card hd-feed" aria-labelledby="hd-done">
+      <div class="hd-card-head">
+        <h2 id="hd-done">AI đã tự làm <small>{loaded ? `${rows.length} việc hôm nay` : 'đang tải…'}</small></h2>
+        <span class="hd-hint">Bấm từng dòng để xem chi tiết</span>
+      </div>
+      {loaded && rows.length === 0 ? (
+        <div class="hd-empty"><strong>Hôm nay AI chưa tự làm việc nào</strong><p>Việc bot chạy xong sẽ hiện ở đây, kèm giờ và tên bot.</p></div>
+      ) : (
+        <ul class="hd-feed-list">
+          {rows.slice(0, 8).map((r) => (
+            <li key={r.runId}>
+              <Link href={`/tasks/${r.taskId}`} class="hd-feed-row">
+                <time>{r.time}</time>
+                <span class="hd-feed-text">{r.text}</span>
+                <span class="hd-feed-bot">{resolveAgentName(r.agentId)}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+const STATE_TONE: Record<BotState, string> = { busy: 'is-busy', queued: 'is-queued', idle: 'is-idle' };
+
+function TeamCard() {
+  const { agents, loading, error } = useAgents();
+  const team = agents
+    .filter((a) => a.enabled)
+    .sort((a, b) => b.stats.running - a.stats.running || b.stats.queued - a.stats.queued)
+    .slice(0, 6);
+  return (
+    <section class="hd-card hd-team" aria-labelledby="hd-team">
+      <div class="hd-card-head">
+        <h2 id="hd-team">Đội AI</h2>
+        <Link href="/agents">Xem cả đội <ArrowUpRight size={12} /></Link>
+      </div>
+      {error && !agents.length ? <p class="hd-error">Không tải được danh sách bot: {error}</p> : null}
+      {!loading && !error && team.length === 0 ? (
+        <div class="hd-empty"><strong>Chưa có bot nào đang bật</strong><p>Thêm hoặc bật một bot để giao việc.</p><Link href="/agents" class="hd-btn"><Bot size={14} /> Mở trang Agents</Link></div>
+      ) : (
+        <ul class="hd-team-list">
+          {team.map((a) => {
+            const st = botState(a.stats);
+            const doing = st === 'busy' ? `Đang chạy ${a.stats.running} việc` : st === 'queued' ? `${a.stats.queued} việc đang chờ` : a.stats.lastRunAt ? `Chạy gần nhất ${formatRelativeTime(a.stats.lastRunAt)}` : a.description;
+            return (
+              <li key={a.id} class="hd-team-row">
+                <span class="hd-team-av" aria-hidden="true">{botInitials(a.name)}</span>
+                <div class="hd-team-text"><Link href={`/agents/${a.id}`}>{a.name}</Link><span title={doing}>{doing}</span></div>
+                <span class={`hd-team-state ${STATE_TONE[st]}`}>{BOT_STATE_LABEL[st]}</span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 export default function HomeDashboard() {
   const now = useNow(HOME_POLL_MS);
   const attention = useFetch<{ items: AttentionItem[] }>('/attention', HOME_POLL_MS);
@@ -125,9 +192,18 @@ export default function HomeDashboard() {
   const refresh = useCallback(() => attention.refresh(), [attention.refresh]);
   useEvents(['attention'], refresh);
 
+  // "AI đã tự làm": today's successful runs, titled by their tasks. Reloaded when a run or task changes.
+  const runs = useFetch<{ items: Run[] }>('/runs?status=done&limit=100', HOME_POLL_MS);
+  const doneTasks = useFetch<{ items: Task[] }>('/tasks?status=done&limit=100', HOME_POLL_MS);
+  const refreshWork = useCallback(() => { runs.refresh(); doneTasks.refresh(); }, [runs.refresh, doneTasks.refresh]);
+  useEvents(['run', 'task'], refreshWork);
+  const titles = useMemo(() => new Map((doneTasks.data?.items ?? []).map((t) => [t.id, t.title] as const)), [doneTasks.data]);
+  const done = useMemo(() => doneToday(runs.data?.items ?? [], titles, now), [runs.data, titles, todayKey]);
+
   const items = attention.data?.items ?? [];
   const sections = slotWidgets('overview');
-  const status = attention.data ? (items.length ? `${items.length} việc cần bạn xử lý` : 'Không có việc nào chờ bạn') : '';
+  const waiting = attention.data ? (items.length ? `${items.length} việc cần bạn xử lý` : 'Không có việc nào chờ bạn') : '';
+  const status = runs.data ? `AI đã tự xử lý ${done.length} việc${waiting ? ` · ${waiting}` : ''}` : waiting;
 
   return (
     <div class="os-scroll">
@@ -135,7 +211,7 @@ export default function HomeDashboard() {
         <header class="hd-head">
           <div>
             <p class="hd-eyebrow">{fmtLongDate(now)} · {fmtTime(now)}</p>
-            <h1>{greeting(localParts(now).h)}<span>.</span></h1>
+            <h1>Hôm nay<span>.</span></h1>
             {status && <p class="hd-status" aria-live="polite"><span class={items.length ? 'hd-warn' : 'hd-ok'}>{status}</span></p>}
           </div>
           <nav class="hd-head-actions" aria-label="Kỳ báo cáo và lối tắt">
@@ -144,8 +220,17 @@ export default function HomeDashboard() {
           </nav>
         </header>
 
-        <NeedsYou items={items} loaded={!!attention.data} error={attention.error} onChanged={attention.refresh} />
+        <div class="hd-split">
+          <div class="hd-col">
+            <NeedsYou items={items} loaded={!!attention.data} error={attention.error} onChanged={attention.refresh} />
+            <DoneFeed rows={done} loaded={!!runs.data} />
+          </div>
+          <div class="hd-col">
+            <TeamCard />
+          </div>
+        </div>
 
+        <h2 class="hd-section-label">Số liệu kinh doanh</h2>
         {sections.length ? (
           <WidgetSlot slot="overview" range={range} />
         ) : (

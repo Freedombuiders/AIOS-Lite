@@ -1,7 +1,6 @@
 import { useEffect } from 'preact/hooks';
-import { Link, Route, Router, Switch } from 'wouter-preact';
+import { Link, Router } from 'wouter-preact';
 import { Menu, Moon, Sun } from 'lucide-preact';
-import type { ComponentType } from 'preact';
 import { useState } from 'preact/hooks';
 import { useLocation } from 'wouter-preact';
 import { CommandPalette } from '@/components/CommandPalette';
@@ -14,6 +13,9 @@ import { ToastHost } from '@/components/ToastHost';
 import { mockEnabled } from '@/lib/mock';
 import { startSse } from '@/lib/sse';
 import { routes, startModuleHost } from '@/module-host/host';
+import { AppMain } from '@/components/AppMain';
+import type { AppRoute } from '@/components/AppMain';
+import { GraphPlaceholder, VoicePlaceholder } from '@/pages/ComingSoon';
 import Dashboard from '@/pages/HomeDashboard';
 import AgentsPage from '@/pages/agents/AgentsPage';
 import AgentDetail from '@/pages/agents/AgentDetail';
@@ -48,14 +50,6 @@ function NotFound() {
   );
 }
 
-function ModuleRoute({ component: C, params }: { component: ComponentType<any>; params: Record<string, string> }) {
-  return (
-    <div class="page module-page">
-      <C {...params} />
-    </div>
-  );
-}
-
 function TopBar() {
   const [loc] = useLocation();
   const [dark, setDark] = useState(() => document.documentElement.getAttribute('data-appearance') !== 'light');
@@ -83,7 +77,44 @@ function TopBar() {
   );
 }
 
+function ChatById({ id }: { id: string }) {
+  return <ChatPage conversationId={Number(id)} />;
+}
+
+function AgentById({ id }: { id: string }) {
+  return <AgentDetail id={id} />;
+}
+
+/** Core pages. Chat has its own composer, so it hides the command bar. */
+const CORE_ROUTES: AppRoute[] = [
+  { path: '/', component: Dashboard },
+  { path: '/voice', component: VoicePlaceholder },
+  { path: '/agents', component: AgentsPage },
+  { path: '/agents/:id', component: AgentById },
+  { path: '/tasks', component: TasksPage },
+  { path: '/tasks/:id', component: TaskDetail },
+  { path: '/schedules', component: SchedulesPage },
+  { path: '/chat', component: ChatPage, hideCommandBar: true },
+  { path: '/chat/:id', component: ChatById, hideCommandBar: true },
+  { path: '/brain', component: SecondBrain },
+  { path: '/brain/graph', component: GraphPlaceholder },
+  { path: '/brain/search', component: BrainSearchPage },
+  { path: '/brain/all', component: SecondBrains },
+  { path: '/memory', component: MemoryPage },
+  { path: '/skills', component: SkillsPage },
+  { path: '/modules', component: ModulesPage },
+  { path: '/connections', component: ConnectionsPage },
+  { path: '/audit', component: AuditPage },
+  { path: '/settings', component: SettingsPage },
+  { path: '/usage', component: UsagePage },
+  { path: '/budgets', component: BudgetsPage },
+  { path: '/teams', component: TeamsPage },
+  { path: '/agent-market', component: AgentMarketPage },
+  { path: '/recos', component: RecosPage },
+];
+
 export function App() {
+  const appRoutes: AppRoute[] = [...CORE_ROUTES, ...routes.value.map((r) => ({ ...r, modulePage: true }))];
   useEffect(() => {
     startSse();
     startModuleHost();
@@ -96,36 +127,7 @@ export function App() {
         {navOpen.value && <div class="app-scrim" onClick={() => { navOpen.value = false; }} />}
         <div class="app-column">
         <TopBar />
-        <main class="app-main">
-          <Switch>
-            <Route path="/" component={Dashboard} />
-            <Route path="/agents" component={AgentsPage} />
-            <Route path="/agents/:id">{(p) => <AgentDetail id={p.id} />}</Route>
-            <Route path="/tasks" component={TasksPage} />
-            <Route path="/tasks/:id" component={TaskDetail} />
-            <Route path="/schedules" component={SchedulesPage} />
-            <Route path="/chat">{() => <ChatPage />}</Route>
-            <Route path="/chat/:id">{(p) => <ChatPage conversationId={Number(p.id)} />}</Route>
-            <Route path="/brain" component={SecondBrain} />
-            <Route path="/brain/search" component={BrainSearchPage} />
-            <Route path="/brain/all" component={SecondBrains} />
-            <Route path="/memory" component={MemoryPage} />
-            <Route path="/skills" component={SkillsPage} />
-            <Route path="/modules" component={ModulesPage} />
-            <Route path="/connections" component={ConnectionsPage} />
-            <Route path="/audit" component={AuditPage} />
-            <Route path="/settings" component={SettingsPage} />
-            <Route path="/usage" component={UsagePage} />
-            <Route path="/budgets" component={BudgetsPage} />
-            <Route path="/teams" component={TeamsPage} />
-            <Route path="/agent-market" component={AgentMarketPage} />
-            <Route path="/recos" component={RecosPage} />
-            {routes.value.map((r) => (
-              <Route key={r.path} path={r.path}>{(params) => <ModuleRoute component={r.component} params={params as Record<string, string>} />}</Route>
-            ))}
-            <Route component={NotFound} />
-          </Switch>
-        </main>
+        <AppMain routes={appRoutes} notFound={NotFound} />
         </div>
       </div>
       <CommandPalette />
