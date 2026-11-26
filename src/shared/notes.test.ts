@@ -172,3 +172,26 @@ describe('notes: principals and access', () => {
     expect(() => owner.write(ref('to.md'), 'x'.repeat(1024 * 1024 + 1), opts)).toThrow(NoteInputError);
   });
 });
+
+describe('notes: remove and the system principal', () => {
+  it('removes only the version the caller saw, refuses agents without write access and symlinks, and is unindexed', () => {
+    const sys = notes.forSystem('packs');
+    expect(sys.principal).toBe('system:packs');
+    const created = sys.create(ref('khach-hang/xoa.md'), KH, BODY, { message: 'tạo' });
+    // a stale expectation is a conflict, the file stays
+    expect(() => sys.remove(ref('khach-hang/xoa.md'), { message: 'xoá', expectHash: 'f'.repeat(64) })).toThrow(NoteConflictError);
+    expect(fs.existsSync(file('khach-hang/xoa.md'))).toBe(true);
+    // an agent that may read but not write danh-muc-tra-sen.md cannot delete it
+    expect(() => notes.forAgent('bot-cham').remove(ref('danh-muc-tra-sen.md'), { message: 'x', overwrite: true })).toThrow(NoteAccessError);
+    expect(sys.remove(ref('khach-hang/xoa.md'), { message: 'xoá', expectHash: created.hash })).toBe(true);
+    expect(fs.existsSync(file('khach-hang/xoa.md'))).toBe(false);
+    expect(sys.read(ref('khach-hang/xoa.md'))).toBeUndefined();
+    expect(sb.brain.search('cus_01', { folders: ['cong-ty-b'] }).some((h) => h.path === 'khach-hang/xoa.md')).toBe(false);
+    // already gone: false without an expectation, conflict with one
+    expect(sys.remove(ref('khach-hang/xoa.md'), { message: 'xoá', overwrite: true })).toBe(false);
+    expect(() => sys.remove(ref('khach-hang/xoa.md'), { message: 'xoá', expectHash: created.hash })).toThrow(NoteConflictError);
+    fs.symlinkSync(file('danh-muc-tra-sen.md'), file('alias.md'));
+    expect(() => sys.remove(ref('alias.md'), { message: 'x', overwrite: true })).toThrow(NoteInputError);
+    expect(fs.existsSync(file('danh-muc-tra-sen.md'))).toBe(true);
+  });
+});

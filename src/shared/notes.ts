@@ -4,6 +4,7 @@
 // Who writes is never a string the caller picks. Core hands out services already bound to a principal:
 //   notes.owner()          the person, through the HTTP API
 //   notes.forModule(id)    module code (ctx.brain.notes); the module cannot change it
+//   notes.forSystem(id)    a core subsystem acting on an explicit owner request (pack install: 'packs')
 //   ….asAgent(agentId)     on behalf of an agent: every read and write is checked against access.brain globs
 //
 // After a write: the file alone is re-indexed (brain.indexPaths), `brain:changed` is emitted, the write is
@@ -73,7 +74,7 @@ export class NoteNotFoundError extends Error {
   }
 }
 
-export type Principal = { kind: 'owner' } | { kind: 'module'; id: string } | { kind: 'agent'; id: string };
+export type Principal = { kind: 'owner' } | { kind: 'module'; id: string } | { kind: 'agent'; id: string } | { kind: 'system'; id: string };
 
 export const principalName = (p: Principal): string => (p.kind === 'owner' ? 'owner' : `${p.kind}:${p.id}`);
 
@@ -92,7 +93,7 @@ export interface CreateOpts {
 }
 
 export interface NotesService {
-  /** 'owner' | 'module:<id>' | 'agent:<id>' */
+  /** 'owner' | 'module:<id>' | 'agent:<id>' | 'system:<id>' */
   readonly principal: string;
   read<T = Record<string, unknown>>(ref: NoteRef): Note<T> | undefined;
   /** Notes under `dir` ('' = whole folder), recursive, sorted by path. Agents only see what they may read. */
@@ -105,6 +106,11 @@ export interface NotesService {
   create(ref: NoteRef, data: Record<string, unknown>, body: string, opts: CreateOpts): Note;
   /** Whole-file write (the note editor). Creates a missing file; an existing one needs an expectation or overwrite. */
   write(ref: NoteRef, content: string, opts: UpdateOpts): Note;
+  /**
+   * Delete a note. Like write, it needs the version the caller saw (expectHash / expectMtimeMs) or overwrite: true.
+   * false when the file is already gone (and no expectation was given).
+   */
+  remove(ref: NoteRef, opts: UpdateOpts): boolean;
   /** Notes in the same folder that link here with [[slug]] (from brain_links). */
   backlinks(ref: NoteRef): NoteRef[];
   /** Git history of the note, newest first; [] when the folder is not a git repo. */
@@ -134,6 +140,8 @@ export interface Notes {
   owner(): NotesService;
   forModule(moduleId: string): ModuleNotes;
   forAgent(agentId: string): NotesService;
+  /** A core subsystem (not a module, not an agent) that writes on an explicit owner request, e.g. 'packs'. */
+  forSystem(id: string): NotesService;
   /** true when the file now holds exactly what this service wrote a moment ago (the watcher skips it) */
   isOwnWrite(folderId: string, relPath: string, hash: string): boolean;
   /** commit everything queued, now */
@@ -348,10 +356,16 @@ export function createNotes(deps: NotesDeps): Notes {
       const note: Note = toNote(ref.folderId, r.rel, text, st.mtimeMs);
       rememberOwn(ref.folderId, r.rel, note.hash);
       // the file is written: what follows is bookkeeping and must not turn a good write into an error
+      changed(ref, r, message);
+      return note;
+    }
+
+    /** Re-index, then queue the commit (or collect it for the running batch) and announce the change. */
+    function changed(ref: NoteRef, r: Resolved, message: string): void {
       try {
         brain.indexPaths(ref.folderId, [r.rel]);
       } catch (e) {
-        log.warn({ file: r.rel, err: (e as Error).message }, 'lập chỉ mục ghi chú vừa ghi lỗi');
+        log.warn({ file: r.rel, err: (e as Error).message }, 'lập chỉ mục ghi chú vừa đổi lỗi');
       }
       if (sink) {
         const s = sink.get(ref.folderId) ?? { root: r.root, paths: new Set<string>() };
@@ -361,7 +375,6 @@ export function createNotes(deps: NotesDeps): Notes {
         emitChanged({ folderId: ref.folderId, paths: [r.rel], by: principal });
         deps.commits?.add(r.root, [r.rel], message, principal);
       }
-      return note;
     }
 
     /** Shared path of patch/setBlock: read, check, transform, write. */
@@ -460,6 +473,21 @@ export function createNotes(deps: NotesDeps): Notes {
         return commit(ref, r, content, cur, !cur, opts.message);
       },
 
+      remove(ref, opts) {
+        const r = resolve(ref);
+        guardWrite(ref, r.rel);
+        const cur = current(r.abs);
+        checkExpected(cur, opts, ref);
+        if (!cur) return false;
+        // re-check right before unlinking: a change since we read it is a conflict
+        checkSegments(r.root, r.rel);
+        const now = current(r.abs);
+        if (!now || now.hash !== cur.hash) throw new NoteConflictError();
+        fs.unlinkSync(r.abs);
+        changed(ref, r, opts.message);
+        return true;
+      },
+
       backlinks(ref) {
         const r = resolve(ref);
         return brain
@@ -518,6 +546,7 @@ export function createNotes(deps: NotesDeps): Notes {
     owner: () => bind({ kind: 'owner' }),
     forModule: (id) => bind({ kind: 'module', id }),
     forAgent: (id) => bind({ kind: 'agent', id }),
+    forSystem: (id) => bind({ kind: 'system', id }),
     isOwnWrite(folderId, relPath, hash) {
       const w = ownWrites.get(ownKey(folderId, relPath));
       return !!w && w.hash === hash && Date.now() - w.at <= OWN_WRITE_TTL_MS;
