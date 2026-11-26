@@ -1,0 +1,8 @@
+{
+  "name": "@agenticos/api-types",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Kiểu request/response của agenticos-cloud, dùng chung cho cloud/ và mobile/. Chỉ có kiểu, không có code chạy.",
+  "types": "./src/index.ts",
+  "sideEffects": false
+}

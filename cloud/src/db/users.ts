@@ -1,4 +1,5 @@
 /** D1 queries for users, sessions and the audit log. */
+import type { ApiSession, ApiUser } from '../../../packages/api-types/src/index';
 import type { Env, SqlStatement } from '../env';
 
 export type Role = 'user' | 'admin';
@@ -27,9 +28,13 @@ export interface SessionRow {
   revoked_at: number | null;
 }
 
-const iso = (ms: number | null) => (ms === null ? null : new Date(ms).toISOString());
+function iso(ms: number): string;
+function iso(ms: number | null): string | null;
+function iso(ms: number | null): string | null {
+  return ms === null ? null : new Date(ms).toISOString();
+}
 
-export function userJson(u: UserRow) {
+export function userJson(u: UserRow): ApiUser {
   return {
     id: u.id,
     email: u.email,
@@ -42,7 +47,7 @@ export function userJson(u: UserRow) {
   };
 }
 
-export function sessionJson(s: SessionRow, currentId?: string) {
+export function sessionJson(s: SessionRow, currentId?: string): ApiSession {
   return {
     id: s.id,
     kind: s.kind,

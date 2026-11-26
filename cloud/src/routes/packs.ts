@@ -1,5 +1,6 @@
 /** Browsing and downloading packs, for any signed-in user. */
 import { Hono } from 'hono';
+import type { PackDetail, PackListItem, PackListResponse } from '../../../packages/api-types/src/index';
 import type { AppEnv } from '../app-types';
 import {
   latestPublished, manifestOf, packJson, releaseJson, releasesOf, type PackRow, type ReleaseRow,
@@ -33,13 +34,13 @@ packRoutes.get('/', async (c) => {
     `SELECT * FROM packs WHERE ${where.join(' AND ')} ORDER BY updated_at DESC LIMIT 200`,
   ).bind(...args).all<PackRow>();
   const releases = await releasesOf(c.env, packs.map((p) => p.id));
-  const items = [];
+  const items: PackListItem[] = [];
   for (const p of packs) {
     const latest = latestPublished(releases.get(p.id) ?? []);
     if (!latest) continue;
     items.push({ ...(await packJson(c.env, p)), latest: releaseJson(latest) });
   }
-  return c.json({ items });
+  return c.json({ items } satisfies PackListResponse);
 });
 
 /** `?have=id@ver,id@ver`: which installed packs have a newer release, and which installed versions were yanked. */
@@ -94,7 +95,7 @@ packRoutes.get('/:id', async (c) => {
     latest: latest ? releaseJson(latest) : null,
     releases: visible.map(releaseJson),
     files: manifest?.files.map((f) => ({ path: f.path, loai: f.loai ?? null, sha256: f.sha256 })) ?? [],
-  });
+  } satisfies PackDetail);
 });
 
 packRoutes.post('/:id/releases/:version/download', async (c) => {
