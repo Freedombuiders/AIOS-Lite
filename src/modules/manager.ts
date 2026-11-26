@@ -33,7 +33,7 @@ interface Active {
 
 const CORE_TABLES = new Set([
   'tasks', 'task_comments', 'runs', 'run_events', 'schedules', 'conversations', 'messages', 'memories',
-  'brain_docs', 'board', 'audit_log', 'attention', 'modules', 'kv', 'schema_migrations',
+  'brain_docs', 'board', 'audit_log', 'attention', 'modules', 'kv', 'schema_migrations', 'owner_sessions',
 ]);
 
 export function createModuleManager(deps: AppDeps, opts: ModuleManagerOptions = {}): ModuleManager {
@@ -54,6 +54,21 @@ export function createModuleManager(deps: AppDeps, opts: ModuleManagerOptions = 
       | undefined;
 
   const isEnabled = (id: string) => row(id)?.enabled === 1;
+
+  /** The module's Hono sub-app, built on first use; undefined when routes() throws. */
+  const routesOf = (id: string, a: Active): Hono | undefined => {
+    if (!a.routes) {
+      const sub = new Hono();
+      try {
+        a.def.routes?.(sub, a.ctx);
+      } catch (err) {
+        log.error({ err, module: id }, 'module routes() failed');
+        return undefined;
+      }
+      a.routes = sub;
+    }
+    return a.routes;
+  };
 
   function stateOf(mod: DiscoveredModule): ModuleState {
     const r = row(mod.manifest.id);
@@ -325,28 +340,30 @@ export function createModuleManager(deps: AppDeps, opts: ModuleManagerOptions = 
       return active.get(id)?.provided as T | undefined;
     },
 
+    routeTable() {
+      const out: { method: string; path: string }[] = [];
+      for (const [id, a] of active) {
+        if (!isEnabled(id) || !a.running) continue;
+        const sub = routesOf(id, a);
+        if (!sub) continue;
+        for (const r of sub.routes) out.push({ method: r.method, path: `/api/m/${id}${r.path === '/' ? '' : r.path}` });
+      }
+      return out;
+    },
+
     mount(app) {
       const handle = async (c: import('hono').Context): Promise<Response> => {
         const id = c.req.param('id') ?? '';
         const a = active.get(id);
         if (!isEnabled(id) || !a?.running) return c.json({ error: { code: 'not_found', message: `Module "${id}" chưa được thêm.` } }, 404);
-        if (!a.routes) {
-          const sub = new Hono();
-          try {
-            a.def.routes?.(sub, a.ctx);
-          } catch (err) {
-            log.error({ err, module: id }, 'module routes() failed');
-            return c.json({ error: { code: 'internal', message: 'Module lỗi khi khai báo route.' } }, 500);
-          }
-          a.routes = sub;
-        }
+        if (!routesOf(id, a)) return c.json({ error: { code: 'internal', message: 'Module lỗi khi khai báo route.' } }, 500);
         const url = new URL(c.req.url);
         const prefix = `/api/m/${id}`;
         url.pathname = url.pathname.slice(prefix.length) || '/';
         const method = c.req.method;
         // Stream the body through (video uploads can be GBs); never buffer it here.
         const body = method === 'GET' || method === 'HEAD' ? undefined : c.req.raw.body;
-        return a.routes.fetch(new Request(url, { method, headers: c.req.raw.headers, body, duplex: 'half' } as RequestInit));
+        return a.routes!.fetch(new Request(url, { method, headers: c.req.raw.headers, body, duplex: 'half' } as RequestInit));
       };
       app.all('/api/m/:id', handle);
       app.all('/api/m/:id/*', handle);

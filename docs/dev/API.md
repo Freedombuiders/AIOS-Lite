@@ -5,6 +5,7 @@
 - Kiểu dữ liệu nằm trong `src/core/types.ts`. Web import qua alias `@core/types`.
 - **Base URL:** `/api`. Mọi request và response đều là JSON (UTF-8). Thời gian dùng ISO-8601 UTC.
 - **Xác thực:** nếu đặt `AIOS_TOKEN` thì mọi request phải gửi header `Authorization: Bearer <token>`. SSE gửi token qua query `?token=`, vì EventSource không đặt được header. Server chỉ nghe trên `AIOS_HOST` (mặc định 127.0.0.1).
+- **Quyền chủ:** các đường gửi tin cho khách, duyệt hoặc đăng, ghi quảng cáo, cài đặt module, quyền agent và cài gói cần **chủ**: `AIOS_TOKEN` bearer hoặc cookie phiên `aios_owner` đã ghép bằng mã in ở terminal. Thiếu quyền trả `401` kèm header `x-aios-owner: required`; yêu cầu ghi từ trang khác trả `403`. Danh sách nằm ở `src/api/owner.ts` (`OWNER_ROUTES`), chi tiết ở [OWNER-AUTH.md](OWNER-AUTH.md). Đường ghép: `GET /api/owner/status`, `GET|POST /api/owner/pair`, `POST /api/owner/pair/request` (in mã mới ra terminal), `POST /api/owner/pair-link` (chủ), `POST /api/owner/logout`.
 - **Lỗi:** HTTP 4xx/5xx kèm body `{ "error": { "code": string, "message": string } }`.
 
   | code | HTTP |

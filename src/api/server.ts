@@ -1,4 +1,3 @@
-import crypto from 'node:crypto';
 import fs from 'node:fs';
 import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
@@ -7,6 +6,7 @@ import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import type { AppDeps } from '../core/deps.js';
 import { errorBody, handleError } from './errors.js';
+import { createOwnerAuth, ownerGate, ownerRoutes, type OwnerAuth } from './owner.js';
 import { agentsRoutes } from './routes/agents.js';
 import { brainRoutes } from './routes/brain.js';
 import { chatRoutes } from './routes/chat.js';
@@ -29,10 +29,14 @@ export interface ApiServerOptions {
   pingMs?: number;
   /** directory with the built web app (default <root>/dist/web) */
   webDir?: string;
+  /** owner sessions (default: built from deps; tests pass one with a print sink) */
+  owner?: OwnerAuth;
 }
 
 export interface ApiServer {
   app: Hono;
+  /** owner principal: pairing codes, sessions (src/api/owner.ts) */
+  owner: OwnerAuth;
   listen(): Promise<{ close(): Promise<void>; port: number }>;
 }
 
@@ -43,29 +47,30 @@ const MIME: Record<string, string> = {
   '.woff': 'font/woff', '.woff2': 'font/woff2', '.map': 'application/json', '.txt': 'text/plain; charset=utf-8',
 };
 
-function safeEqual(a: string, b: string): boolean {
-  const ha = crypto.createHash('sha256').update(a).digest();
-  const hb = crypto.createHash('sha256').update(b).digest();
-  return crypto.timingSafeEqual(ha, hb);
-}
+/** Reachable without AIOS_TOKEN: the MCP bridge (own per-run token) and owner pairing. */
+const OPEN_PATHS: readonly string[] = [...RUN_TOKEN_PATHS, '/api/owner/status', '/api/owner/pair', '/api/owner/pair/request'];
+
+const originsFrom = (raw: string | undefined): string[] => (raw ?? '').split(',').map((s) => s.trim()).filter(Boolean);
 
 export function createApiServer(deps: AppDeps, opts: ApiServerOptions = {}): ApiServer {
   const app = new Hono();
   const token = deps.config.token;
+  const owner = opts.owner ?? createOwnerAuth({ db: deps.db, token, allowedOrigins: originsFrom(process.env.AIOS_ALLOWED_ORIGINS) });
   const webDir = opts.webDir ?? path.join(deps.config.rootDir, 'dist', 'web');
 
   app.onError(handleError(deps.log));
   app.notFound((c) => c.json(errorBody('not_found', 'Không tìm thấy đường dẫn này.'), 404));
 
+  // AIOS_TOKEN (when set) gates every route as before; a paired owner browser session passes it too.
   app.use('/api/*', async (c, next) => {
-    if (token && !RUN_TOKEN_PATHS.includes(c.req.path)) {
-      const header = c.req.header('authorization') ?? '';
-      const bearer = header.toLowerCase().startsWith('bearer ') ? header.slice(7).trim() : '';
-      const query = c.req.path === '/api/events' ? (c.req.query('token') ?? '') : '';
-      if (!safeEqual(bearer || query, token)) return c.json(errorBody('unauthorized', 'Thiếu hoặc sai token (AIOS_TOKEN).'), 401);
+    if (token && !OPEN_PATHS.includes(c.req.path) && !owner.hasToken(c) && !owner.hasSession(c)) {
+      return c.json(errorBody('unauthorized', 'Thiếu hoặc sai token (AIOS_TOKEN).'), 401);
     }
     await next();
   });
+  // Owner routes (src/api/owner.ts OWNER_ROUTES) need the owner; no state change from another site.
+  app.use('/api/*', ownerGate(owner));
+  ownerRoutes(app, owner);
 
   app.get('/api/events', sseHandler(deps, opts.pingMs ?? 25_000));
   systemRoutes(app, deps);
@@ -102,6 +107,7 @@ export function createApiServer(deps: AppDeps, opts: ApiServerOptions = {}): Api
 
   return {
     app,
+    owner,
     listen() {
       return new Promise((resolve, reject) => {
         const server = serve({ fetch: app.fetch, hostname: deps.config.host, port: deps.config.port }, (info: AddressInfo) => {

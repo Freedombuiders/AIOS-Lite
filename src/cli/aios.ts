@@ -62,6 +62,9 @@ export async function runCli(argv: string[], opts: CliOptions = {}): Promise<num
     const data = text ? (JSON.parse(text) as unknown) : undefined;
     if (!res.ok) {
       const msg = (data as { error?: { message?: string } } | undefined)?.error?.message ?? `HTTP ${res.status}`;
+      if (res.status === 401 && res.headers.get('x-aios-owner') === 'required') {
+        throw new CliError('Lệnh này cần quyền chủ: đặt AIOS_TOKEN trong .env (máy chủ và CLI cùng đọc), hoặc làm trên giao diện web đã đăng nhập chủ.');
+      }
       throw new CliError(res.status === 401 ? 'Sai hoặc thiếu AIOS_TOKEN.' : msg);
     }
     return data as T;
