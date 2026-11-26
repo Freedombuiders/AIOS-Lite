@@ -21,6 +21,7 @@ import {
 import type {
   FbContentDto,
   FbContentInput,
+  FbContentLineage,
   FbContentListDto,
   FbContentStatus,
   FbFormat,
@@ -103,6 +104,31 @@ function checkText(name: string, value: unknown, max: number): string {
   return value;
 }
 
+function optionalSlug(name: string, value: unknown): string | null {
+  if (value === undefined || value === null) return null;
+  const text = checkText(name, value, 200).trim();
+  return text || null;
+}
+
+/** Lineage columns for a new row; every missing part is null. Throws FbError(400) on a bad value. */
+function lineageColumns(lineage: Partial<FbContentLineage> | undefined): Record<string, string | number | null> {
+  if (lineage === undefined || lineage === null) return {};
+  if (typeof lineage !== 'object' || Array.isArray(lineage)) throw new FbError(400, 'Dòng dõi của bài không hợp lệ.');
+  const version = lineage.formulaVersion ?? null;
+  if (version !== null && (typeof version !== 'number' || !Number.isInteger(version) || version < 0)) {
+    throw new FbError(400, 'Phiên bản công thức phải là số nguyên không âm.');
+  }
+  const ratio = lineage.expectedRatio ?? null;
+  if (ratio !== null && (typeof ratio !== 'number' || !Number.isFinite(ratio))) throw new FbError(400, 'Kỳ vọng phải là một số.');
+  return {
+    idea_id: optionalSlug('Mã ý tưởng', lineage.ideaId),
+    formula_slug: optionalSlug('Công thức', lineage.formulaSlug),
+    formula_version: version,
+    source_video_slug: optionalSlug('Video nguồn', lineage.sourceVideoSlug),
+    expected_ratio: ratio,
+  };
+}
+
 function sourceOf(actor: Actor): string {
   return actor.kind === 'agent' ? actor.id : 'user';
 }
@@ -155,6 +181,7 @@ export function createContent(input: FbContentInput, actor: Actor, now: number =
     scheduled_at: input.scheduledAt ?? null,
     source: sourceOf(actor),
     origin: 'studio',
+    ...lineageColumns(input.lineage),
   });
   return dto(id);
 }
@@ -174,6 +201,8 @@ const CONTENT_FIELDS: Array<[keyof FbContentInput, string]> = [
 
 /** Patches a content row. See state.ts for which statuses accept which edits. */
 export function updateContent(id: number, patch: FbContentInput, actor: Actor, now: number = nowSec()): FbContentDto {
+  // Lineage is fixed when the post is created; nobody (owner or agent) rewrites it later.
+  if (patch.lineage !== undefined) throw new FbError(409, 'Dòng dõi của bài chỉ đặt lúc tạo bài, không sửa được.');
   const row = requireContent(id);
   const current = row.status as FbContentStatus;
   const editable = isEditable(current);

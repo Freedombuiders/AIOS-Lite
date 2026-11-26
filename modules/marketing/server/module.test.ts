@@ -28,7 +28,7 @@ describe('marketing module with the manager', () => {
     const { mgr, app } = await boot();
     const add = await mgr.add('marketing', { installAgents: true });
     expect(add.module.error).toBeUndefined();
-    expect(add.migrationsApplied).toEqual(['001_init']);
+    expect(add.migrationsApplied).toEqual(['001_init', '002_lineage_feed']);
     expect([...add.agentsInstalled].sort()).toEqual(['content-fb', 'fb-analyst']);
     for (const t of ['fb_pages', 'fb_content', 'fb_comments', 'fb_post_metrics']) {
       expect(h!.deps.db.prepare('SELECT name FROM sqlite_master WHERE name = ?').get(t)).toBeTruthy();
