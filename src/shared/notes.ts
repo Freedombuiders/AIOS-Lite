@@ -105,6 +105,11 @@ export interface NotesService {
   create(ref: NoteRef, data: Record<string, unknown>, body: string, opts: CreateOpts): Note;
   /** Whole-file write (the note editor). Creates a missing file; an existing one needs an expectation or overwrite. */
   write(ref: NoteRef, content: string, opts: UpdateOpts): Note;
+  /**
+   * Delete the note (indexed out, event, commit of the removal). Needs an expectation of the version being deleted,
+   * or overwrite: true. NoteNotFoundError when it is already gone. Past git commits keep the old content.
+   */
+  remove(ref: NoteRef, opts: UpdateOpts): void;
   /** Notes in the same folder that link here with [[slug]] (from brain_links). */
   backlinks(ref: NoteRef): NoteRef[];
   /** Git history of the note, newest first; [] when the folder is not a git repo. */
@@ -458,6 +463,32 @@ export function createNotes(deps: NotesDeps): Notes {
         if (p.kind !== 'owner') checkSchema(parseOrThrow(content).data);
         if (cur && content === cur.text) return toNote(ref.folderId, r.rel, cur.text, cur.st.mtimeMs, cur.hash);
         return commit(ref, r, content, cur, !cur, opts.message);
+      },
+
+      remove(ref, opts) {
+        const r = resolve(ref);
+        guardWrite(ref, r.rel);
+        const cur = current(r.abs);
+        if (!cur) throw new NoteNotFoundError(ref);
+        checkExpected(cur, opts, ref);
+        // re-read right before unlinking: a change since the caller read it is a conflict, as for writes
+        const now = current(r.abs);
+        if (now?.hash !== cur.hash || now.st.mtimeMs !== cur.st.mtimeMs) throw new NoteConflictError();
+        fs.unlinkSync(r.abs);
+        ownWrites.delete(ownKey(ref.folderId, r.rel));
+        try {
+          brain.indexPaths(ref.folderId, [r.rel]);
+        } catch (e) {
+          log.warn({ file: r.rel, err: (e as Error).message }, 'bỏ chỉ mục ghi chú vừa xoá lỗi');
+        }
+        if (sink) {
+          const s = sink.get(ref.folderId) ?? { root: r.root, paths: new Set<string>() };
+          s.paths.add(r.rel);
+          sink.set(ref.folderId, s);
+        } else {
+          emitChanged({ folderId: ref.folderId, paths: [r.rel], by: principal });
+          deps.commits?.add(r.root, [r.rel], opts.message, principal);
+        }
       },
 
       backlinks(ref) {
