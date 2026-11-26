@@ -1,0 +1,23 @@
+{
+  "id": "dream",
+  "name": "Dream 100",
+  "description": "Học từ kênh mẫu: lưu tới 100 kênh muốn học theo, dán link video công khai để máy đo nhịp cắt và bot gắn nhãn mở đầu, cấu trúc, kêu gọi. Chỉ giữ số đo, không giữ video, lời hay hình.",
+  "version": "0.1.0",
+  "icon": "telescope",
+  "category": "marketing",
+  "tables": ["dream_channels", "dream_videos"],
+  "settings": {
+    "brain_folder": {
+      "label": "Thư mục Second Brain để ghi chú",
+      "type": "string",
+      "default": "",
+      "help": "Mã thư mục công ty trong Second Brain. Ghi chú kênh vào dream-100/kenh/, ghi chú video vào dream-100/video/."
+    },
+    "analyst_agent": {
+      "label": "Agent gắn nhãn video",
+      "type": "string",
+      "default": "",
+      "help": "Để trống thì dùng agent main. Agent chạy trên GenBot không nhận ảnh, nên chỉ phân tích bằng phụ đề."
+    }
+  }
+}

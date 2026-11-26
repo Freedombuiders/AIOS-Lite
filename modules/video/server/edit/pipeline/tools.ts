@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { childPath, findBin, missingToolHint, MissingToolError } from '../../bin.js';
+import { ffmpegBin, ffprobeBin } from '../../../../_lib/media-tools/index.js';
 
 /** HyperFrames CLI version the studio is built and tested against. Override with VIDEO_EDIT_HF_VERSION. */
 export const HYPERFRAMES_VERSION = '0.8.156';
@@ -89,8 +90,8 @@ export async function runChecked(cmd: string, args: string[], opts: RunOptions =
   return res;
 }
 
-export const ffmpegBin = () => process.env.VIDEO_EDIT_FFMPEG?.trim() || findBin('ffmpeg') || 'ffmpeg';
-export const ffprobeBin = () => process.env.VIDEO_EDIT_FFPROBE?.trim() || findBin('ffprobe') || 'ffprobe';
+/** ffmpeg/ffprobe lookup is shared with Dream 100 (modules/_lib/media-tools). */
+export { ffmpegBin, ffprobeBin };
 
 /** Run ffmpeg; `durationSec` + `onProgress` turn `-progress` output into a 0..1 fraction. */
 export async function runFfmpeg(

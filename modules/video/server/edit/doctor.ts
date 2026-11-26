@@ -6,7 +6,7 @@ import { loadIntegrationValues } from '../integration-values.js';
 import { STORE_DIR } from '../paths.js';
 import type { DoctorCheck } from './types.js';
 import { defaultAgentProvider } from './turn.js';
-import { childPath, findBin, FFMPEG_HINT, missingToolHint } from '../bin.js';
+import { childPath, findBin, FFMPEG_HINT, INSTALL_COMMAND, missingToolHint } from '../../../_lib/media-tools/index.js';
 import { hasTonemapFilters } from './pipeline/normalize.js';
 import { ffmpegBin, ffprobeBin, hyperframesVersion } from './pipeline/tools.js';
 
@@ -189,7 +189,7 @@ export async function computeDoctor(root: string, deps: Partial<DoctorDeps> = {}
   add({
     id: 'yt-dlp', label: 'yt-dlp (học từ kênh mẫu)', required: false, ok: Boolean(ytdlp),
     detail: ytdlp ? ytdlp.trim() : 'chưa cài',
-    ...(ytdlp ? {} : { fix: 'brew install yt-dlp' }),
+    ...(ytdlp ? {} : { fix: INSTALL_COMMAND['yt-dlp'] }),
   });
 
   let freeBytes: number | null = null;
