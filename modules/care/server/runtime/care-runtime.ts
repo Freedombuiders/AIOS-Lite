@@ -14,7 +14,8 @@ import type Database from 'better-sqlite3';
 import type { AgentRunner } from '../application/agent-ports.js';
 import { CareAgentTurn, type AgentTurnConfig } from '../application/agent-turn.js';
 import { CareOutboxDispatcher, type DispatcherOptions } from '../application/dispatch.js';
-import { CareIngestPipeline } from '../application/ingest.js';
+import { CareIngestPipeline, type IngestPipelineOptions } from '../application/ingest.js';
+import { createConversationControlReader } from '../application/conversation-hold.js';
 import { CareError } from '../../../_lib/care-kit/errors.js';
 import type { CareKeyInput } from '../persistence/crypto.js';
 import { resolveEncryptionKey } from '../persistence/crypto.js';
@@ -52,6 +53,12 @@ export interface CareRuntimeDeps {
   autoDelaySeconds?: AgentTurnDepsLike['autoDelaySeconds'];
   quietHours?: AgentTurnDepsLike['quietHours'];
   signatureFor?: AgentTurnDepsLike['signatureFor'];
+  /** T06: the runtime's prompt limit per agent (characters). */
+  promptLimit?: AgentTurnDepsLike['promptLimit'];
+  /** T06: hard handoff rule (keywords + pause), its post-commit notification, and the inbound-turn debounce. */
+  handoff?: IngestPipelineOptions['handoff'];
+  onHandoff?: IngestPipelineOptions['onHandoff'];
+  turnDebounceMs?: IngestPipelineOptions['turnDebounceMs'];
   /**
    * The Care encryption key. REQUIRED for the retention loop: without a usable key, redaction of erased content cannot
    * rewrite bridge artifacts (it would only count them as unredacted), so the runtime refuses to start the loop and
@@ -223,13 +230,21 @@ export function createCareRuntime(deps: CareRuntimeDeps): CareRuntime {
     ...(deps.agentCan ? { agentCan: deps.agentCan } : {}),
     ...(deps.skillFor ? { skillFor: deps.skillFor } : {}),
     ...(deps.turnMedia ? { turnMedia: deps.turnMedia } : {}),
-    ...(deps.conversationControl ? { conversationControl: deps.conversationControl } : {}),
+    // T06: a take-over (customer handoffs are take-overs) is honoured by default, not only when the module wires it
+    conversationControl: deps.conversationControl ?? createConversationControlReader(db),
     ...(deps.autoDelaySeconds ? { autoDelaySeconds: deps.autoDelaySeconds } : {}),
     ...(deps.quietHours ? { quietHours: deps.quietHours } : {}),
     ...(deps.signatureFor ? { signatureFor: deps.signatureFor } : {}),
+    ...(deps.promptLimit ? { promptLimit: deps.promptLimit } : {}),
   });
   // provider receipts (delivery.confirmed) reach the outbox after the ingest commit; the handler is idempotent
-  const ingest = new CareIngestPipeline(db, stores, { onDeliveryConfirmed: (r) => void service.recordReceipt(r) });
+  const ingest = new CareIngestPipeline(db, stores, {
+    onDeliveryConfirmed: (r) => void service.recordReceipt(r),
+    now,
+    ...(deps.handoff ? { handoff: deps.handoff } : {}),
+    ...(deps.onHandoff ? { onHandoff: deps.onHandoff } : {}),
+    ...(deps.turnDebounceMs ? { turnDebounceMs: deps.turnDebounceMs } : {}),
+  });
   const replyPort = createCareReplyPort({
     service,
     stores,

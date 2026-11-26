@@ -112,6 +112,16 @@ export function createModuleContext(
         }
         return { images: caps?.images === true, documents: caps?.documents === true };
       },
+      promptLimit: (agentId) => {
+        const runtime = deps.agents.get(agentId)?.runtime;
+        try {
+          // read defensively: older runtime contracts have no maxPromptChars
+          const v = runtime ? (deps.runtimes.get(runtime).capabilities as { maxPromptChars?: unknown }).maxPromptChars : undefined;
+          return typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : null;
+        } catch {
+          return null; // runtime not registered
+        }
+      },
     },
     access: {
       can: (agentId, scope) => deps.access.can(agentId, id, scope),

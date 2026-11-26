@@ -22,6 +22,7 @@ import { ensureBridgeAuditSchema } from './bridge-audit.js';
 import { ensureOutboxSchema } from './outbox-store.js';
 import { ensureOwnershipSchema } from './ownership-store.js';
 import { ensureWorkflowSchema } from '../workflow/schema.js';
+import { ensureHandoffSchema } from '../workflow/handoff-schema.js';
 
 /**
  * Current schema version.
@@ -188,6 +189,7 @@ function applyExtensions(db: Database.Database): void {
   ensureAuditSchema(db);
   ensureBridgeAuditSchema(db);
   ensureWorkflowSchema(db);
+  ensureHandoffSchema(db);
   ensurePerformanceIndexes(db);
 }
 

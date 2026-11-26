@@ -4,8 +4,9 @@
  *  - eligible = same conversation and account as the trigger, not deleted/tombstoned, not a
  *    system event, carries text or an attachment, and not newer than the trigger (so the context
  *    is a pure function of (conversation, trigger, revision));
- *  - bounded by message count, an approximate token budget and a per-message character cap; the
- *    trigger is always kept, older history is dropped first;
+ *  - bounded by message count, an approximate token budget, a per-message character cap and (T06) an
+ *    optional character budget for the whole transcript; the trigger (the newest customer message of
+ *    the turn) is always kept whole unless it alone is over the budget, older history is dropped first;
  *  - EVERY message body (and everything a customer controls: email subject, attachment names,
  *    the conversation title) sits inside an `<untrusted>` block with markup-neutralized text; the
  *    block attributes carry only system-controlled values (ref, role, origin, time);
@@ -27,6 +28,11 @@ export interface ContextLimits {
   /** Approximate budget (chars / 3 is a conservative estimate for Vietnamese + English). */
   maxTokens: number;
   maxCharsPerMessage: number;
+  /**
+   * T06: character budget of the whole transcript as placed in the prompt (headers and untrusted wrappers included),
+   * set by the caller from the runtime's prompt limit. Absent => only the limits above apply.
+   */
+  maxChars?: number;
 }
 
 export const DEFAULT_CONTEXT_LIMITS: ContextLimits = Object.freeze({
@@ -156,6 +162,9 @@ function messageBody(m: CareMessageRecord, maxChars: number, attached?: Readonly
   return joined.length > maxChars ? `${joined.slice(0, maxChars).trimEnd()} ...[truncated]` : joined;
 }
 
+/** Upper bound of what one message adds around its body: `[m99] <iso> role=customer` + the untrusted wrapper + separator. */
+const MESSAGE_OVERHEAD_CHARS = 110;
+
 function block(attrs: string, body: string): string {
   return `<untrusted ${attrs}>\n${body}\n</untrusted>`;
 }
@@ -209,8 +218,10 @@ export function buildAgentContext(input: BuildContextInput): AgentContext {
     }
   }
 
+  const maxChars = typeof limits.maxChars === 'number' && Number.isFinite(limits.maxChars) && limits.maxChars > 0 ? Math.floor(limits.maxChars) : null;
   const kept: Array<{ m: CareMessageRecord; body: string; tokens: number }> = [];
   let tokens = 0;
+  let chars = 0;
   let truncated = fetched.length >= limits.maxMessages + 20;
   for (const m of eligible) {
     const isTrigger = m.id === trigger.id;
@@ -219,15 +230,18 @@ export function buildAgentContext(input: BuildContextInput): AgentContext {
       break;
     }
     // The trigger is always kept; if it alone is over budget its text is shortened.
-    const cap = isTrigger ? Math.min(limits.maxCharsPerMessage, Math.max(200, limits.maxTokens * 3 - 400)) : limits.maxCharsPerMessage;
+    let cap = isTrigger ? Math.min(limits.maxCharsPerMessage, Math.max(200, limits.maxTokens * 3 - 400)) : limits.maxCharsPerMessage;
+    if (isTrigger && maxChars !== null) cap = Math.min(cap, Math.max(200, maxChars - MESSAGE_OVERHEAD_CHARS - 20));
     const body = messageBody(m, cap, input.attached);
     const cost = estimateTokens(body) + 20;
-    if (!isTrigger && tokens + cost > limits.maxTokens) {
+    const size = body.length + MESSAGE_OVERHEAD_CHARS;
+    if (!isTrigger && (tokens + cost > limits.maxTokens || (maxChars !== null && chars + size > maxChars))) {
       truncated = true;
       break;
     }
     kept.push({ m, body, tokens: cost });
     tokens += cost;
+    chars += size;
   }
   kept.reverse(); // oldest -> newest
 

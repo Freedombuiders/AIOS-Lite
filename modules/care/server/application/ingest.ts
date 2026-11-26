@@ -41,6 +41,8 @@ import type { CheckpointOutcome } from '../persistence/stores.js';
 import type { WatermarkTarget } from '../persistence/conversation-store.js';
 import { isDirectedAtAccount } from './projector.js';
 import { aiChannelGate } from '../domain/ai-block.js';
+import { DEFAULT_HANDOFF_POLICY, matchHandoffKeyword, type HandoffPolicy } from '../policy/handoff.js';
+import { applyCustomerHandoff, type CustomerHandoff } from './conversation-hold.js';
 
 export type IngestOutcome =
   | 'created'
@@ -68,6 +70,8 @@ export interface IngestResult {
   jobId?: string;
   /** What happened to the adapter checkpoint (absent when the event carried none). */
   checkpoint?: CheckpointOutcome;
+  /** T06: the message asked for a person; the conversation was handed to the owner in the same transaction. */
+  handoff?: CustomerHandoff;
 }
 
 /** Re-exported: adapter-owned causal comparison (null => unordered, never guessed). */
@@ -78,6 +82,7 @@ interface Effect {
   messageId?: string;
   conversationId?: string;
   jobId?: string;
+  handoff?: CustomerHandoff;
   /** Allowlisted, ID-only ledger fields (scrubbed again by the event store). */
   ledger: Record<string, unknown>;
 }
@@ -101,6 +106,21 @@ export interface IngestPipelineOptions {
    * Default: no-op, ingest has no dependency on the delivery layer.
    */
   onDeliveryConfirmed?: (receipt: DeliveryConfirmation) => void;
+  /**
+   * T06 hard handoff rule, re-read on every message (module settings). Absent => the defaults ("gặp nhân viên",
+   * "gặp người thật", "khiếu nại"; 60 minutes); null or an empty keyword list => the rule is off.
+   */
+  handoff?: () => HandoffPolicy | null;
+  /** Called AFTER the commit for every handoff (the module raises owner attention). Must not throw; errors are swallowed. */
+  onHandoff?: (handoff: CustomerHandoff) => void;
+  /**
+   * T06 debounce: an inbound turn is due this many ms after the message, and a turn whose conversation got a newer
+   * customer message (with its own queued turn) in the meantime is skipped, so a burst of messages costs one model run.
+   * Default 0 (immediate, the previous behaviour).
+   */
+  turnDebounceMs?: () => number;
+  /** Clock for handoff/debounce times (default Date.now). */
+  now?: () => number;
 }
 
 export class CareIngestPipeline {
@@ -124,9 +144,17 @@ export class CareIngestPipeline {
             400,
           );
         }
-        return this.execute(event, (account) =>
+        const result = this.execute(event, (account) =>
           event.type === 'message.created' ? this.applyCreate(account, event.message) : this.applyEdit(account, event.message),
         );
+        if (result.handoff) {
+          try {
+            this.options.onHandoff?.(result.handoff);
+          } catch {
+            /* a notification failure never fails the ingest; the attention sweep repairs it */
+          }
+        }
+        return result;
       }
       case 'message.deleted':
         return this.execute(event, (account) => this.applyDelete(account, event));
@@ -240,6 +268,7 @@ export class CareIngestPipeline {
         jobId: effect.jobId,
         eventId: event.eventId,
         checkpoint: checkpointOutcome,
+        ...(effect.handoff ? { handoff: effect.handoff } : {}),
       };
     });
     return tx.immediate();
@@ -304,8 +333,8 @@ export class CareIngestPipeline {
         this.stores.messages.markLiveObserved(existing.id);
         const refreshed = this.stores.conversations.recomputeProjection(conv.id);
         const identity = this.resolveSender(account, msg);
-        const { jobId, job } = this.maybeEnqueueTurn(account, refreshed, msg, existing.id, identity, existing.directedAtAccount);
-        return { outcome: 'live_observed', messageId: existing.id, conversationId: conv.id, jobId, ledger: { ...ledger, job } };
+        const { jobId, job, handoff } = this.maybeEnqueueTurn(account, refreshed, msg, existing.id, identity, existing.directedAtAccount);
+        return { outcome: 'live_observed', messageId: existing.id, conversationId: conv.id, jobId, handoff, ledger: { ...ledger, job } };
       }
       return { outcome: 'duplicate_ignored', messageId: existing.id, conversationId: conv.id, ledger };
     }
@@ -375,13 +404,14 @@ export class CareIngestPipeline {
         ledger: { ...this.messageLedger(stored, saved.id), job: 'none_first_sight_edit' },
       };
     }
-    const { jobId, job } = this.maybeEnqueueTurn(account, conversation, msg, saved.id, identity, directedAtAccount);
+    const { jobId, job, handoff } = this.maybeEnqueueTurn(account, conversation, msg, saved.id, identity, directedAtAccount);
 
     return {
       outcome: 'created',
       messageId: saved.id,
       conversationId: conversation.id,
       jobId,
+      handoff,
       ledger: { ...this.messageLedger(msg, saved.id), job },
     };
   }
@@ -441,6 +471,9 @@ export class CareIngestPipeline {
    * relevant to this account (DM/email, or a group message that targets it), and the effective
    * assignment (conversation > customer > identity > domain > account > channel > global,
    * explicit disabled = deny) is enabled and not `observe`. The full agent policy is CC-10.
+   *
+   * T06: before the enqueue decision, a message that asks for a person (configured keywords) hands the conversation to
+   * the owner in THIS transaction (pause + take-over + bot replies withdrawn) and gets no turn.
    */
   private maybeEnqueueTurn(
     account: CareAccountRecord,
@@ -449,7 +482,7 @@ export class CareIngestPipeline {
     savedMessageId: string,
     identity: CareIdentityRecord | null,
     directedAtAccount: boolean,
-  ): { jobId?: string; job: string } {
+  ): { jobId?: string; job: string; handoff?: CustomerHandoff } {
     const eligibleLiveInbound =
       msg.origin === 'live' &&
       msg.direction === 'in' &&
@@ -483,6 +516,27 @@ export class CareIngestPipeline {
     if (resolution.status === 'denied') return { job: 'skipped_assignment_disabled' };
     if (resolution.rule.mode === 'observe') return { job: 'skipped_observe' };
 
+    const now = this.options.now ? this.options.now() : Date.now();
+    const policy = this.options.handoff ? this.options.handoff() : DEFAULT_HANDOFF_POLICY;
+    if (policy && policy.keywords.length > 0) {
+      const keyword = matchHandoffKeyword(
+        msg.metadata.type === 'email' ? { text: msg.text, subject: msg.metadata.subject, email: true } : { text: msg.text },
+        policy.keywords,
+      );
+      if (keyword) {
+        const handoff = applyCustomerHandoff(this.db, this.stores, {
+          conversationId: conversation.id,
+          accountId: account.id,
+          keyword,
+          messageId: savedMessageId,
+          nowMs: now,
+          pauseMinutes: policy.pauseMinutes,
+        });
+        return { job: 'skipped_handoff', handoff };
+      }
+    }
+
+    const debounceMs = Math.max(0, Math.floor(this.options.turnDebounceMs?.() ?? 0));
     const job = this.stores.jobs.enqueueJob({
       accountId: account.id,
       jobType: 'inbound_turn',
@@ -493,7 +547,9 @@ export class CareIngestPipeline {
         conversationId: conversation.id,
         messageId: savedMessageId,
         sentAtMs: msg.sentAtMs,
+        ...(debounceMs > 0 ? { debounced: true } : {}),
       },
+      ...(debounceMs > 0 ? { dueAtMs: now + debounceMs } : {}),
       ownerEpoch: account.ownerEpoch,
     });
     return { jobId: job.id, job: 'enqueued' };

@@ -26,6 +26,8 @@ const assigneeSchema = z
   .strict();
 const aiSchema = z.object({ mode: z.enum(['off', 'draft', 'auto']) }).strict();
 const takeoverSchema = z.object({ on: z.boolean() }).strict();
+/** T06 timed pause: 30 or 120 minutes, or null = until switched back on. */
+const pauseSchema = z.object({ minutes: z.union([z.literal(30), z.literal(120), z.null()]) }).strict();
 const noteSchema = z
   .object({ body: z.string().trim().min(1).max(4000), clientRequestId: z.string().min(1).max(128) })
   .strict();
@@ -88,6 +90,20 @@ export function registerWorkflowRoutes(sub: Hono, ctx: CareApiContext): void {
     const body = await parseBody(c, takeoverSchema);
     writable(id);
     return c.json(withSignature(ctx.workflow().setTakeover(id, body.on)));
+  });
+
+  // T06: timed pause of the bot (eligibility, post-run recheck and the send guard all read it); DELETE resumes now.
+  sub.put('/conversations/:id/pause', async (c) => {
+    const id = idParam(c.req.param('id'));
+    const body = await parseBody(c, pauseSchema);
+    writable(id);
+    return c.json(withSignature(ctx.workflow().setPause(id, body.minutes)));
+  });
+
+  sub.delete('/conversations/:id/pause', (c) => {
+    const id = idParam(c.req.param('id'));
+    writable(id);
+    return c.json(withSignature(ctx.workflow().resume(id)));
   });
 
   // ── internal notes ──────────────────────────────────────────────────────────────────────────

@@ -36,7 +36,7 @@ const until = async (cond: () => boolean | Promise<boolean>, ms = 8_000) => {
   throw new Error('timed out waiting for condition');
 };
 
-async function boot(opts: { scopes?: string[]; mode?: 'draft' | 'auto'; settings?: Record<string, unknown> } = {}) {
+async function boot(opts: { scopes?: string[]; mode?: 'draft' | 'auto'; settings?: Record<string, unknown>; installDefaults?: boolean } = {}) {
   h = createTestHarness({ modulesDir: MODULES_DIR });
   mgr = createModuleManager(h.deps, { fromDist: false });
   (h.deps as { modules: ModuleManager }).modules = mgr;
@@ -47,7 +47,15 @@ async function boot(opts: { scopes?: string[]; mode?: 'draft' | 'auto'; settings
   };
   await mgr.add('care', { installAgents: true });
   h.fakes.agents.get('cskh')!.access.modules.care = opts.scopes ?? ['inbox.read', 'customers.read', 'reply.draft', 'reply.send'];
-  mgr.updateSettings('care', { autoDelaySeconds: 0, quietHoursStart: '00:00', quietHoursEnd: '00:00', ...opts.settings });
+  // auto mode needs the owner's explicit autoSendEnabled (default false since T06); the debounce is off to keep these fast
+  mgr.updateSettings('care', {
+    autoDelaySeconds: 0,
+    quietHoursStart: '00:00',
+    quietHoursEnd: '00:00',
+    turnDebounceSeconds: 0,
+    ...(opts.mode === 'auto' && !opts.installDefaults ? { autoSendEnabled: true } : {}),
+    ...opts.settings,
+  });
   app = new Hono();
   mgr.mount(app);
   channels = mgr.provides<{ careChannels: CareChannelsApi }>('care')!.careChannels;
@@ -58,8 +66,8 @@ async function boot(opts: { scopes?: string[]; mode?: 'draft' | 'auto'; settings
   expect(res.status).toBe(201);
 }
 
-async function inbound(text: string, key = 'peer:1') {
-  const message = chatMessage({ id: accountId, channel: 'zalo' }, { externalConversationKey: key, text, sentAtMs: Date.now() });
+async function inbound(text: string, key = 'peer:1', over: Parameters<typeof chatMessage>[1] = {}) {
+  const message = chatMessage({ id: accountId, channel: 'zalo' }, { externalConversationKey: key, text, sentAtMs: Date.now(), ...over });
   const ev = { type: 'message.created' as const, eventId: `ev-${message.nativeMessageId}`, accountId, timestampMs: message.sentAtMs, message };
   expect((await channels.ingest(ev)).outcome).toBe('stored');
   const conv = h.deps.db.prepare('SELECT id FROM care_conversations WHERE account_id = ? AND external_key = ?').get(accountId, key) as { id: string };
@@ -146,5 +154,52 @@ describe('care end to end (fake connector, fake lean agent)', () => {
     await new Promise((r) => setTimeout(r, 2_500));
     expect(leanCalls).toBe(1);
     expect(await drafts()).toHaveLength(1);
+  }, 30_000);
+
+  it('T06 fresh install: an auto assignment still only drafts until the owner enables automatic sending', async () => {
+    await boot({ mode: 'auto', installDefaults: true });
+    expect(mgr.get('care')?.manifest.settings?.autoSendEnabled?.default).toBe(false);
+    await inbound('Giá bao nhiêu vậy shop?');
+    await until(async () => (await drafts()).length === 1);
+    await new Promise((r) => setTimeout(r, 1_500));
+    expect(connector.providerSendCount).toBe(0);
+  }, 30_000);
+
+  it('T06 "gặp nhân viên": no lean run, the owner is notified, and only the owner hands it back', async () => {
+    await boot({ mode: 'auto' });
+    const { conversationId } = await inbound('CHO TOI GAP NHAN VIEN', 'peer:9');
+    await until(() => [...h.fakes.attention.keys()].some((k) => k.includes('care:customer-handoff:')));
+    const conv = await json<{ isPaused: boolean; pausedUntilMs: number | null; workflow?: { ai: { takenOver: boolean } } }>(await api('GET', `/conversations/${conversationId}`));
+    expect(conv.isPaused).toBe(true);
+    expect(conv.pausedUntilMs).not.toBeNull();
+    expect(conv.workflow?.ai.takenOver).toBe(true);
+    await new Promise((r) => setTimeout(r, 1_500));
+    expect(leanCalls).toBe(0);
+    expect(connector.providerSendCount).toBe(0);
+
+    expect((await api('PUT', `/conversations/${conversationId}/takeover`, { on: false })).status).toBe(200);
+    await until(() => ![...h.fakes.attention.keys()].some((k) => k.includes('care:customer-handoff:')), 12_000);
+  }, 30_000);
+
+  it('T06 image-only message with a runtime that cannot read images goes to the owner', async () => {
+    await boot();
+    await inbound('', 'peer:11', { metadata: { type: 'chat', attachments: [{ id: 'img-1', mimeType: 'image/jpeg', fileName: 'anh.jpg' }] } });
+    await until(() => [...h.fakes.attention.keys()].some((k) => k.includes('care:needs-owner:')));
+    const runs = await json<{ items: Array<{ status: string; skipReason: string | null }> }>(await api('GET', '/runs'));
+    expect(runs.items[0]).toMatchObject({ status: 'skipped', skipReason: 'media_needs_owner' });
+    expect(leanCalls).toBe(0);
+  }, 30_000);
+
+  it('T06 pause API: 30 / 120 minutes or until resumed, anything else is refused', async () => {
+    await boot();
+    const { conversationId } = await inbound('Xin chào', 'peer:12');
+    expect((await api('PUT', `/conversations/${conversationId}/pause`, { minutes: 45 })).status).toBe(400);
+    const paused = await json<{ isPaused: boolean; pausedUntilMs: number | null }>(await api('PUT', `/conversations/${conversationId}/pause`, { minutes: 30 }));
+    expect(paused.isPaused).toBe(true);
+    expect(paused.pausedUntilMs! - Date.now()).toBeGreaterThan(29 * 60_000);
+    const open = await json<{ isPaused: boolean; pausedUntilMs: number | null }>(await api('PUT', `/conversations/${conversationId}/pause`, { minutes: null }));
+    expect(open).toMatchObject({ isPaused: true, pausedUntilMs: null });
+    const resumed = await json<{ isPaused: boolean }>(await api('DELETE', `/conversations/${conversationId}/pause`));
+    expect(resumed.isPaused).toBe(false);
   }, 30_000);
 });
