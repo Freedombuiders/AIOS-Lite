@@ -1,5 +1,7 @@
+import type { Context } from 'hono';
 import { defineModule, type ModuleContext } from '../../../src/modules/sdk.js';
 import type { CareCustomersApi } from '../../care/server/customers-service.js';
+import { customerDetail, customerRow } from './views.js';
 import { createExporter, type CrmExporter } from './exporter.js';
 
 /** how often the exporter looks at care's change feed (a new customer shows up as a note within a few seconds) */
@@ -39,30 +41,26 @@ export default defineModule({
     // read-only: what the exporter is doing, and which note mirrors which customer
     app.get('/status', (c) => c.json(crmExporter(ctx).status()));
 
+    const folderIdOf = (ctx: ModuleContext) => ctx.settings.get<string>('folderId', '')?.trim() || null;
+    const unavailable = (c: Context) => c.json({ error: { code: 'unavailable', message: 'Module Chăm sóc khách hàng chưa bật.' } }, 409);
+
     app.get('/customers', (c) => {
       const care = ctx.modules.get<{ customers?: CareCustomersApi }>('care')?.customers;
-      if (!care) return c.json({ error: { code: 'unavailable', message: 'Module Chăm sóc khách hàng chưa bật.' } }, 409);
+      if (!care) return unavailable(c);
       const limit = Math.min(Math.max(Number(c.req.query('limit')) || 50, 1), 200);
       const page = care.list({ after: c.req.query('after') || null, limit });
       const ex = crmExporter(ctx);
-      const folderId = ctx.settings.get<string>('folderId', '')?.trim() || null;
-      return c.json({
-        items: page.items.map((v) => {
-          const row = ex.indexRow(v.id);
-          const inFolder = !!row && row.folder_id === folderId;
-          return {
-            id: v.id,
-            ten: v.displayName,
-            giaiDoan: v.stage,
-            folderId: inFolder ? row!.folder_id : null,
-            notePath: inFolder ? row!.rel_path : null,
-            exportedAt: inFolder ? row!.exported_at : null,
-            /** da-xuat: the note was written after the customer's last change; cho-xuat: a change is not exported yet */
-            trangThai: !inFolder ? 'chua-xuat' : row!.exported_at >= v.lastChangeAtMs ? 'da-xuat' : 'cho-xuat',
-          };
-        }),
-        next: page.next,
-      });
+      const folderId = folderIdOf(ctx);
+      return c.json({ items: page.items.map((v) => customerRow(v, ex.indexRow(v.id), folderId)), next: page.next });
+    });
+
+    app.get('/customers/:id', (c) => {
+      const care = ctx.modules.get<{ customers?: CareCustomersApi }>('care')?.customers;
+      if (!care) return unavailable(c);
+      const id = c.req.param('id');
+      const v = care.get(id);
+      if (!v) return c.json({ error: { code: 'not_found', message: 'Không tìm thấy khách này.' } }, 404);
+      return c.json(customerDetail(v, care.history(id, 20), crmExporter(ctx).indexRow(id), folderIdOf(ctx)));
     });
   },
 

@@ -9,7 +9,7 @@ Hộp thư chung cho mọi kênh (Zalo, Gmail…). Agent soạn nháp hoặc t�
 3. Vào **Kênh & agent**, gán agent cho tài khoản và chọn chế độ: *Chỉ theo dõi*, *Soạn nháp* (mặc định) hoặc *Tự động*.
 4. Tin khách đến → agent soạn → nháp hiện ở **Nháp chờ duyệt** (và mục "Cần bạn" ở Tổng quan) → bạn duyệt, sửa rồi gửi.
 
-Màn hình: Hộp thư · Nháp chờ duyệt · Khách hàng · Việc chăm sóc · Kênh & agent · Quy tắc · Nhật ký CSKH (menu Sales, đường dẫn `/m/care/...`). Widget Tổng quan: "Khách đang chờ", "Nháp chờ duyệt".
+Màn hình: Hộp thư · Nháp chờ duyệt · Khách hàng (khi module `crm` bật, mục này mở màn Giai đoạn / Tất cả khách / Hồ sơ của `crm`; `/m/care/customers` chuyển sang đó, tắt `crm` thì danh sách cũ vẫn hiện) · Việc chăm sóc · Kênh & agent · Quy tắc · Nhật ký CSKH (menu Sales, đường dẫn `/m/care/...`). Widget Tổng quan: "Khách đang chờ", "Nháp chờ duyệt".
 
 ## Quyền (scope)
 
