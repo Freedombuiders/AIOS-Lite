@@ -126,10 +126,17 @@ export default defineModule({
     postNotes: {
       syncNow: () => state?.sync.run(),
       status: () => state?.sync.status(),
+      /** durable feed: a post note got (or changed) the numbers of a milestone; read with your own cursor */
+      events: (cursor: number, limit?: number) => state?.sync.events(cursor, limit) ?? { events: [], cursor },
     },
     playbook: {
       evaluate: () => state?.playbook.evaluate(),
       verified: () => state?.playbook.verified() ?? [],
+      /** a module proposes a gia-thuyet (signed module:<id>), e.g. dream when a formula fits */
+      proposeFromModule: (moduleId: string, payload: unknown) => {
+        if (!state) throw new Error('Module Học chưa chạy.');
+        return state.playbook.proposeFromModule(moduleId, payload);
+      },
     },
     weekly: {
       catchUp: () => state?.weekly.catchUp(),

@@ -10,6 +10,7 @@ import type { ContentFeed, ContentWithLineage } from '../../_lib/content-feed.js
 import type { ModuleContext } from '../../../src/modules/sdk.js';
 import {
   BLOCK_NAME,
+  MILESTONES,
   NOTE_DIR,
   SOURCE,
   VIDEO_FORMATS,
@@ -69,9 +70,42 @@ export interface PostNoteSyncDeps {
   now?(): number;
 }
 
+/** One post note that got the numbers of a milestone, or whose ER at that milestone changed. */
+export interface NoteEvent {
+  id: number;
+  folderId: string;
+  relPath: string;
+  contentId: number;
+  milestone: string;
+  er: number | null;
+  at: number;
+}
+
+export interface NoteEventPage {
+  events: NoteEvent[];
+  /** id of the last event returned, or the cursor passed in when there was nothing new */
+  cursor: number;
+}
+
 export interface PostNoteSync {
   run(): Promise<SyncResult>;
   status(): SyncStatus;
+  /** Milestone events after `cursor` (0 = from the start), oldest first, at most `limit` (1–500). */
+  events(cursor: number, limit?: number): NoteEventPage;
+}
+
+/** The fixed milestones of a so_do list with their ER (null = measured, ER unknown). */
+function erByMilestone(soDo: unknown): Map<string, number | null> {
+  const out = new Map<string, number | null>();
+  if (!Array.isArray(soDo)) return out;
+  for (const e of soDo) {
+    if (!e || typeof e !== 'object') continue;
+    const moc = (e as { moc?: unknown }).moc;
+    if (typeof moc !== 'string' || !(MILESTONES as readonly string[]).includes(moc)) continue;
+    const er = (e as { er?: unknown }).er;
+    out.set(moc, typeof er === 'number' && Number.isFinite(er) ? er : null);
+  }
+  return out;
 }
 
 const isConflict = (e: unknown) => (e as { code?: unknown })?.code === 'conflict';
@@ -102,6 +136,22 @@ export function createPostNoteSync(deps: PostNoteSyncDeps): PostNoteSync {
       `INSERT INTO learn_post_index (folder_id, source, source_id, rel_path, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)
        ON CONFLICT(folder_id, source, source_id) DO UPDATE SET rel_path = excluded.rel_path, updated_at = excluded.updated_at`,
     ).run(folder, SOURCE, String(id), relPath, now(), now());
+
+  /**
+   * One event per milestone that is new in `after` or whose ER changed. The note is already written: a failure here
+   * is logged, not thrown (readers also reconcile from the notes on start).
+   */
+  function recordMilestones(folder: string, relPath: string, id: number, before: unknown, after: unknown): void {
+    const old = erByMilestone(before);
+    try {
+      for (const [moc, er] of erByMilestone(after)) {
+        if (old.has(moc) && old.get(moc) === er) continue;
+        db.prepare('INSERT INTO learn_note_events (folder_id, rel_path, content_id, milestone, er, at) VALUES (?, ?, ?, ?, ?, ?)').run(folder, relPath, id, moc, er, now());
+      }
+    } catch (e) {
+      log.warn({ file: relPath, err: (e as Error).message }, 'learn: không ghi được sự kiện số đo của ghi chú');
+    }
+  }
 
   const isOurs = (data: Record<string, unknown> | undefined, id: number) =>
     !!data && data.loai === 'bai-dang' && data.nen_tang === 'facebook' && Number(data.id) === id;
@@ -140,6 +190,7 @@ export function createPostNoteSync(deps: PostNoteSyncDeps): PostNoteSync {
       try {
         n.create({ folderId: folder, relPath }, data, body, { message: `Học: ghi chú bài đăng #${c.id}` });
         remember(folder, c.id, relPath);
+        recordMilestones(folder, relPath, c.id, [], data.so_do);
         return;
       } catch (e) {
         if (!isConflict(e)) throw e;
@@ -169,6 +220,7 @@ export function createPostNoteSync(deps: PostNoteSyncDeps): PostNoteSync {
     if (missing('ma_bai') && c.fbPostId) patch.ma_bai = c.fbPostId;
     const before = note.hash;
     const after = n.patch(ref, patch, { message: `Học: số đo bài #${c.id}`, expectHash: note.hash });
+    recordMilestones(folder, note.relPath, c.id, note.data.so_do, soDo);
     let final = after;
     try {
       final = n.setBlock(ref, BLOCK_NAME, blockMarkdown(soDo), { message: `Học: số đo bài #${c.id}`, expectHash: after.hash });
@@ -278,6 +330,14 @@ export function createPostNoteSync(deps: PostNoteSyncDeps): PostNoteSync {
         running = null;
       });
       return running;
+    },
+    events(after, limit = 100) {
+      const n = Math.max(1, Math.min(500, Math.floor(limit) || 100));
+      const rows = db
+        .prepare('SELECT id, folder_id, rel_path, content_id, milestone, er, at FROM learn_note_events WHERE id > ? ORDER BY id LIMIT ?')
+        .all(Math.max(0, Math.floor(after) || 0), n) as Array<{ id: number; folder_id: string; rel_path: string; content_id: number; milestone: string; er: number | null; at: number }>;
+      const events = rows.map((r) => ({ id: r.id, folderId: r.folder_id, relPath: r.rel_path, contentId: r.content_id, milestone: r.milestone, er: r.er, at: r.at }));
+      return { events, cursor: events.length ? events[events.length - 1]!.id : after };
     },
     status() {
       const folder = deps.folder().trim();

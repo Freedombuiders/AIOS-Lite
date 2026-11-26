@@ -109,6 +109,11 @@ Theo tuần ISO (thứ Hai đến Chủ nhật, giờ Việt Nam): ER trung vị
 | `POST /weekly/:năm/:tuần/approve` `{ lines }` | chủ duyệt kế hoạch, tạo việc |
 | `POST /score-draft` | chấm bài nháp |
 
+## Cho module khác (D2)
+
+- **Luồng ghi chú** `provides.postNotes.events(cursor, limit)`: mỗi lần một ghi chú `bai-dang` có thêm mốc đo, hoặc ER của một mốc đổi, ghi một dòng vào `learn_note_events` (migration `003_note_events.sql`) ngay sau khi ghi file. Bên đọc tự giữ con trỏ (dream giữ trong `dream_state`) và đọc bù lúc khởi động. Ghi sự kiện lỗi thì chỉ log, không làm hỏng ghi chú đã ghi; bên đọc tự đối chiếu bù từ ghi chú.
+- **Module đề xuất bài học** `provides.playbook.proposeFromModule(moduleId, payload)`: cùng đường với `learn:propose` của agent, nhưng ký `module:<id>` (`de_xuat_boi`, `proposed_by`). Luôn vào `gia-thuyet` và nằm ở Chờ duyệt. Dream gọi khi một công thức chuyển sang `hop`.
+
 ## Kiểm thử
 
 `npx vitest run modules/learn` (feed giả + dịch vụ ghi chú thật trên thư mục tạm; hai test đi qua module manager với `marketing` thật). Phần 2: `playbook.test.ts` (gồm test bắt buộc: agent chuyển sang `da-kiem-chung` bị từ chối), `weekly.test.ts`, `score-draft.test.ts`, `web/pages/loop.test.tsx`.

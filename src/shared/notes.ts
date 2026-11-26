@@ -169,6 +169,17 @@ export interface BrainChanged {
   by?: string;
 }
 
+/**
+ * Top folders no agent writes, whatever its access.brain grants say: formulas (cong-thuc/) are created by the owner and
+ * updated by module code only (OPEN-AGENTICOS-PLAN §5.7.6). Compared case-insensitively: on a case-insensitive disk
+ * `Cong-Thuc/x.md` is the same file.
+ */
+export const AGENT_READ_ONLY_DIRS = ['cong-thuc'] as const;
+export const isAgentReadOnly = (rel: string): boolean => {
+  const top = rel.split('/')[0]!.toLowerCase();
+  return rel.includes('/') && (AGENT_READ_ONLY_DIRS as readonly string[]).includes(top);
+};
+
 const SKIP_DIRS = new Set(['.git', '.obsidian', '.trash', 'node_modules']);
 const MAX_FILE_BYTES = 1024 * 1024;
 /** how long a write of ours is recognised by the watcher */
@@ -349,6 +360,7 @@ export function createNotes(deps: NotesDeps): Notes {
 
     const mayRead = (folderId: string, rel: string) => agentId === undefined || deps.canRead(agentId, folderId, rel);
     function guardWrite(ref: NoteRef, rel: string): void {
+      if (agentId !== undefined && isAgentReadOnly(rel)) throw new NoteAccessError(`Agent "${agentId}" không được ghi ${ref.folderId}/${rel}: chỉ chủ tạo và sửa công thức.`);
       if (agentId !== undefined && !deps.canWrite(agentId, ref.folderId, rel)) throw new NoteAccessError(`Agent "${agentId}" không có quyền ghi ${ref.folderId}/${rel}.`);
     }
 

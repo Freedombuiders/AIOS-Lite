@@ -179,6 +179,11 @@ export interface Playbook {
   create(input: NewLessonInput, principal: Principal): LessonView;
   /** an agent proposes a hypothesis (ModuleAction learn.propose); always gia-thuyet, waits in Chờ duyệt */
   propose(agentId: string, payload: unknown): { path: string; proposalId: number };
+  /**
+   * Module code proposes a hypothesis (dream's comparison when a formula fits): the same path as propose(), signed
+   * 'module:<id>'. Always gia-thuyet, waits in Chờ duyệt like an agent's proposal.
+   */
+  proposeFromModule(moduleId: string, payload: unknown): { path: string; proposalId: number };
   /** the machine pass: moves and proposals from the evidence */
   evaluate(): { moved: Array<{ path: string; from: LessonState; to: LessonState }>; proposed: number };
   proposals(): ProposalView[];
@@ -524,6 +529,31 @@ export function createPlaybook(deps: PlaybookDeps): Playbook {
     return n ? view(L, n) : null;
   }
 
+  /** propose() for an agent or a module: a gia-thuyet nobody uses yet, and a line in Chờ duyệt. */
+  function proposeAs(by: { kind: 'agent' | 'module'; id: string }, payload: unknown): { path: string; proposalId: number } {
+    const folder = folderOrThrow();
+    const p = (payload && typeof payload === 'object' ? payload : {}) as Record<string, unknown>;
+    // whatever the payload says about state or who uses it is ignored: a proposal is always a gia-thuyet nobody uses yet
+    const input: NewLessonInput = {
+      title: str(p.tieu_de ?? p.title),
+      area: (str(p.mang ?? p.area) || 'noi-dung') as Area,
+      text: str(p.noi_dung ?? p.text),
+      evidence: list(p.bang_chung ?? p.evidence) as string[],
+      rules: p.ap_dung ?? p.rules,
+      platform: str(p.nen_tang) || undefined,
+    };
+    const who = `${by.kind}:${by.id}`;
+    const open = (db.prepare(`SELECT COUNT(*) AS n FROM learn_proposals WHERE folder_id = ? AND kind = 'new' AND status = 'open' AND proposed_by = ?`).get(folder, who) as { n: number }).n;
+    if (open >= 20) throw new LessonError('conflict', `Đã có 20 đề xuất của ${by.kind === 'agent' ? 'agent' : 'module'} này đang chờ chủ xem. Chờ chủ duyệt bớt rồi đề xuất tiếp.`);
+    const label = by.kind === 'agent' ? `agent ${by.id}` : `module ${by.id}`;
+    const relPath = writeLesson(folder, input, { de_xuat_boi: by.kind === 'agent' ? by.id : who }, `Học: ${label} đề xuất bài học`);
+    logChange(folder, relPath, input.title, null, 'gia-thuyet', who, by.kind === 'agent' ? 'Agent đề xuất' : 'Máy đề xuất');
+    const r = db.prepare(`INSERT INTO learn_proposals (folder_id, rel_path, kind, reason, proposed_by, created_at) VALUES (?, ?, 'new', ?, ?, ?)`)
+      .run(folder, relPath, input.text.slice(0, 500), who, now());
+    deps.attention.raise({ key: attnKey(relPath), title: `${by.kind === 'agent' ? 'Bot' : 'Máy'} đề xuất bài học mới: ${input.title}`, detail: 'Giả thuyết, chưa dùng ở đâu. Xem ở Chờ duyệt.', link: '/m/learn/pending' });
+    return { path: relPath, proposalId: Number(r.lastInsertRowid) };
+  }
+
   return {
     list: listLessons,
     get: getLesson,
@@ -539,25 +569,11 @@ export function createPlaybook(deps: PlaybookDeps): Playbook {
     },
 
     propose(agentId, payload) {
-      const folder = folderOrThrow();
-      const p = (payload && typeof payload === 'object' ? payload : {}) as Record<string, unknown>;
-      // whatever the payload says about state or who uses it is ignored: a proposal is always a gia-thuyet nobody uses yet
-      const input: NewLessonInput = {
-        title: str(p.tieu_de ?? p.title),
-        area: (str(p.mang ?? p.area) || 'noi-dung') as Area,
-        text: str(p.noi_dung ?? p.text),
-        evidence: list(p.bang_chung ?? p.evidence) as string[],
-        rules: p.ap_dung ?? p.rules,
-        platform: str(p.nen_tang) || undefined,
-      };
-      const open = (db.prepare(`SELECT COUNT(*) AS n FROM learn_proposals WHERE folder_id = ? AND kind = 'new' AND status = 'open' AND proposed_by = ?`).get(folder, `agent:${agentId}`) as { n: number }).n;
-      if (open >= 20) throw new LessonError('conflict', 'Đã có 20 đề xuất của agent này đang chờ chủ xem. Chờ chủ duyệt bớt rồi đề xuất tiếp.');
-      const relPath = writeLesson(folder, input, { de_xuat_boi: agentId }, `Học: agent ${agentId} đề xuất bài học`);
-      logChange(folder, relPath, input.title, null, 'gia-thuyet', `agent:${agentId}`, 'Agent đề xuất');
-      const r = db.prepare(`INSERT INTO learn_proposals (folder_id, rel_path, kind, reason, proposed_by, created_at) VALUES (?, ?, 'new', ?, ?, ?)`)
-        .run(folder, relPath, input.text.slice(0, 500), `agent:${agentId}`, now());
-      deps.attention.raise({ key: attnKey(relPath), title: `Bot đề xuất bài học mới: ${input.title}`, detail: 'Giả thuyết, chưa dùng ở đâu. Xem ở Chờ duyệt.', link: '/m/learn/pending' });
-      return { path: relPath, proposalId: Number(r.lastInsertRowid) };
+      return proposeAs({ kind: 'agent', id: agentId }, payload);
+    },
+
+    proposeFromModule(moduleId, payload) {
+      return proposeAs({ kind: 'module', id: moduleId }, payload);
     },
 
     evaluate() {

@@ -11,7 +11,7 @@
     "playbook.read": "Đọc các bài học đã kiểm chứng có tên mình trong dung_boi",
     "learn.propose": "Đề xuất bài học mới (vào ở Giả thuyết, chờ chủ xem)"
   },
-  "tables": ["learn_state", "learn_post_index", "learn_weekly", "learn_lesson_log", "learn_proposals", "learn_hook_cache"],
+  "tables": ["learn_state", "learn_post_index", "learn_weekly", "learn_lesson_log", "learn_proposals", "learn_hook_cache", "learn_note_events"],
   "settings": {
     "folder": {
       "label": "Thư mục Second Brain",
