@@ -1,0 +1,29 @@
+{
+  "name": "agenticos-cloud",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Open AgenticOS cloud: đăng nhập Google, quản lý người dùng, kho dữ liệu và tệp đăng bài. Chạy trên Cloudflare Workers với D1 và R2.",
+  "scripts": {
+    "dev": "wrangler dev --var DEV_MODE:1",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "pack": "tsx scripts/pack.ts"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3",
+    "hono": "^4.13.22",
+    "jose": "^6.2.18",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "^1.9.2",
+    "@cloudflare/workers-types": "^5.20261125.1",
+    "@types/node": "^22.20.7",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9",
+    "vitest": "^4.1.12",
+    "wrangler": "^4.168.0"
+  }
+}
