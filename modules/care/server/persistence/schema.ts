@@ -19,6 +19,7 @@ import { CareError } from '../../../_lib/care-kit/errors.js';
 import { ensureAgentRunSchema } from './agent-run-store.js';
 import { ensureAuditSchema } from './audit-store.js';
 import { ensureBridgeAuditSchema } from './bridge-audit.js';
+import { ensureCustomerFeedSchema } from './customer-feed.js';
 import { ensureOutboxSchema } from './outbox-store.js';
 import { ensureOwnershipSchema } from './ownership-store.js';
 import { ensureWorkflowSchema } from '../workflow/schema.js';
@@ -189,6 +190,7 @@ function applyExtensions(db: Database.Database): void {
   ensureBridgeAuditSchema(db);
   ensureWorkflowSchema(db);
   ensurePerformanceIndexes(db);
+  ensureCustomerFeedSchema(db);
 }
 
 /**

@@ -172,3 +172,17 @@ describe('notes: principals and access', () => {
     expect(() => owner.write(ref('to.md'), 'x'.repeat(1024 * 1024 + 1), opts)).toThrow(NoteInputError);
   });
 });
+
+describe('notes: remove', () => {
+  it('deletes a note it was shown, takes it out of the index, and refuses a stale or forbidden delete', () => {
+    const m = notes.forModule('crm');
+    const created = m.create(ref('khach-hang/chi-lan.md'), KH, BODY, { message: 'tạo khách' });
+    expect(() => m.remove(ref('khach-hang/chi-lan.md'), { message: 'xoá' })).toThrow(NoteInputError); // no expectation
+    expect(() => m.remove(ref('khach-hang/chi-lan.md'), { message: 'xoá', expectHash: 'x' })).toThrow(NoteConflictError);
+    expect(() => notes.forAgent('bot-cham').remove(ref('ho-so.md'), { message: 'xoá', overwrite: true })).toThrow(NoteAccessError);
+    m.remove(ref('khach-hang/chi-lan.md'), { message: 'xoá khách', expectHash: created.hash });
+    expect(fs.existsSync(file('khach-hang/chi-lan.md'))).toBe(false);
+    expect(sb.brain.search('đừng gọi sau', { folders: ['cong-ty-b'] }).map((h) => h.path)).not.toContain('khach-hang/chi-lan.md');
+    expect(() => m.remove(ref('khach-hang/chi-lan.md'), { message: 'xoá', overwrite: true })).toThrow(/Không tìm thấy/);
+  });
+});

@@ -82,6 +82,14 @@ export class CareCustomerStore {
       const name = patch.displayName !== undefined ? requireNonEmptyString(patch.displayName, 'displayName', 512) : current.displayName;
       const stage = patch.stage !== undefined ? oneOf(CARE_STAGES, patch.stage, 'stage') : current.stage;
       const pick = <T>(next: T | undefined, prev: T): T => (next !== undefined ? next : prev);
+      // An unchanged field keeps its stored ciphertext (encryption is randomised), so the row shows exactly which
+      // fields changed and the customer change feed (customer-feed.ts) records nothing for a write that changed nothing.
+      // The revision still moves: the link flows bump it on purpose as a compare-and-set lock.
+      const raw = this.db
+        .prepare('SELECT display_name_enc, company_enc, phone_enc, email_enc, tags_enc FROM care_customers WHERE id = ?')
+        .get(id) as Record<string, string | null>;
+      const enc = (next: string | null, prev: string | null, column: string): string | null =>
+        next === prev ? (raw[column] ?? null) : encryptNullable(next, this.key);
 
       this.db
         .prepare(
@@ -91,12 +99,12 @@ export class CareCustomerStore {
            WHERE id = ? AND revision = ?`,
         )
         .run(
-          encryptNullable(name, this.key),
-          encryptNullable(pick(patch.company, current.company), this.key),
-          encryptNullable(pick(patch.phone, current.phone), this.key),
-          encryptNullable(pick(patch.email, current.email), this.key),
+          enc(name, current.displayName, 'display_name_enc'),
+          enc(pick(patch.company, current.company), current.company, 'company_enc'),
+          enc(pick(patch.phone, current.phone), current.phone, 'phone_enc'),
+          enc(pick(patch.email, current.email), current.email, 'email_enc'),
           stage,
-          encryptNullable(pick(patch.tags, current.tags), this.key),
+          enc(pick(patch.tags, current.tags), current.tags, 'tags_enc'),
           pick(patch.owner, current.owner),
           Date.now(),
           id,
@@ -114,6 +122,22 @@ export class CareCustomerStore {
       .prepare('SELECT * FROM care_customers ORDER BY updated_at DESC, id DESC LIMIT ?')
       .all(capped) as any[];
     return rows.map((r) => this.mapRow(r));
+  }
+
+  /**
+   * Keyset page over EVERY customer, by id ascending. Stable while customers are being written (unlike the
+   * updated_at order of listCustomers), so a full walk sees each customer once. Pass `next` back as `afterId`.
+   */
+  pageCustomers(opts: { afterId?: string | null; limit?: number } = {}): { items: CareCustomerRecord[]; next: string | null } {
+    const limit = Math.min(Math.max(Math.trunc(opts.limit ?? 100) || 1, 1), 500);
+    const rows = (
+      opts.afterId
+        ? this.db.prepare('SELECT * FROM care_customers WHERE id > ? ORDER BY id ASC LIMIT ?').all(opts.afterId, limit + 1)
+        : this.db.prepare('SELECT * FROM care_customers ORDER BY id ASC LIMIT ?').all(limit + 1)
+    ) as any[];
+    const more = rows.length > limit;
+    const items = rows.slice(0, limit).map((r) => this.mapRow(r));
+    return { items, next: more ? items[items.length - 1]!.id : null };
   }
 
   private mapRow(row: any): CareCustomerRecord {

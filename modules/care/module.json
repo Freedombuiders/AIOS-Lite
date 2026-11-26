@@ -31,6 +31,7 @@
     "care_conversation_state",
     "care_conversations",
     "care_credentials",
+    "care_customer_changes",
     "care_customers",
     "care_cutover_log",
     "care_delivery_attempts",
