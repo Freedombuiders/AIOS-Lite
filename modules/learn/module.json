@@ -1,0 +1,19 @@
+{
+  "id": "learn",
+  "name": "Học từ bài đăng",
+  "description": "Mỗi bài Facebook đã đăng thành một ghi chú trong Second Brain, kèm số đo theo mốc; tính dạng bài nào hiệu quả.",
+  "version": "0.1.0",
+  "icon": "graduation-cap",
+  "category": "marketing",
+  "requires": { "modules": ["marketing"] },
+  "enhances": ["social"],
+  "tables": ["learn_state", "learn_post_index"],
+  "settings": {
+    "folder": {
+      "label": "Thư mục Second Brain",
+      "type": "string",
+      "default": "",
+      "help": "Id thư mục Second Brain để ghi các bài đã đăng vào noi-dung/bai/. Để trống thì module không ghi gì."
+    }
+  }
+}

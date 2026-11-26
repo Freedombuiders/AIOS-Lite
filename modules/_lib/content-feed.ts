@@ -43,6 +43,11 @@ export interface ContentSnapshot {
   videoLengthS: number | null;
   follows: number | null;
   saves: number | null;
+  /**
+   * Engagement rate in % ((reactions + comments + shares) ÷ reach × 100), computed by marketing's own metric
+   * function so every reader uses the same formula. null without reach or counts: never 0 for "unknown".
+   */
+  er: number | null;
 }
 
 /** A content row with its lineage and every per-milestone snapshot of its Facebook post. */
@@ -76,4 +81,10 @@ export interface ContentFeed {
    * into the studio row it duplicated: that row gets its own events).
    */
   get(contentId: number): ContentWithLineage | undefined;
+  /**
+   * Ids of rows that are published with a publish time at or after `sinceSec` (unix seconds), id > `afterId`,
+   * ascending by id, at most `limit` (1–500, default 100). For a reader's first catch-up (backfill) of posts
+   * published before it kept a cursor. Includes imported rows: read each with get() and filter on `origin`.
+   */
+  publishedSince(sinceSec: number, afterId?: number, limit?: number): number[];
 }
