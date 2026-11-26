@@ -7,6 +7,7 @@ import type { SkillRootView } from '../api-types';
 import * as d from './data';
 import { costRoutes } from './costs';
 import { teamsMockRoutes, TeamsMockError } from './teams';
+import { marketingMockRoutes, MarketingMockError } from './marketing';
 import * as ig from './integrations';
 
 export function mockEnabled(): boolean {
@@ -491,6 +492,7 @@ on('GET', '/agents/:id/integrations', ([id]) => ({ grants: ig.agentGrants[id!] ?
 on('PUT', '/agents/:id/integrations', ([id], _q, b) => ({ grants: (ig.agentGrants[id!] = b.grants) }));
 
 for (const [m, p, fn] of costRoutes) on(m, p, fn);
+for (const [m, p, fn] of marketingMockRoutes) on(m, p, (a, q, b) => { try { return fn(a, q, b); } catch (e) { throw e instanceof MarketingMockError ? new MockError(e.status, e.code, e.message) : e; } });
 for (const [m, p, fn] of teamsMockRoutes) on(m, p, (a, q, b) => { try { return fn(a, q, b); } catch (e) { throw e instanceof TeamsMockError ? new MockError(e.status, e.code, e.message) : e; } });
 
 export async function mockRequest<T>(method: string, rawPath: string, body?: unknown): Promise<T> {
