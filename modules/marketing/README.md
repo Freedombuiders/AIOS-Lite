@@ -10,7 +10,7 @@ Soạn, lên lịch và đăng bài lên Fanpage; phân tích hiệu quả; tự
 
 ## Màn hình (nhóm Marketing)
 
-Pages · Kho nội dung · Lịch đăng · Phân tích (Hiệu quả kênh, Bài đã đăng) · Bình luận AI · Quy tắc bình luận, tất cả dưới `/m/marketing/...`. Bảng điều khiển có widget "Bài sắp đăng".
+Pages · Kho nội dung · Lịch đăng · Mạng xã hội (Tổng quan) · Facebook · Phân tích (Hiệu quả kênh, Bài đã đăng) · Bình luận AI · Quy tắc bình luận, tất cả dưới `/m/marketing/...`. "Mạng xã hội" (`/social`) và "Facebook" (`/social/facebook`) chỉ đọc API phân tích sẵn có (`/analytics/channel`, `/analytics/posts`), chỉ có Facebook; YouTube, Instagram, TikTok là thẻ "chưa hỗ trợ ở bản này". Bảng điều khiển có widget "Bài sắp đăng".
 
 ## Quyết định giữ nguyên
 

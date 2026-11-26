@@ -2,8 +2,8 @@ import { useState } from 'preact/hooks';
 import { fmtDec, type ChannelDashboardDto } from '@modules/marketing/web/lib/fbstudio';
 import { HEAT, TRACK, finite } from '@/components/fb/charts/chart-utils';
 
-const DAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
-const SLOTS = ['06–09', '09–12', '12–14', '14–18', '18–21', '21–24'];
+export const DAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+export const SLOTS = ['06–09', '09–12', '12–14', '14–18', '18–21', '21–24'];
 const DARK_TEXT_FROM = 2; // bins 0 and 1 are dark blues: white text; the rest dark text
 
 function makeEdges(values: number[]): number[] {
