@@ -1,4 +1,5 @@
 // Every integration the app knows about. Adding one: write its definition under src/integrations/<id>/ and list it here.
+import { agenticosCloudIntegration } from './agenticos-cloud/index.js';
 import { botcakeIntegration } from './botcake/index.js';
 import { composioIntegration } from './composio/index.js';
 import { googleIntegrations } from './composio/google.js';
@@ -18,6 +19,7 @@ export const INTEGRATIONS: IntegrationDefinition[] = [
   freesoundIntegration,
   elevenlabsIntegration,
   fptaiIntegration,
+  agenticosCloudIntegration,
 ];
 
 export function getIntegration(id: string): IntegrationDefinition | undefined {
