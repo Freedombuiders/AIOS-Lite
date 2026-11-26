@@ -92,7 +92,9 @@ export function CareInbox() {
     if (tab === 'all' && !effectiveQuery(applied.q) && counts) setAllCounts({ unread: counts.unread, unanswered: counts.waiting });
   }, [counts, tab, applied.q]);
   // Today's sent / cap of the picked Zalo nick, refetched when the stream says something changed (no timer).
-  const pickedAccount = accounts.find((a) => a.id === filters.accountId);
+  // With a single nick there is nothing to choose: the picker shows that nick's state and numbers.
+  const shownAccountId = filters.accountId || (accounts.length === 1 ? accounts[0]!.id : '');
+  const pickedAccount = accounts.find((a) => a.id === shownAccountId);
   const usage = useZaloUsage(pickedAccount?.channel === 'zalo' ? pickedAccount.id : null, stream.listTick);
   const accountById = useMemo(() => new Map(accounts.map((a) => [a.id, a])), [accounts]);
 
@@ -168,7 +170,7 @@ export function CareInbox() {
         <aside class="care-list" aria-label={ct('a11y.listRegion')}>
           <InboxHeader
             accounts={accounts}
-            accountId={filters.accountId}
+            accountId={shownAccountId}
             usage={usage}
             query={filters.q}
             tab={tab}

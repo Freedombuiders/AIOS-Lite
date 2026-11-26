@@ -2178,7 +2178,7 @@
         }
       },
       "effective": {
-        "active": "In effect: {mode}, bot {agent}.",
+        "active": "In effect: {mode}, handled by {agent}.",
         "none": "No rule applies to this chat. Pick a bot above.",
         "denied": "The bot rule is switched off for this chat.",
         "conflict": "Two rules tie on priority, so the bot does not run. Fix it in Rules.",
@@ -2222,7 +2222,7 @@
       },
       "group": {
         "only": "The bot does not answer in groups",
-        "note": "A group chat is history only. You can still write to the group."
+        "note": "The bot only keeps the group history and never answers in a group. You can still write to the group yourself."
       },
       "rules": {
         "title": "The bot always keeps these rules",
@@ -2238,7 +2238,8 @@
         "autoOff": "Automatic sending is off: every reply stops at a draft for you.",
         "aiOff": "The emergency switch turns the bot off in every chat.",
         "unreadable": "Could not read the rules. Open Rules to see them.",
-        "manage": "Edit in Rules"
+        "manage": "Edit in Rules",
+        "quietOff": "No quiet hours are set: the bot answers all night."
       },
       "log": {
         "title": "What the bot did here",

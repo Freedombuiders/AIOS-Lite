@@ -33,7 +33,8 @@ export function ruleBody(scope: PanelScope, panel: CareBotPanelDto, patch: { mod
     mode: patch.mode ?? cur?.mode ?? 'draft',
     agentId: patch.agentId ?? cur?.agentId,
     instructionsRef: cur?.instructionsRef ?? null,
-    policyExt: cur?.policyExt ?? null,
+    // A nick-wide rule written from this screen is for 1-1 chats only: the screen tells the owner "bot không trả lời trong nhóm".
+    policyExt: cur ? cur.policyExt ?? null : scope === 'account' ? { conversationKinds: ['direct'] } : null,
   };
   if (cur) body.expectedConfigVersion = cur.configVersion;
   return body;

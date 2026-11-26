@@ -50,6 +50,13 @@ describe('rule bodies written from the panel', () => {
     const b = ruleBody('account', panel(), { mode: 'auto' });
     expect(b).toMatchObject({ scope: 'account', accountId: 'a1', scopeTarget: null, mode: 'auto', agentId: 'cskh', enabled: true, priority: 100, expectedConfigVersion: 3 });
   });
+  it('a nick rule created from the panel is limited to 1-1 chats, so the bot never answers in a group', () => {
+    const b = ruleBody('account', panel({ accountRule: null }), { agentId: 'cskh' });
+    expect(b.policyExt).toEqual({ conversationKinds: ['direct'] });
+    expect(b.expectedConfigVersion).toBeUndefined();
+    // an existing rule keeps whatever policy it already has
+    expect(ruleBody('account', panel(), { mode: 'auto' }).policyExt).toBeNull();
+  });
   it('a new conversation rule targets the conversation key and starts as a draft', () => {
     const b = ruleBody('conversation', panel(), { agentId: 'tro-ly' });
     expect(b).toMatchObject({ scope: 'conversation', scopeTarget: 'peer:1', mode: 'draft', agentId: 'tro-ly', enabled: true });
@@ -94,6 +101,10 @@ describe('rules come from the real settings', () => {
     const lines = ruleLines(p);
     expect(lines.map((l) => l.id)).toEqual(['aiOff', 'debounce', 'handoff', 'quiet', 'auto']);
     expect(lines.find((l) => l.id === 'auto')?.text).toBe('Tự động gửi đang bật.');
+  });
+  it('says plainly that no quiet hours are set when start equals end', () => {
+    const p = panel({ rules: { settings: { aiEnabled: true, autoSendEnabled: false, handoffKeywords: [], handoffPauseMinutes: 60, turnDebounceSeconds: 3, quietHoursStart: '00:00', quietHoursEnd: '00:00' } } });
+    expect(ruleLines(p).find((l) => l.id === 'quiet')?.text).toBe('Chưa đặt giờ nghỉ: bot trả lời cả đêm.');
   });
   it('says so when the settings could not be read', () => {
     expect(ruleLines(panel({ rules: { settings: null } }))[0]?.id).toBe('unreadable');

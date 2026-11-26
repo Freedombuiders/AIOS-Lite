@@ -2154,7 +2154,7 @@
         "label": "Áp dụng cho",
         "account": "Cả nick",
         "conversation": "Riêng cuộc chat này",
-        "accountNote": "Đang theo cài đặt chung của nick {nick}.",
+        "accountNote": "Đang theo cài đặt chung của {nick}.",
         "conversationNote": "Cuộc chat này có cài đặt riêng, đè lên cài đặt của nick.",
         "noNick": "nick này"
       },
@@ -2178,7 +2178,7 @@
         }
       },
       "effective": {
-        "active": "Đang áp dụng: {mode}, bot {agent}.",
+        "active": "Đang áp dụng: {mode}, do {agent} chăm.",
         "none": "Chưa có luật nào áp dụng cho cuộc chat này. Chọn một bot ở trên.",
         "denied": "Luật gán bot đang tắt riêng cho cuộc chat này.",
         "conflict": "Hai luật trùng ưu tiên nên bot không chạy. Sửa ở trang Quy tắc.",
@@ -2222,7 +2222,7 @@
       },
       "group": {
         "only": "Bot không trả lời trong nhóm",
-        "note": "Cuộc chat nhóm chỉ để xem lịch sử. Bạn vẫn nhắn được vào nhóm."
+        "note": "Bot chỉ lưu lịch sử của nhóm, không trả lời trong nhóm. Bạn vẫn nhắn vào nhóm được như trước."
       },
       "rules": {
         "title": "Bot luôn giữ các luật này",
@@ -2238,7 +2238,8 @@
         "autoOff": "Tự động gửi đang tắt: mọi câu trả lời dừng ở nháp chờ bạn duyệt.",
         "aiOff": "Công tắc dừng khẩn cấp đang tắt bot ở mọi cuộc chat.",
         "unreadable": "Chưa đọc được các luật. Mở Quy tắc để xem.",
-        "manage": "Sửa ở trang Quy tắc"
+        "manage": "Sửa ở trang Quy tắc",
+        "quietOff": "Chưa đặt giờ nghỉ: bot trả lời cả đêm."
       },
       "log": {
         "title": "Bot đã làm gì ở đây",

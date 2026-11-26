@@ -124,7 +124,7 @@ export function BotPanelView({ conversationId, panel, runs, agents, nickLabel, b
         <div class="care-seg3 is-two" role="group" aria-label={ct('bot.scope.label')}>
           {(['account', 'conversation'] as const).map((s) => (
             <button key={s} type="button" aria-pressed={scope === s} class={scope === s ? 'is-on' : ''} data-testid={`care-bot-scope-${s}`} onClick={() => setScope(s)}>
-              {s === 'account' ? `${ct('bot.scope.account')}${nickLabel ? ` ${nickLabel}` : ''}` : ct('bot.scope.conversation')}
+              {s === 'account' ? ct('bot.scope.account') : ct('bot.scope.conversation')}
             </button>
           ))}
         </div>

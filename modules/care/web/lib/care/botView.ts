@@ -117,7 +117,9 @@ export function settingsLines(s: CareBotSettingsDto, maxRepliesPerThreadDay: num
     ? { id: 'handoff', text: ct('bot.rules.handoff', { keywords: s.handoffKeywords.map((k) => `“${k}”`).join(', '), n: s.handoffPauseMinutes }) }
     : { id: 'handoff', text: ct('bot.rules.handoffOff') });
   if (maxRepliesPerThreadDay !== null) lines.push({ id: 'cap', text: ct('bot.rules.cap', { n: maxRepliesPerThreadDay }) });
-  lines.push({ id: 'quiet', text: ct('bot.rules.quiet', { start: s.quietHoursStart, end: s.quietHoursEnd }) });
+  lines.push(s.quietHoursStart === s.quietHoursEnd
+    ? { id: 'quiet', text: ct('bot.rules.quietOff') }
+    : { id: 'quiet', text: ct('bot.rules.quiet', { start: s.quietHoursStart, end: s.quietHoursEnd }) });
   lines.push(s.autoSendEnabled ? { id: 'auto', text: ct('bot.rules.autoOn') } : { id: 'auto', text: ct('bot.rules.autoOff'), tone: 'warn' });
   return lines;
 }
