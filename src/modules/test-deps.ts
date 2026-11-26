@@ -6,6 +6,7 @@ import { loadConfig } from '../core/config.js';
 import { createCipher } from '../core/crypto.js';
 import { migrateCore, nowIso, openDb } from '../core/db.js';
 import type { AppDeps } from '../core/deps.js';
+import { createNotes } from '../shared/notes.js';
 import { createEventBus } from '../core/events.js';
 import { createLogger } from '../core/log.js';
 import type {
@@ -234,7 +235,7 @@ export function createTestHarness(opts: { modulesDir?: string; env?: Record<stri
     },
     access: { resolve: () => { throw new Error('n/a'); }, snapshot: () => { throw new Error('n/a'); }, can: (a: string, m: string, s: string) => f.agents.get(a)?.access.modules[m]?.includes(s) ?? false, canReadPath: () => true, canWritePath: () => true },
     audit,
-    brain: { folders: () => [] as BrainFolder[], search: () => [], reloadConfig() {}, reindex: async () => ({ indexed: 0, removed: 0, durationMs: 0 }), searchForAccess: () => [], read: () => ({ title: '', content: '', mtimeMs: 0 }), tree: () => [], write() {} },
+    brain: { folders: () => [] as BrainFolder[], search: () => [], reloadConfig() {}, reindex: async () => ({ indexed: 0, removed: 0, durationMs: 0 }), searchForAccess: () => [], read: () => ({ title: '', content: '', mtimeMs: 0 }), tree: () => [], write() {}, indexPaths: () => ({ indexed: 0, removed: 0 }), backlinks: () => [] },
     memory: {
       add(input: { content: string; agentId: string | null; source?: string; pinned?: boolean }) {
         const m: Memory = { id: f.nextId(), agentId: input.agentId, content: input.content, source: input.source ?? 'user', sourceTaskId: null, sourceRunId: null, pinned: !!input.pinned, useCount: 0, lastUsedAt: null, createdAt: nowIso() };
@@ -306,6 +307,7 @@ export function createTestHarness(opts: { modulesDir?: string; env?: Record<stri
     stats: {} as unknown,
     modules: undefined as unknown,
   } as unknown as AppDeps;
+  deps.notes = createNotes({ brain: deps.brain, canRead: (a, fo, p) => deps.access.canReadPath(a, fo, p), canWrite: (a, fo, p) => deps.access.canWritePath(a, fo, p), log: deps.log, bus: deps.bus });
 
   return { deps, root, fakes: f, cleanup: () => fs.rmSync(root, { recursive: true, force: true }) };
 }

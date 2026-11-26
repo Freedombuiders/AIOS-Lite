@@ -41,6 +41,8 @@ export interface BrainService {
   /** read one markdown file; throws on path traversal or unknown folder */
   read(folderId: string, relPath: string): { title: string; content: string; mtimeMs: number };
   tree(folderId: string, opts?: { depth?: number }): BrainTreeNode[];
+  /** paths (same folder) of notes linking here with [[slug]] or [[dir/slug]], from brain_links */
+  backlinks(folderId: string, relPath: string): string[];
   /** write a note (used by modules/agents with write grants; caller checks access) */
   write(folderId: string, relPath: string, content: string): void;
 }

@@ -5,10 +5,16 @@
 //   notes.owner()          the person, through the HTTP API
 //   notes.forModule(id)    module code (ctx.brain.notes); the module cannot change it
 //   ….asAgent(agentId)     on behalf of an agent: every read and write is checked against access.brain globs
+//
+// After a write: the file alone is re-indexed (brain.indexPaths), `brain:changed` is emitted, the write is
+// remembered for a few seconds so the file watcher skips it, and the path is queued for a git commit that
+// coalesces every write of the next ~2 s in that folder (batch() makes one commit for a whole job).
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import type { EventBus } from '../core/events.js';
 import type { Logger } from '../core/log.js';
+import type { BrainCommit, BrainGit, CommitQueue } from './brain-git.js';
 import type { BrainService } from './contracts.js';
 import { composeNote, parseFrontmatter, writeFrontmatter } from './frontmatter.js';
 import { normalizeRel } from './glob.js';
@@ -99,6 +105,24 @@ export interface NotesService {
   create(ref: NoteRef, data: Record<string, unknown>, body: string, opts: CreateOpts): Note;
   /** Whole-file write (the note editor). Creates a missing file; an existing one needs an expectation or overwrite. */
   write(ref: NoteRef, content: string, opts: UpdateOpts): Note;
+  /** Notes in the same folder that link here with [[slug]] (from brain_links). */
+  backlinks(ref: NoteRef): NoteRef[];
+  /** Git history of the note, newest first; [] when the folder is not a git repo. */
+  history(ref: NoteRef, limit?: number): BrainCommit[];
+  /**
+   * Put the note back as it was just before commit `hash`, as a normal write (indexed, event, new commit).
+   * Without an expectation it overwrites whatever is there now: a revert is a deliberate act.
+   *
+   * Careful with notes that mirror database rows (a customer note mirrors care_customers): reverting the
+   * file re-imports the old values into the database through the sync that watches it. Callers that mirror
+   * rows must decide what a revert means for them before offering it.
+   */
+  revert(ref: NoteRef, hash: string, opts?: Partial<UpdateOpts>): Note;
+  /**
+   * Run `fn` with a service whose writes are collected and committed as ONE commit with `message` when fn
+   * ends (also when it throws: the files are written). One `brain:changed` per folder at the end.
+   */
+  batch<T>(message: string, fn: (notes: NotesService) => T | Promise<T>): Promise<T>;
 }
 
 export interface ModuleNotes extends NotesService {
@@ -110,18 +134,36 @@ export interface Notes {
   owner(): NotesService;
   forModule(moduleId: string): ModuleNotes;
   forAgent(agentId: string): NotesService;
+  /** true when the file now holds exactly what this service wrote a moment ago (the watcher skips it) */
+  isOwnWrite(folderId: string, relPath: string, hash: string): boolean;
+  /** commit everything queued, now */
+  flush(): Promise<void>;
 }
 
 export interface NotesDeps {
-  brain: Pick<BrainService, 'folders' | 'indexPaths'>;
+  brain: Pick<BrainService, 'folders' | 'indexPaths' | 'backlinks'>;
   /** AccessPolicy.canReadPath / canWritePath */
   canRead(agentId: string, folderId: string, relPath: string): boolean;
   canWrite(agentId: string, folderId: string, relPath: string): boolean;
   log: Logger;
+  bus?: Pick<EventBus, 'emit'>;
+  /** history/contentBefore for history() and revert() */
+  git?: Pick<BrainGit, 'history' | 'contentBefore'>;
+  commits?: CommitQueue;
+}
+
+/** payload of the `brain:changed` custom event */
+export interface BrainChanged {
+  folderId: string;
+  paths: string[];
+  /** principal for writes made through this service; absent for edits seen by the file watcher */
+  by?: string;
 }
 
 const SKIP_DIRS = new Set(['.git', '.obsidian', '.trash', 'node_modules']);
 const MAX_FILE_BYTES = 1024 * 1024;
+/** how long a write of ours is recognised by the watcher */
+const OWN_WRITE_TTL_MS = 10_000;
 
 export const hashOf = (text: string): string => crypto.createHash('sha256').update(text, 'utf8').digest('hex');
 
@@ -155,8 +197,23 @@ interface Current {
   hash: string;
 }
 
+/** writes collected by batch(): folder → root + paths */
+type BatchSink = Map<string, { root: string; paths: Set<string> }>;
+
 export function createNotes(deps: NotesDeps): Notes {
   const { brain, log } = deps;
+  const ownWrites = new Map<string, { hash: string; at: number }>();
+  const ownKey = (folderId: string, rel: string) => `${folderId}\0${rel}`;
+
+  function rememberOwn(folderId: string, rel: string, hash: string): void {
+    const now = Date.now();
+    for (const [k, v] of ownWrites) if (now - v.at > OWN_WRITE_TTL_MS) ownWrites.delete(k);
+    ownWrites.set(ownKey(folderId, rel), { hash, at: now });
+  }
+
+  function emitChanged(e: BrainChanged): void {
+    deps.bus?.emit({ type: 'custom', name: 'brain:changed', payload: e });
+  }
 
   function folderRoot(folderId: string): string {
     const f = brain.folders().find((x) => x.id === folderId);
@@ -277,7 +334,7 @@ export function createNotes(deps: NotesDeps): Notes {
     return fs.statSync(r.abs);
   }
 
-  function bind(p: Principal): ModuleNotes {
+  function bind(p: Principal, sink?: BatchSink): ModuleNotes {
     const principal = principalName(p);
     const agentId = p.kind === 'agent' ? p.id : undefined;
 
@@ -286,10 +343,25 @@ export function createNotes(deps: NotesDeps): Notes {
       if (agentId !== undefined && !deps.canWrite(agentId, ref.folderId, rel)) throw new NoteAccessError(`Agent "${agentId}" không có quyền ghi ${ref.folderId}/${rel}.`);
     }
 
-    function commit(ref: NoteRef, r: Resolved, text: string, prev: Current | undefined, exclusive: boolean): Note {
+    function commit(ref: NoteRef, r: Resolved, text: string, prev: Current | undefined, exclusive: boolean, message: string): Note {
       const st = atomicWrite(r, text, prev, exclusive);
-      brain.indexPaths(ref.folderId, [r.rel]);
-      return toNote(ref.folderId, r.rel, text, st.mtimeMs);
+      const note: Note = toNote(ref.folderId, r.rel, text, st.mtimeMs);
+      rememberOwn(ref.folderId, r.rel, note.hash);
+      // the file is written: what follows is bookkeeping and must not turn a good write into an error
+      try {
+        brain.indexPaths(ref.folderId, [r.rel]);
+      } catch (e) {
+        log.warn({ file: r.rel, err: (e as Error).message }, 'lập chỉ mục ghi chú vừa ghi lỗi');
+      }
+      if (sink) {
+        const s = sink.get(ref.folderId) ?? { root: r.root, paths: new Set<string>() };
+        s.paths.add(r.rel);
+        sink.set(ref.folderId, s);
+      } else {
+        emitChanged({ folderId: ref.folderId, paths: [r.rel], by: principal });
+        deps.commits?.add(r.root, [r.rel], message, principal);
+      }
+      return note;
     }
 
     /** Shared path of patch/setBlock: read, check, transform, write. */
@@ -302,7 +374,7 @@ export function createNotes(deps: NotesDeps): Notes {
       const next = transform(cur.text);
       if (schema) checkSchema(parseOrThrow(next).data);
       if (next === cur.text) return toNote(ref.folderId, r.rel, cur.text, cur.st.mtimeMs, cur.hash);
-      return commit(ref, r, next, cur, false);
+      return commit(ref, r, next, cur, false, opts.message);
     }
 
     const svc: ModuleNotes = {
@@ -369,12 +441,12 @@ export function createNotes(deps: NotesDeps): Notes {
         return update(ref, opts, (text) => setBlockText(text, name, markdown), false);
       },
 
-      create(ref, data, body, _opts) {
+      create(ref, data, body, opts) {
         const r = resolve(ref);
         guardWrite(ref, r.rel);
         if (current(r.abs)) throw new NoteConflictError(`Ghi chú ${ref.folderId}/${r.rel} đã có.`);
         checkSchema(data);
-        return commit(ref, r, composeNote(data, body), undefined, true);
+        return commit(ref, r, composeNote(data, body), undefined, true, opts.message);
       },
 
       write(ref, content, opts) {
@@ -385,7 +457,53 @@ export function createNotes(deps: NotesDeps): Notes {
         // the owner may save whatever they typed (Obsidian would let them too); machines must respect the schema
         if (p.kind !== 'owner') checkSchema(parseOrThrow(content).data);
         if (cur && content === cur.text) return toNote(ref.folderId, r.rel, cur.text, cur.st.mtimeMs, cur.hash);
-        return commit(ref, r, content, cur, !cur);
+        return commit(ref, r, content, cur, !cur, opts.message);
+      },
+
+      backlinks(ref) {
+        const r = resolve(ref);
+        return brain
+          .backlinks(ref.folderId, r.rel)
+          .filter((src) => mayRead(ref.folderId, src))
+          .map((src) => ({ folderId: ref.folderId, relPath: src }));
+      },
+
+      history(ref, limit) {
+        const r = resolve(ref);
+        if (!mayRead(ref.folderId, r.rel)) throw new NoteAccessError(`Agent "${agentId}" không có quyền đọc ${ref.folderId}/${r.rel}.`);
+        return deps.git?.history(r.root, r.rel, limit) ?? [];
+      },
+
+      revert(ref, hash, opts = {}) {
+        const r = resolve(ref);
+        guardWrite(ref, r.rel);
+        if (!deps.git) throw new NoteInputError('Chưa bật lịch sử git cho brain.');
+        let before: string | undefined;
+        try {
+          before = deps.git.contentBefore(r.root, r.rel, hash);
+        } catch (e) {
+          throw new NoteInputError((e as Error).message);
+        }
+        if (before === undefined) throw new NoteInputError(`Ghi chú ${r.rel} chưa có trước commit ${hash.slice(0, 7)}, không có bản để khôi phục.`);
+        const cur = current(r.abs);
+        const hasExpect = opts.expectMtimeMs !== undefined || opts.expectHash !== undefined;
+        checkExpected(cur, { message: '', ...opts, overwrite: !hasExpect }, ref);
+        const message = opts.message ?? `Hoàn tác ${r.rel} về trước ${hash.slice(0, 7)}`;
+        if (cur && cur.text === before) return toNote(ref.folderId, r.rel, cur.text, cur.st.mtimeMs, cur.hash);
+        return commit(ref, r, before, cur, !cur, message);
+      },
+
+      async batch<T>(message: string, fn: (notes: NotesService) => T | Promise<T>): Promise<T> {
+        if (sink) return fn(svc); // nested: the outer batch commits
+        const mine: BatchSink = new Map();
+        try {
+          return await fn(bind(p, mine));
+        } finally {
+          for (const [folderId, s] of mine) {
+            emitChanged({ folderId, paths: [...s.paths].sort(), by: principal });
+            if (deps.commits) void deps.commits.commitNow(s.root, [...s.paths], message, principal);
+          }
+        }
       },
 
       asAgent(id: string) {
@@ -400,5 +518,12 @@ export function createNotes(deps: NotesDeps): Notes {
     owner: () => bind({ kind: 'owner' }),
     forModule: (id) => bind({ kind: 'module', id }),
     forAgent: (id) => bind({ kind: 'agent', id }),
+    isOwnWrite(folderId, relPath, hash) {
+      const w = ownWrites.get(ownKey(folderId, relPath));
+      return !!w && w.hash === hash && Date.now() - w.at <= OWN_WRITE_TTL_MS;
+    },
+    flush: async () => {
+      await deps.commits?.flush();
+    },
   };
 }

@@ -16,6 +16,8 @@ import { createModuleManager } from './modules/manager.js';
 import { createRuntimeRegistry } from './runtimes/index.js';
 import { adminServices } from './shared/admin-services.js';
 import { createBoardService } from './shared/board.js';
+import { createBrainGit, createCommitQueue } from './shared/brain-git.js';
+import { createBrainWatch } from './shared/brain-watch.js';
 import { createBrainService } from './shared/brain.js';
 import { createContextBuilder } from './shared/context.js';
 import { integrationServiceFor } from './integrations/mount.js';
@@ -82,7 +84,27 @@ export function bootstrap(opts: BootstrapOptions = {}): AppDeps {
     integrationToken: (agentId, taskId) => integrationServiceFor(lazy.deps!).createRunToken(agentId, taskId),
   });
 
-  const notes = createNotes({ brain, canRead: (a, f, p) => access.canReadPath(a, f, p), canWrite: (a, f, p) => access.canWritePath(a, f, p), log });
+  // every machine write to a brain folder that is a git repo becomes a commit (coalesced per folder, ~2 s)
+  const brainGit = createBrainGit();
+  const commits = createCommitQueue({
+    git: brainGit,
+    log,
+    onError: (dir, error) =>
+      lazy.deps?.attention.raise({
+        key: `brain-git:${dir}`,
+        kind: 'failed',
+        severity: 'warn',
+        title: 'Không commit được thay đổi ghi chú vào git',
+        detail: `${dir}: ${error.slice(0, 300)}. Các file đã ghi vẫn giữ nguyên; app sẽ thử commit lại ở lần ghi sau.`,
+        link: '/brain',
+      }),
+    onRecovered: (dir) => lazy.deps?.attention.resolve(`brain-git:${dir}`),
+  });
+  const notes = createNotes({
+    brain, log, bus, git: brainGit, commits,
+    canRead: (a, f, p) => access.canReadPath(a, f, p),
+    canWrite: (a, f, p) => access.canWritePath(a, f, p),
+  });
 
   const tasks = createTaskService({ db, bus, agents, abort: (id) => lazy.dispatcher?.abort(id) ?? false });
   const runs = createRunService({ db, bus });
@@ -140,6 +162,12 @@ export async function startApp(opts: BootstrapOptions = {}): Promise<RunningApp>
       (err) => deps.log.warn({ err }, 'Lập chỉ mục Second Brain lỗi'),
     );
   void reindexBrain();
+  // edits made outside the app (Obsidian…) reach the index in about a second; the 15-minute pass stays as a safety net
+  const brainWatch = createBrainWatch({
+    brain: deps.brain, bus: deps.bus, log: deps.log, configFile: deps.config.brainConfigFile,
+    isOwnWrite: (f, p, h) => deps.notes.isOwnWrite(f, p, h),
+  });
+  await brainWatch.start().catch((err) => deps.log.warn({ err }, 'Không bật được theo dõi thay đổi Second Brain'));
   // budget warnings (Ngân sách AI): raise "Cần bạn" items when spend crosses the warn threshold
   const stopCostWatcher = startCostWatcher({ db: deps.db, bus: deps.bus, agents: deps.agents, attention: deps.attention });
   const brainTimer = setInterval(() => void reindexBrain(), 15 * 60 * 1000);
@@ -149,11 +177,13 @@ export async function startApp(opts: BootstrapOptions = {}): Promise<RunningApp>
   const stop = (): Promise<void> =>
     (stopping ??= (async () => {
       clearInterval(brainTimer);
+      await brainWatch.stop().catch(() => undefined);
       stopCostWatcher();
       deps.scheduler.stop();
       await server.close();
       await deps.dispatcher.stop();
       await deps.modules.stop();
+      await deps.notes.flush().catch((err) => deps.log.warn({ err }, 'commit ghi chú lúc tắt lỗi'));
       deps.db.close();
     })());
   const onSignal = () => {

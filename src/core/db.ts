@@ -3,6 +3,7 @@ import path from 'node:path';
 import Database from 'better-sqlite3';
 import { CORE_MIGRATION_001 } from './migrations/001_core.js';
 import { CORE_MIGRATION_002 } from './migrations/002_integrations.js';
+import { CORE_MIGRATION_003 } from './migrations/003_brain_links.js';
 
 export type DB = Database.Database;
 
@@ -50,6 +51,7 @@ export function applyMigrations(db: DB, owner: string, migrations: Migration[]):
 export const CORE_MIGRATIONS: Migration[] = [
   { id: '001_core', sql: CORE_MIGRATION_001 },
   { id: '002_integrations', sql: CORE_MIGRATION_002 },
+  { id: '003_brain_links', sql: CORE_MIGRATION_003 },
 ];
 
 export function migrateCore(db: DB): string[] {
