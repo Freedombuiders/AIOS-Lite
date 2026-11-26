@@ -25,7 +25,6 @@ import {
   type ZaloThreadRow,
 } from './store.js';
 import { logger } from './compat.js';
-import { noteBirthDateFromProfile } from './birthday.js';
 import { detectContentType, extractMentions, extractQuote, renderText, serializeContent } from './content.js';
 import { matchesOptOut, type ZaloLimiter } from './limits.js';
 
@@ -35,6 +34,11 @@ export interface IngestContext {
   ownUid: string;
   /** Budgets for the lookups below; without one (tests) lookups are unmetered. */
   limiter?: ZaloLimiter;
+  /**
+   * Called when a lookup brought a fresh profile of a 1-1 contact. Optional: the chat core does not know
+   * what it is for (marketing reads the birthday from it); the daemon passes one only while marketing is on.
+   */
+  onContactSeen?: (thread: ZaloThreadRow, profile: Record<string, unknown>) => void;
 }
 
 export interface IngestResult {
@@ -192,9 +196,8 @@ export async function ingestMessage(
       accountId: ctx.accountId, threadType: 'user', externalId,
       name: peer.name || (!isSelf ? String(data.dName ?? '') : ''), avatarUrl: peer.avatar, globalId: peer.globalId,
     });
-    // A fresh profile may carry the birthday (birthday greetings read it).
-    if (peer.profile) {
-      try { noteBirthDateFromProfile(thread.id, peer.profile); } catch { /* best effort */ }
+    if (peer.profile && ctx.onContactSeen) {
+      try { ctx.onContactSeen(thread, peer.profile); } catch { /* best effort */ }
     }
   }
 

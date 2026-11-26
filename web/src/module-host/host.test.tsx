@@ -48,6 +48,35 @@ describe('module host', () => {
     expect(navItems.value).toHaveLength(0);
   });
 
+  it('hides nav items and routes whose visible() is false for the module settings', async () => {
+    const Page = () => null;
+    bundledModules.gated = {
+      id: 'gated',
+      nav: [
+        { group: 'sales', label: 'Luôn hiện', path: '/m/gated' },
+        { group: 'marketing', label: 'Tuỳ chọn', path: '/m/gated/extra', visible: (s) => s.extra === true },
+      ],
+      routes: [
+        { path: '/m/gated', component: Page },
+        { path: '/m/gated/extra', component: Page, visible: (s) => s.extra === true },
+      ],
+    };
+    const withSettings = (settings: Record<string, unknown>) => {
+      const i = info('gated', true);
+      i.state.settings = settings;
+      return i;
+    };
+    serve([withSettings({})]);
+    await refreshModules();
+    expect(navItems.value.map((n) => n.label)).toEqual(['Luôn hiện']);
+    expect(routes.value.map((r) => r.path)).toEqual(['/m/gated']);
+    serve([withSettings({ extra: true })]);
+    await refreshModules();
+    expect(navItems.value.map((n) => n.label)).toEqual(['Luôn hiện', 'Tuỳ chọn']);
+    expect(routes.value.map((r) => r.path)).toEqual(['/m/gated', '/m/gated/extra']);
+    delete bundledModules.gated;
+  });
+
   it('ignores enabled ids that have no bundled web entry', async () => {
     serve([info('ghost', true)]);
     await refreshModules();

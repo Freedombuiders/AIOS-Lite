@@ -20,7 +20,7 @@ import { isProcessAlive, logger } from './compat.js';
 import { bindDaemonCompat } from './daemon-bind.js';
 import { backfillAccount, GroupSyncLoop, syncGroupList } from './history.js';
 import { localDay } from './limits.js';
-import { startBirthdayWorker } from './birthday.js';
+import { noteBirthDateFromProfile, startBirthdayWorker } from './birthday.js';
 import { startGroupBroadcastWorker } from './group-broadcast.js';
 import { startListBroadcastWorker } from './list-broadcast.js';
 import type { MarketingDeps, WorkerHandle } from './marketing-deps.js';
@@ -84,7 +84,9 @@ async function notify(text: string): Promise<void> {
 }
 
 // ── Runtime config pushed by the AIOS process (POST /config) ────────
-const runtime = { marketingEnabled: true };
+// Marketing is off until the AIOS process says otherwise: the supervisor passes ZALO_MARKETING_ENABLED=1 only when the
+// module setting is on, and the daemon never assumes "on" when the variable is missing (fresh install, manual start).
+const runtime = { marketingEnabled: false };
 
 // ── Wiring ──────────────────────────────────────────────────────────
 const groupSync = new GroupSyncLoop();
@@ -92,6 +94,10 @@ const backfilling = new Set<string>();
 // The pool's hooks close over the care control built right after it.
 let careControl: CareControl | null = null;
 const pool = new ZaloSessionPool({
+  // Birthday greetings read the birth date from fresh profiles; only while marketing is on.
+  onContactSeen: (thread, profile) => {
+    if (runtime.marketingEnabled) noteBirthDateFromProfile(thread.id, profile);
+  },
   // Messages are stored by ingest; the care module reads them through the feed (care-bridge), nothing answers here.
   onMessage: () => {},
   onConnected: (accountId, ctx, firstLogin) => {
@@ -111,7 +117,8 @@ careControl = buildCareControl(pool, controlToken, {
   quoteReplies: env.ZALO_CARE_QUOTE === '1',
   seenMarker: env.ZALO_CARE_SEEN === '1',
 });
-const sender = new ZaloSender(pool, { notify });
+// Marketing sends are refused at the sender while the switch is off, even for a worker tick already in flight.
+const sender = new ZaloSender(pool, { notify, marketingEnabled: () => runtime.marketingEnabled });
 
 const outboxTimer = setInterval(() => void sender.drainOutbox(), OUTBOX_POLL_MS);
 
@@ -131,7 +138,9 @@ function setMarketing(enabled: boolean): void {
     marketingWorkers = [];
   }
 }
-setMarketing(env.ZALO_MARKETING_ENABLED !== '0');
+// Only an explicit '1' starts the workers. Rows queued while it is off (broadcast runs, list recipients, greetings)
+// stay pending: they are not cancelled and not sent, and they continue if the operator turns marketing back on.
+setMarketing(env.ZALO_MARKETING_ENABLED === '1');
 const pruneTimer = setInterval(() => {
   try {
     // Daily SDK counters are only read for today; keep two weeks for debugging.
@@ -180,6 +189,7 @@ const server = http.createServer((req, res) => {
     if (method === 'GET' && url.pathname === '/status') {
       send(res, 200, {
         pid: process.pid,
+        marketing: { enabled: runtime.marketingEnabled, workers: marketingWorkers.length },
         accounts: Object.fromEntries(listZaloAccounts().map((a) => [a.id, accountState(a.id)])),
       });
       return;

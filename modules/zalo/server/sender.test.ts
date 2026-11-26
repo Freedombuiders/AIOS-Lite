@@ -165,6 +165,20 @@ describe('ZaloSender', () => {
       await expect(sender.sendRich({ threadId, text: 'chào anh', senderType: 'operator' })).resolves.toBeTruthy();
     });
 
+    it('are refused with MARKETING_OFF while the marketing switch is off, and nothing is stored or sent', async () => {
+      let on = false;
+      const gated = new ZaloSender(fakePool(api), { notify, sleep: async () => {}, marketingEnabled: () => on });
+      await expect(gated.sendRich({ threadId, text: 'sale', senderType: 'broadcast', bulk: true }))
+        .rejects.toMatchObject({ code: 'MARKETING_OFF' });
+      expect(api.sendMessage).not.toHaveBeenCalled();
+      expect(getZaloMessages(threadId)).toHaveLength(0);
+      // Chat sends are not marketing: they are unaffected by the switch.
+      await expect(gated.sendRich({ threadId, text: 'chào anh', senderType: 'operator' })).resolves.toBeTruthy();
+      // Switched on: the same marketing send goes out.
+      on = true;
+      await expect(gated.sendRich({ threadId, text: 'sale', senderType: 'broadcast', bulk: true })).resolves.toBeTruthy();
+    });
+
     it('stop when the bulk share of the daily cap is used up', async () => {
       updateZaloAccountSettings(accountId, { daily_message_cap: 10 });
       saveZaloProtectionSettings({ bulkSharePercent: 50 });

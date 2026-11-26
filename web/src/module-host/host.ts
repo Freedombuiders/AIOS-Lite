@@ -53,13 +53,20 @@ export interface HostNavItem extends WebNavItem {
   moduleId: string;
 }
 
+/** Saved settings of an installed module, for the `visible` checks of its nav items and routes. */
+function settingsOf(id: string): Record<string, unknown> {
+  return (moduleInfos.value.find((m) => m.manifest.id === id)?.state.settings ?? {}) as Record<string, unknown>;
+}
+
 export const navItems = computed<HostNavItem[]>(() =>
   enabledWebModules.value
-    .flatMap((m) => (m.nav ?? []).map((n) => ({ ...n, moduleId: m.id })))
+    .flatMap((m) => (m.nav ?? []).filter((n) => !n.visible || n.visible(settingsOf(m.id))).map((n) => ({ ...n, moduleId: m.id })))
     .sort((a, b) => (a.order ?? 100) - (b.order ?? 100)),
 );
 
-export const routes = computed<WebRoute[]>(() => enabledWebModules.value.flatMap((m) => m.routes ?? []));
+export const routes = computed<WebRoute[]>(() =>
+  enabledWebModules.value.flatMap((m) => (m.routes ?? []).filter((r) => !r.visible || r.visible(settingsOf(m.id)))),
+);
 
 export const widgets = computed<WebWidget[]>(() =>
   enabledWebModules.value.flatMap((m) => m.widgets ?? []).sort((a, b) => (a.order ?? 100) - (b.order ?? 100)),

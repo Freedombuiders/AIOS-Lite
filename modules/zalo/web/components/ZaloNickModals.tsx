@@ -8,6 +8,7 @@ import { Pill } from '@/components/Pill';
 import { Toggle } from '@/components/Toggle';
 import { apiGet, apiPatch, apiPost, apiPut } from '@/lib/api';
 import { useFetch } from '@/lib/useFetch';
+import { moduleInfos } from '@/module-host';
 import { pushToast } from '@/lib/toasts';
 import {
   CATEGORY_LABEL,
@@ -157,6 +158,8 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 
 /** "Cài đặt chống khoá": quiet hours, caps, auto-lock, warm-up and the default limit table. */
 export function ProtectionSettingsModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+  // The marketing share only means something while marketing is on (default off).
+  const marketingOn = moduleInfos.value.find((m) => m.manifest.id === 'zalo')?.state.settings.marketingEnabled === true;
   const res = useFetch<ZaloProtectionResponse>('/api/m/zalo/settings');
   const [quietOn, setQuietOn] = useState(true);
   const [quietStart, setQuietStart] = useState('22:00');
@@ -232,7 +235,7 @@ export function ProtectionSettingsModal({ onClose, onSaved }: { onClose: () => v
           <div>
             <div class="flex items-center gap-2.5">
               <Toggle size="sm" on={quietOn} onChange={() => setQuietOn(!quietOn)} ariaLabel="Giờ nghỉ" />
-              <span class="text-[12.5px] font-medium text-[var(--color-text)]">Giờ nghỉ (không gửi marketing, agent chỉ soạn nháp)</span>
+              <span class="text-[12.5px] font-medium text-[var(--color-text)]">Giờ nghỉ (agent chỉ soạn nháp; marketing nếu bật cũng không gửi)</span>
               {data.quietNow && quietOn && <Pill tone="accent">đang trong giờ nghỉ</Pill>}
             </div>
             <div class={`flex items-center gap-2 mt-2 text-[13px] text-[var(--color-text-muted)] ${quietOn ? '' : 'opacity-50'}`}>
@@ -251,9 +254,11 @@ export function ProtectionSettingsModal({ onClose, onSaved }: { onClose: () => v
             <Field label="Tự khoá sau N lần bị từ chối" hint="Số lần liên tiếp Zalo từ chối gửi thì khoá gửi của nick. 0 = không tự khoá.">
               <input type="number" min={0} max={20} value={lockThreshold} class={NUM} onInput={(e) => setLockThreshold((e.target as HTMLInputElement).value)} />
             </Field>
-            <Field label="Marketing dùng tối đa (%)" hint="Phần trăm trần tin/ngày dành cho chiến dịch; còn lại để chat tay và agent.">
-              <input type="number" min={0} max={100} value={bulkShare} class={NUM} onInput={(e) => setBulkShare((e.target as HTMLInputElement).value)} />
-            </Field>
+            {marketingOn && (
+              <Field label="Marketing dùng tối đa (%)" hint="Phần trăm trần tin/ngày dành cho chiến dịch; còn lại để chat tay và agent.">
+                <input type="number" min={0} max={100} value={bulkShare} class={NUM} onInput={(e) => setBulkShare((e.target as HTMLInputElement).value)} />
+              </Field>
+            )}
           </div>
 
           <Field label="Lịch nuôi nick mới (tin/ngày)" hint="Nick đang bật “Nuôi nick mới” bị giới hạn theo tuần kể từ lần kết nối đầu tiên; sau tuần 3 dùng trần thường.">

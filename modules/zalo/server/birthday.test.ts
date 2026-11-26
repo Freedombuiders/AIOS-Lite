@@ -366,7 +366,7 @@ describe('sender', () => {
     expect(getZaloBirthdayGreeting(greeting.id)).toMatchObject({ state: 'skipped', skip_reason: 'NO_TEMPLATE' });
   });
 
-  it.each(['QUIET_HOURS', 'BULK_BUDGET', 'RATE_LIMITED', 'NOT_CONNECTED', 'CHAT_DISABLED', 'LOCKED'] as const)(
+  it.each(['QUIET_HOURS', 'BULK_BUDGET', 'MARKETING_OFF', 'RATE_LIMITED', 'NOT_CONNECTED', 'CHAT_DISABLED', 'LOCKED'] as const)(
     'leaves the greeting pending on nick-level error %s and sends it later',
     async (code) => {
       const { greeting } = setup();

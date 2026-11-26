@@ -17,6 +17,8 @@ export interface WebNavItem {
   order?: number;
   /** live counter shown as a badge (polled by the host) */
   badge?: () => Promise<number | undefined>;
+  /** Hide the item unless this returns true for the module's saved settings (default: always shown). */
+  visible?: (settings: Record<string, unknown>) => boolean;
 }
 
 export interface WebRoute {
@@ -25,6 +27,8 @@ export interface WebRoute {
   component: ComponentType<any>;
   /** the page has its own composer (inbox, chat): the bottom command bar is hidden on it */
   hideCommandBar?: boolean;
+  /** Register the route only when this returns true for the module's saved settings (default: always). */
+  visible?: (settings: Record<string, unknown>) => boolean;
 }
 
 /** Period picked on Tổng quan, passed to every 'overview' widget. Dates are YYYY-MM-DD in Asia/Ho_Chi_Minh, inclusive. */
