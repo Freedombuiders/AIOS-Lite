@@ -1,0 +1,37 @@
+// Cấu hình Worker cho Open AgenticOS cloud. Xem README.md để tạo D1, R2 và các secret.
+// Secret (đặt bằng `wrangler secret put`, không ghi vào đây):
+//   GOOGLE_WEB_CLIENT_SECRET, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "agenticos-cloud",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-01",
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "agenticos-cloud",
+      // Thay bằng id thật từ `wrangler d1 create agenticos-cloud`. Chạy cục bộ không cần id thật.
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "agenticos-cloud" }],
+  "vars": {
+    // Client id OAuth của Google được chấp nhận làm `aud`, cách nhau bằng dấu phẩy (iOS, Android, web).
+    "GOOGLE_CLIENT_IDS": "",
+    // Client id web dùng cho luồng đăng nhập trên máy tính (/auth/web/*). Phải nằm trong GOOGLE_CLIENT_IDS.
+    "GOOGLE_WEB_CLIENT_ID": "",
+    // Email được làm quản trị viên khi đăng nhập, cách nhau bằng dấu phẩy.
+    "ADMIN_EMAILS": "",
+    // Địa chỉ công khai của Worker, ví dụ https://cloud.example.com. Để trống thì lấy theo request.
+    "PUBLIC_URL": "",
+    // R2 qua API S3 để ký đường dẫn tải lên, tải về.
+    "R2_ACCOUNT_ID": "",
+    "R2_BUCKET_NAME": "agenticos-cloud",
+    // Khoá công khai Ed25519 kiểm chữ ký gói: JSON { "<keyId>": "<base64 32 byte>" }.
+    "PACK_SIGNING_KEYS": "{}"
+  },
+  // Dọn tệp hết hạn mỗi ngày lúc 03:17 UTC.
+  "triggers": { "crons": ["17 3 * * *"] }
+}
