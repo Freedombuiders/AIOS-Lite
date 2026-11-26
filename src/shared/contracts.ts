@@ -116,6 +116,8 @@ export interface ContextInput {
   /** true when the runtime will resume a session: send only the new message, no persona/skills again */
   resuming?: boolean;
   /** inline system prompt into prompt (runtime capabilities.systemPrompt === 'inline') — the adapter handles it, builder just reports */
+  /** limits of the runtime that will receive the prompt (its RuntimeCapabilities) */
+  runtime?: { maxPromptChars?: number; readsFiles?: boolean };
 }
 
 export interface BuiltContext {
@@ -124,6 +126,8 @@ export interface BuiltContext {
   recalledMemoryIds: number[];
   brainHits: BrainHit[];
   skillIds: string[];
+  /** set when the task text and module data alone do not fit runtime.maxPromptChars: the run must not start */
+  overBudget?: string;
 }
 
 export interface ContextBuilder {

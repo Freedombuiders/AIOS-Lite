@@ -5,6 +5,7 @@ export const RUNTIME_LABEL: Record<RuntimeId, string> = {
   codex: 'Codex',
   grok: 'Grok',
   hermes: 'Hermes',
+  genbot: 'GenBot',
   mock: 'Mock',
 };
 

@@ -10,7 +10,7 @@ import type { Composio } from '@composio/core';
 import type { Hono } from 'hono';
 import type { DB } from '../core/db.js';
 import type { Logger } from '../core/log.js';
-import type { AgentConfig, BrainHit, Memory, Run, Task, Usage } from '../core/types.js';
+import type { AgentConfig, BrainHit, ErrorFamily, Memory, Run, Task, Usage } from '../core/types.js';
 import type { CreateTaskInput } from '../work/contracts.js';
 import type { IntegrationDefinition } from '../integrations/types.js';
 
@@ -72,6 +72,10 @@ export interface LeanRunResult {
   taskId: number;
   runId: number | null;
   error?: string;
+  /** why it failed (auth, quota, access, timeout…), so a module can wait, pause or ask the owner */
+  family?: ErrorFamily;
+  /** ISO time after which a retry makes sense (quota windows) */
+  retryAfter?: string;
   usage?: Usage;
 }
 

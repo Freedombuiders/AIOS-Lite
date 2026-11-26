@@ -19,7 +19,8 @@ const FAMILY_MESSAGE: Record<ErrorFamily, string> = {
   cancelled: 'Đã huỷ',
   unknown: 'Lỗi không xác định',
 };
-const ATTENTION_FAMILIES: ErrorFamily[] = ['auth', 'quota', 'config'];
+// access: a runtime is waiting for the owner (GenBot needs_approval); only the owner can unblock it
+const ATTENTION_FAMILIES: ErrorFamily[] = ['auth', 'quota', 'config', 'access'];
 const HISTORY_LIMIT = 20;
 
 export function createEngine(deps: AppDeps): Engine {
@@ -47,8 +48,8 @@ export function createEngine(deps: AppDeps): Engine {
     }
   }
 
-  function failTask(task: Task, family: ErrorFamily, message: string): void {
-    deps.tasks.update(task.id, { status: 'failed', error: message, meta: { ...task.meta, errorFamily: family } });
+  function failTask(task: Task, family: ErrorFamily, message: string, retryAfter?: string): void {
+    deps.tasks.update(task.id, { status: 'failed', error: message, meta: { ...task.meta, errorFamily: family, ...(retryAfter ? { retryAfter } : {}) } });
     deps.board.add({ agentId: task.agentId, taskId: task.id, kind: 'error', text: summarize(`Thất bại: ${message}`) });
     if (ATTENTION_FAMILIES.includes(family)) {
       deps.attention.raise({
@@ -218,7 +219,12 @@ export function createEngine(deps: AppDeps): Engine {
         ...(comments.length ? { comments } : {}),
         ...(history ? { history } : {}),
         resuming,
+        runtime: { maxPromptChars: runtime.capabilities.maxPromptChars, readsFiles: runtime.capabilities.readsFiles },
       });
+      if (built.overBudget) {
+        failTask(task, 'config', `${FAMILY_MESSAGE.config}: ${built.overBudget}`);
+        return await finalize(task.id, null);
+      }
 
       // 5) run
       run = deps.runs.start({
@@ -250,7 +256,7 @@ export function createEngine(deps: AppDeps): Engine {
         const detail = result.error?.message ?? '';
         const message = `${FAMILY_MESSAGE[family]}${detail ? `: ${detail}` : ''}`;
         run = deps.runs.finish(run.id, { status: 'failed', output: result.output || null, errorFamily: family, error: message, usage: result.usage ?? {}, ...(result.sessionId ? { sessionId: result.sessionId } : {}) });
-        failTask(task, family, message);
+        failTask(task, family, message, result.error?.retryAfter);
         return await finalize(task.id, run);
       }
 

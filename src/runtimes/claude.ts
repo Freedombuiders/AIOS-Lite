@@ -31,6 +31,8 @@ export const CLAUDE_CAPABILITIES: RuntimeCapabilities = {
   images: true,
   documents: true,
   noTools: true,
+  mcp: true,
+  readsFiles: true,
   enforces: {
     context: 'hard',
     mcp: 'hard',

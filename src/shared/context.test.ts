@@ -230,3 +230,85 @@ describe('context builder — prompt', () => {
     expect(retry.prompt).toContain('Tóm tắt thông tin khách hàng');
   });
 });
+
+describe('context builder — runtime with a total cap (GenBot)', () => {
+  const LEAN_AGENT = 'name: L\nruntime: genbot\ncontext: lean\naccess:\n  brain:\n    cong-ty-a: { read: ["**"] }\n  memory: { team: true, private: true }\n  skills: all\n';
+  const total = (o: { systemPrompt: string; prompt: string }) => (o.systemPrompt ? o.systemPrompt.length + 2 : 0) + o.prompt.length;
+
+  it('without a cap the output is unchanged by the runtime field', async () => {
+    const s = await setup();
+    const a = s.run(s.boss, task());
+    const b = s.run(s.boss, task(), { runtime: { readsFiles: true } });
+    expect(b).toEqual(a);
+  });
+
+  it('drops the skill index (file paths) for a runtime that cannot open files', async () => {
+    const s = await setup();
+    const out = s.run(s.boss, task(), { runtime: { readsFiles: false, maxPromptChars: 20_000 } });
+    expect(out.systemPrompt).not.toContain('## Skill bạn được dùng');
+    expect(out.systemPrompt).not.toContain('SKILL.md');
+    expect(out.systemPrompt).toContain('## Chỉ thị cho hệ thống');
+  });
+
+  it('fits a lean turn that is over the cap: skills give way first, then memory, then brain; task and newest message stay', async () => {
+    const s = await setup({ lean: LEAN_AGENT });
+    for (let i = 0; i < 5; i++) s.memory.add({ content: `Ghi nhớ khách hàng số ${i}: ${'giá tủ bếp '.repeat(40)}`, agentId: null, pinned: true });
+    const lean = s.agents.require('lean');
+    const t = task({ contextProfile: 'lean', source: 'module:care', trigger: 'module', prompt: 'Trả lời khách: còn hàng không?' });
+    const free = s.run(lean, t, { moduleContext: '{"khach":"Mai Anh"}' });
+    const cap = total(free) - 200;
+    const out = s.run(lean, t, { moduleContext: '{"khach":"Mai Anh"}', runtime: { maxPromptChars: cap, readsFiles: false } });
+    expect(out.overBudget).toBeUndefined();
+    expect(total(out)).toBeLessThanOrEqual(cap);
+    expect(out.prompt).toContain('Trả lời khách: còn hàng không?');
+    expect(out.prompt).toContain('{"khach":"Mai Anh"}');
+    // the skills block shrank or went; memory and brain are untouched while skills could absorb the overflow
+    expect(out.systemPrompt.length).toBeLessThan(free.systemPrompt.length);
+    expect(out.recalledMemoryIds).toEqual(free.recalledMemoryIds);
+    expect(out.brainHits).toEqual(free.brainHits);
+  });
+
+  it('a tighter cap removes memory before brain, and reports only what was kept', async () => {
+    const s = await setup({ lean: LEAN_AGENT });
+    s.memory.add({ content: `Ghi nhớ: ${'khách VIP '.repeat(100)}`, agentId: null, pinned: true });
+    const lean = s.agents.require('lean');
+    const t = task({ contextProfile: 'lean', source: 'module:care', trigger: 'module' });
+    const free = s.run(lean, t, { runtime: { readsFiles: false } });
+    expect(free.recalledMemoryIds.length).toBeGreaterThan(0);
+    expect(free.brainHits.length).toBeGreaterThan(0);
+    const skills = free.systemPrompt.indexOf('## Skill bạn được dùng') >= 0 ? free.systemPrompt.split('## Bộ nhớ')[0]!.length : 0;
+    const cap = total(free) - skills - 300;
+    const out = s.run(lean, t, { runtime: { maxPromptChars: cap, readsFiles: false } });
+    expect(total(out)).toBeLessThanOrEqual(cap);
+    expect(out.systemPrompt).not.toContain('## Skill bạn được dùng');
+    expect(out.brainHits.length).toBeGreaterThan(0);
+    expect(out.systemPrompt.includes('<<<BEGIN bo-nho>>>')).toBe(out.recalledMemoryIds.length > 0);
+    for (const label of ['bo-nho', 'second-brain']) {
+      if (out.systemPrompt.includes(`<<<BEGIN ${label}>>>`)) expect(out.systemPrompt).toContain(`<<<END ${label}>>>`);
+    }
+  });
+
+  it('keeps chat history newest-first under the cap', async () => {
+    const s = await setup();
+    const history = Array.from({ length: 10 }, (_, i) => ({ id: i + 1, conversationId: 1, role: (i % 2 ? 'agent' : 'user') as 'agent' | 'user', content: `tin ${i} ${'x'.repeat(500)}`, taskId: null, createdAt: '' }));
+    const t = task({ kind: 'chat', trigger: 'chat', prompt: 'tin mới nhất' });
+    const free = s.run(s.boss, t, { history, runtime: { readsFiles: false } });
+    const out = s.run(s.boss, t, { history, runtime: { readsFiles: false, maxPromptChars: total(free) - 3000 } });
+    expect(out.prompt).toContain('tin mới nhất');
+    expect(out.prompt).toContain('tin 9 ');
+    expect(out.prompt).not.toContain('tin 0 ');
+  });
+
+  it('never cuts module data: if it cannot fit, the build reports overBudget instead', async () => {
+    const s = await setup({ lean: LEAN_AGENT });
+    const lean = s.agents.require('lean');
+    const big = JSON.stringify({ tin: Array.from({ length: 500 }, (_, i) => ({ i, text: 'khách hỏi giá tủ bếp gỗ sồi' })) });
+    expect(big.length).toBeGreaterThan(20_000);
+    const t = task({ contextProfile: 'lean', source: 'module:care', trigger: 'module' });
+    const out = s.run(lean, t, { moduleContext: big, runtime: { maxPromptChars: 20_000, readsFiles: false } });
+    expect(out.overBudget).toMatch(/20\.000 ký tự/);
+    expect(out.prompt).toContain(big); // whole, not clipped
+    // without a cap the old clip still applies
+    expect(s.run(lean, t, { moduleContext: big }).prompt).not.toContain(big);
+  });
+});

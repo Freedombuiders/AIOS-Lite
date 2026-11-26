@@ -7,6 +7,7 @@ import { homedir } from 'node:os';
 import path from 'node:path';
 import type { ErrorFamily, RunEvent, RuntimeId, Usage } from '../core/types.js';
 import { redactString } from '../core/redact.js';
+import { isProtectedEnvName } from '../core/secret-env.js';
 import type { DoctorCheck, DoctorReport, RunError, RunRequest, RunResult } from './contracts.js';
 import type { ProcessResult } from './process.js';
 
@@ -29,7 +30,8 @@ export interface ChildEnvInput {
 
 /**
  * Child env = process env minus nested-session markers and AIOS secrets
- * (and any name listed in AIOS_STRIP_ENV), plus the agent's granted env vars.
+ * (and any name listed in AIOS_STRIP_ENV), plus the agent's granted env vars,
+ * minus core-only credentials (src/core/secret-env.ts) in every layer.
  */
 export function buildChildEnv(input: ChildEnvInput = {}): Record<string, string> {
   const base = input.base ?? process.env;
@@ -42,7 +44,10 @@ export function buildChildEnv(input: ChildEnvInput = {}): Record<string, string>
     env[k] = v;
   }
   // granted vars are applied after stripping, so an agent can be given e.g. COMPOSIO_API_KEY explicitly
-  return { ...env, ...input.extra, ...input.adapter, ...input.envVars };
+  const out = { ...env, ...input.extra, ...input.adapter, ...input.envVars };
+  // core-only credentials (GenBot keys, any registered key_env) never reach a child, not even through a grant or override
+  for (const k of Object.keys(out)) if (isProtectedEnvName(k)) delete out[k];
+  return out;
 }
 
 // ------------------------------------------------------------------ per-run temp dir

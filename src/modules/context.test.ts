@@ -46,6 +46,24 @@ describe('runLean', () => {
     expect(h.fakes.tasks.at(-1)!.status).toBe('cancelled');
   });
 
+  it('passes the failure family and retryAfter on to the module', async () => {
+    const at = '2026-11-26T10:01:00.000Z';
+    h.fakes.state.autoFinish = (t) => {
+      t.meta = { ...t.meta, errorFamily: 'quota', retryAfter: at };
+      return { status: 'failed', error: 'Bot đã nhận đủ 10 lượt gọi trong một phút' };
+    };
+    expect(await ctx.agents.runLean({ agentId: 'main', title: 'T', prompt: 'P' })).toMatchObject({ ok: false, family: 'quota', retryAfter: at });
+    h.fakes.state.autoFinish = (t) => {
+      t.meta = { ...t.meta, errorFamily: 'access' };
+      return { status: 'failed', error: 'Bot GenBot đang chờ bạn duyệt' };
+    };
+    const access = await ctx.agents.runLean({ agentId: 'main', title: 'T', prompt: 'P' });
+    expect(access).toMatchObject({ ok: false, family: 'access' });
+    expect(access.retryAfter).toBeUndefined();
+    h.fakes.state.autoFinish = undefined;
+    expect(await ctx.agents.runLean({ agentId: 'main', title: 'T', prompt: 'P', timeoutMs: 20 })).toMatchObject({ ok: false, family: 'timeout' });
+  });
+
   it('forces source on tasks.create', () => {
     const t = ctx.tasks.create({ prompt: 'x', agentId: 'main' });
     expect(t.source).toBe('module:fx');

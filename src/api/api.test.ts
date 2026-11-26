@@ -9,6 +9,7 @@ import type { AppDeps } from '../core/deps.js';
 import type { Conversation, Message, Schedule, Skill } from '../core/types.js';
 import { createModuleManager } from '../modules/manager.js';
 import { createTestHarness, type TestHarness } from '../modules/test-deps.js';
+import { createRuntimeRegistry } from '../runtimes/index.js';
 import { createApiServer } from './server.js';
 
 const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'modules', '__tests__', 'modules');
@@ -23,7 +24,7 @@ function wire(token?: string) {
   const f = h.fakes;
   const runtime = {
     id: 'mock' as const, label: 'Mock',
-    capabilities: { resume: false, systemPrompt: 'inline', reportsCost: false, images: false, documents: false, noTools: true, enforces: { context: 'hard', mcp: 'none', fileRead: 'none', fileWrite: 'none', shell: 'none' } },
+    capabilities: { resume: false, systemPrompt: 'inline', reportsCost: false, images: false, documents: false, noTools: true, mcp: true, readsFiles: true, enforces: { context: 'hard', mcp: 'none', fileRead: 'none', fileWrite: 'none', shell: 'none' } },
     doctor: async () => ({ runtime: 'mock' as const, status: 'pass' as const, checks: [], testedAt: nowIso() }),
     run: async () => ({ ok: true, output: '' }),
   };
@@ -142,6 +143,19 @@ describe('conventions', () => {
 });
 
 describe('system', () => {
+  it('runtimes lists genbot with its generic doctor; POST /api/runtimes/genbot/check checks one agent configuration', async () => {
+    deps.runtimes = createRuntimeRegistry({ commands: { claude: '/nope/claude', codex: '/nope/codex', grok: '/nope/grok', hermes: '/nope/hermes' }, genbot: { env: {} } });
+    const items = (await call('GET', '/api/runtimes')).body.items as { runtime: string; status: string; checks: { code: string }[] }[];
+    const gb = items.find((i) => i.runtime === 'genbot');
+    expect(gb).toMatchObject({ runtime: 'genbot', label: 'GenBot', status: 'pass', capabilities: { noTools: true, mcp: false, reportsCost: false } });
+    expect(gb!.checks.map((c) => c.code)).toEqual(['genbot.http']);
+    const one = await call('POST', '/api/runtimes/genbot/check', { runtimeOptions: { base_url: 'http://127.0.0.1:1', key_env: 'GENBOT_KEY_X' } });
+    expect(one.status).toBe(200);
+    expect(one.body).toMatchObject({ runtime: 'genbot', status: 'fail' });
+    expect(JSON.stringify(one.body)).toContain('bot_id');
+    expect((await call('POST', '/api/runtimes/genbot/check', { agentId: 'nobody' })).status).toBe(404);
+  });
+
   it('health, runtimes, stats, attention, settings', async () => {
     expect((await call('GET', '/api/health')).body).toMatchObject({ ok: true, version: expect.any(String), uptimeSec: expect.any(Number) });
     const rt = (await call('GET', '/api/runtimes?probe=1')).body.items[0];

@@ -103,7 +103,10 @@ Chọn chế độ (`runtimeOptions.mode = auto | acp | cli`, mặc định `aut
 | **Codex** | hard | **hard** (`--ignore-user-config --disable apps plugins`, `enabled_tools`) | **none** | **hard** (sandbox) | soft (sandbox chặn ghi, vẫn đọc/mạng) |
 | **Grok** | hard | soft (server hard, lọc tool mềm) | soft (hard với `strict`; MCP buộc dùng `workspace`) | **hard** (sandbox) | **hard** (bỏ `run_terminal_command`) |
 | **Hermes** | hard | soft (MCP của Hermes tự nạp) | **none** | **none** (ACP: chặn sửa file ngoài thư mục qua xin quyền, shell vẫn ghi được) | soft (hard ở CLI `-t file,web,todo`, none ở ACP) |
+| GenBot | hard | hard (luồng Bot API không có MCP) | hard (không công cụ đọc file) | hard | hard (không shell) |
 | mock | hard | hard | hard | hard | hard |
+
+Dòng GenBot là lời khai theo `genbot/desktop/docs/bot-api.md` ("What a call may do"), **chưa kiểm thật**: xem mục 9.
 
 `full` không chặn thêm gì (Claude vẫn giới hạn MCP bằng `--allowedTools` khi có mẫu tool).
 
@@ -118,6 +121,45 @@ Chọn chế độ (`runtimeOptions.mode = auto | acp | cli`, mặc định `aut
 
 ## 8. Cách tái kiểm
 
-- Test đơn vị (CLI giả): `npx vitest run src/runtimes` (107 test).
+- Test đơn vị (CLI giả, máy chủ GenBot giả): `npx vitest run src/runtimes` (179 test ngày 2026-11-26).
 - Kiểm thật: dựng `createRuntimeRegistry()` rồi gọi `run()` với `makeReq` trong `src/runtimes/test-util.ts`; `doctor({ probe: true })` chạy "hello" cho từng CLI.
 - Fixture sự kiện thật (đã xoá id/đường dẫn): `test-fixtures/runtimes/events/*.jsonl`; MCP thử: `test-fixtures/runtimes/fake-mcp.mjs`.
+
+## 9. GenBot (Bot API qua HTTP)
+
+Thêm ngày 2026-11-26. Adapter `src/runtimes/genbot.ts` không chạy CLI nào: mỗi lượt là `POST {base_url}/hooks/api/bots/{bot_id}/messages` với `Authorization: Bearer <process.env[key_env]>` và thân `{ message, wait }`, `wait ≤ 50` giây.
+
+**Chưa kiểm với GenBot thật.** Mọi kết quả dưới đây là với máy chủ giả `test-fixtures/runtimes/fake-genbot.mjs`. Hợp đồng HTTP lấy từ `genbot/desktop/docs/bot-api.md` (POST và GET) và `genbot/desktop/server/bot-api-host.ts`. GET trả `200 {reply, thread}` hoặc `202 {thread, status}`, không tốn lượt POST, và trả `404` cho luồng không do API mở.
+
+| GenBot trả | Adapter trả | Ghi chú |
+|---|---|---|
+| `200 {reply, thread}`, reply có chữ | `ok`, `output = reply` | `usage` để trống |
+| `200` với reply rỗng hoặc thiếu | `unknown` | GET đọc một lượt đã lỗi sau `202` thành reply rỗng: không coi là trả lời |
+| `202 {thread, status: "working"}` | đọc lại `GET …/messages?thread=<id>` mỗi 2 giây | Cùng một hạn chót `timeoutMs` cho xếp hàng, POST và GET; hết giờ là `timeout` |
+| `202 needs_approval` | `access`, lời nhắn có mã luồng | Engine nổi mục "Cần bạn" cho `access`; chủ mở app GenBot để duyệt |
+| `3xx` | `config` | Không theo chuyển hướng (khoá sẽ đi theo) |
+| `400`, `413`, `415`, `403` | `config` | `403` cũng là bot không tồn tại, gói Cloud Starter, hoặc AI của bot không chạy nhốt được |
+| `401` | `auth` | |
+| `404` | `config`, `clearSession: true` | Luồng không còn; dừng đọc lại |
+| `409` | `transient` | Không tự thử lại |
+| `429` | `quota`, `retryAfter` +60 giây | GenBot không gửi `Retry-After`; nếu có thì adapter dùng. `retryAfter` được giữ trong `task.meta` và trả về module qua `LeanRunResult.retryAfter` |
+| `502` | `unknown` | Lý do nằm trên thẻ Bot API trong app, không nằm trong phản hồi |
+| lỗi mạng trước khi gửi | `transient` | "Không kết nối được GenBot" |
+| lỗi mạng sau khi đã gửi | `transient` | Không rõ GenBot đã nhận chưa; **không** gửi lại (không có khoá chống trùng) |
+| `signal` bị huỷ | `cancelled` | Ngắt kết nối HTTP; GenBot có thể vẫn trả lời xong trong luồng của nó |
+
+Lỗi trả về có dạng `{ error: "…" }`; adapter chép lời đó (cắt 200 ký tự) vào `message`, sau khi che khoá.
+
+Bảo vệ khoá: `key_env` phải có dạng `GENBOT_KEY_*`; mọi tên `GENBOT_KEY_*` và mọi `key_env` của agent bị gỡ khỏi môi trường tiến trình con ở mọi lớp (kể cả biến được cấp), `connections.yaml` không chép được giá trị qua `$TÊN`, `ctx.connections.secret()` không đọc được, và giá trị bị che bởi `redactString`. Test: `src/runtimes/genbot-secrets.test.ts` (Claude và Codex giả không thấy biến).
+
+Đường truyền: `http://` chỉ tới 127.0.0.1, localhost, ::1; máy khác phải `https://`.
+
+Giới hạn: mỗi bot (`base_url` + `bot_id`) 10 POST mỗi 60 giây và tối đa 4 lượt mở cùng lúc, giữ trong bộ nhớ của một tiến trình AIOS.
+
+Cách kiểm thật (cần GenBot đang chạy và một bot đã bật Bot API):
+
+1. Đặt khoá vào `.env`: `GENBOT_KEY_CSKH=…`, khởi động lại AIOS.
+2. Tạo agent `runtime: genbot` với `runtime_options.base_url`, `bot_id`, `key_env`.
+3. `curl -X POST localhost:<cổng>/api/runtimes/genbot/check -H 'content-type: application/json' -d '{"agentId":"<id>","probe":true}'`: phải có `genbot.probe` mức `info`.
+4. Nhắn agent ở `/chat`; trong app GenBot phải thấy một luồng mới đánh dấu gửi qua Bot API.
+5. Ghi kết quả (thời gian trả lời, mã lỗi gặp được) vào mục này.
