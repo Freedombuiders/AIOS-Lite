@@ -6,7 +6,7 @@
  * Mapping to the dispatcher's three outcomes:
  *   defer  - a switch, flag, ownership change or cooldown that can heal: stays pending, re-checked later;
  *   review - the intent can no longer be trusted as written (backlog held, stale epoch, lost lock): a human decides;
- *   cancel - never send (opt-out, a person answered first).
+ *   cancel - never send (opt-out, a person answered first, the conversation is paused / handed to a person).
  */
 import type Database from 'better-sqlite3';
 import type { CareAccountRecord } from '../../../_lib/care-kit/types.js';
@@ -21,7 +21,9 @@ export const OUTBOX_BACKLOG_KIND = 'outbox_intent';
 
 const GATE_REVIEW: ReadonlySet<DispatchDenyCode> = new Set(['BACKLOG_HELD', 'STALE_EPOCH', 'EPOCH_REQUIRED', 'LOCK_LOST', 'ACCOUNT_NOT_FOUND', 'INVALID_SOURCE']);
 
-const ELIGIBILITY_CANCEL: ReadonlySet<string> = new Set(['opted_out', 'human_active', 'stale_context']);
+// T06: `conversation_paused` cancels (only automatic replies are checked against a pause). Deferring would send the
+// reply, by then stale, as soon as the pause or handoff ends.
+const ELIGIBILITY_CANCEL: ReadonlySet<string> = new Set(['opted_out', 'human_active', 'stale_context', 'conversation_paused']);
 const ELIGIBILITY_REVIEW: ReadonlySet<string> = new Set(['marketing_consent_missing', 'telegram_ai_blocked', 'write_owner_not_core']);
 
 function policyActor(intent: DispatchGuardContext['intent']): CarePolicyActor {

@@ -19,12 +19,21 @@ export interface StateRow {
   assigneeAgentId: string | null;
   aiMode: 'off' | 'draft' | 'auto' | null;
   takenOverAt: number | null;
+  /** Open customer handoff (T06): when, which configured keyword, which message. Null when none is open. */
+  handoffAt: number | null;
+  handoffKeyword: string | null;
+  handoffMessageId: string | null;
   stateRevision: number;
   updatedAt: number;
 }
 
 /** Fields a write may change; the revision and `updated_at` are always handled by `writeState`. */
-export type StatePatch = Partial<Pick<StateRow, 'workflow' | 'snoozedUntil' | 'changedAt' | 'assigneeKind' | 'assigneeAgentId' | 'aiMode' | 'takenOverAt'>>;
+export type StatePatch = Partial<
+  Pick<
+    StateRow,
+    'workflow' | 'snoozedUntil' | 'changedAt' | 'assigneeKind' | 'assigneeAgentId' | 'aiMode' | 'takenOverAt' | 'handoffAt' | 'handoffKeyword' | 'handoffMessageId'
+  >
+>;
 
 interface NoteRow {
   id: string;
@@ -83,6 +92,9 @@ export class CareWorkflowStore {
       assigneeAgentId: r.assignee_agent_id,
       aiMode: r.ai_mode,
       takenOverAt: r.taken_over_at === null ? null : Number(r.taken_over_at),
+      handoffAt: r.handoff_at === null || r.handoff_at === undefined ? null : Number(r.handoff_at),
+      handoffKeyword: r.handoff_keyword ?? null,
+      handoffMessageId: r.handoff_message_id ?? null,
       stateRevision: Number(r.state_revision),
       updatedAt: Number(r.updated_at),
     };
@@ -100,6 +112,9 @@ export class CareWorkflowStore {
       assigneeAgentId: cur?.assigneeAgentId ?? null,
       aiMode: cur?.aiMode ?? null,
       takenOverAt: cur?.takenOverAt ?? null,
+      handoffAt: cur?.handoffAt ?? null,
+      handoffKeyword: cur?.handoffKeyword ?? null,
+      handoffMessageId: cur?.handoffMessageId ?? null,
       stateRevision: (cur?.stateRevision ?? 0) + 1,
       updatedAt: now,
       ...patch,
@@ -107,12 +122,14 @@ export class CareWorkflowStore {
     this.db
       .prepare(
         `INSERT INTO care_conversation_state
-           (conversation_id, workflow, snoozed_until, changed_at, assignee_kind, assignee_agent_id, ai_mode, taken_over_at, state_revision, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           (conversation_id, workflow, snoozed_until, changed_at, assignee_kind, assignee_agent_id, ai_mode, taken_over_at,
+            handoff_at, handoff_keyword, handoff_message_id, state_revision, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT(conversation_id) DO UPDATE SET
            workflow = excluded.workflow, snoozed_until = excluded.snoozed_until, changed_at = excluded.changed_at,
            assignee_kind = excluded.assignee_kind, assignee_agent_id = excluded.assignee_agent_id, ai_mode = excluded.ai_mode,
-           taken_over_at = excluded.taken_over_at, state_revision = excluded.state_revision, updated_at = excluded.updated_at`,
+           taken_over_at = excluded.taken_over_at, handoff_at = excluded.handoff_at, handoff_keyword = excluded.handoff_keyword,
+           handoff_message_id = excluded.handoff_message_id, state_revision = excluded.state_revision, updated_at = excluded.updated_at`,
       )
       .run(
         next.conversationId,
@@ -123,6 +140,9 @@ export class CareWorkflowStore {
         next.assigneeAgentId,
         next.aiMode,
         next.takenOverAt,
+        next.handoffAt,
+        next.handoffKeyword,
+        next.handoffMessageId,
         next.stateRevision,
         next.updatedAt,
       );

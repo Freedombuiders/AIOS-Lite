@@ -15,6 +15,7 @@ import type { CareAiMode, CareCannedReplyDto, CareInboxView, CareNoteDto, CareWo
 import { ApiError, invalid, notFound } from '../api/errors.js';
 import type { CareWorkflowService } from './contract.js';
 import { CareWorkflowStore, storeKeyOf, type StatePatch } from './store.js';
+import { HANDOFF_CLEARED, withdrawAutoReplies } from '../application/conversation-hold.js';
 
 export * from './contract.js';
 export { ensureWorkflowSchema } from './schema.js';
@@ -38,6 +39,8 @@ const AGENT_ID_RE = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$/;
 const SHORTCUT_RE = /^[a-z0-9_-]{1,32}$/;
 const REQUEST_ID_RE = /^[A-Za-z0-9_.:-]{1,128}$/;
 const AI_MODES: readonly CareAiMode[] = ['off', 'draft', 'auto'];
+/** Timed pause lengths the API offers (minutes); null = until switched back on. */
+export const PAUSE_MINUTES: readonly number[] = [30, 120];
 
 interface ConvInfo {
   id: string;
@@ -80,7 +83,7 @@ export function createCareWorkflowService(deps: CareWorkflowDeps): CareWorkflowS
    * One immediate transaction: the stored-state write, then the revision bump and the SSE
    * event. A throw anywhere rolls the lot back.
    */
-  function write(id: string, kind: string, patch: StatePatch, expected?: number): CareConversationDto {
+  function write(id: string, kind: string, patch: StatePatch, expected?: number, after?: (conv: ConvInfo, now: number) => void): CareConversationDto {
     const conv = requireConv(id);
     db.transaction(() => {
       const cur = store.getState(id);
@@ -88,8 +91,29 @@ export function createCareWorkflowService(deps: CareWorkflowDeps): CareWorkflowS
       if (expected !== undefined && expected !== currentRevision) {
         throw new ApiError('STALE_REVISION', 409, undefined, { currentRevision });
       }
-      const row = store.writeState(id, patch, deps.now());
+      const now = deps.now();
+      // Handing a conversation back (take-over cleared) closes an open customer handoff and lifts the pause it set:
+      // only this owner action ends a handoff.
+      const releasing = patch.takenOverAt === null && cur?.handoffAt !== null && cur?.handoffAt !== undefined;
+      const row = store.writeState(id, releasing ? { ...patch, ...HANDOFF_CLEARED } : patch, now);
+      if (releasing) stores.conversations.setCareFlags(id, { isPaused: false, pausedUntilMs: null });
       emit(conv, `conv-state:${id}:${row.stateRevision}`, kind);
+      after?.(conv, now);
+    }).immediate();
+    return dtoOf(id);
+  }
+
+  /** The bot stops speaking here: its queued automatic replies are cancelled (never deferred past the hold). */
+  const withdrawAuto = (reason: string) => (conv: ConvInfo, now: number) => void withdrawAutoReplies(stores, conv.id, reason, now);
+
+  /** Pause flags on the conversation row + the SSE event, in one transaction. */
+  function writePause(id: string, flags: { isPaused: boolean; pausedUntilMs: number | null }, reason: string | null): CareConversationDto {
+    const conv = requireConv(id);
+    db.transaction(() => {
+      const now = deps.now();
+      stores.conversations.setCareFlags(id, flags);
+      emit(conv, `conv-pause:${id}:${flags.isPaused ? 1 : 0}:${flags.pausedUntilMs ?? 'open'}:${now}`, 'pause');
+      if (reason) withdrawAutoReplies(stores, id, reason, now);
     }).immediate();
     return dtoOf(id);
   }
@@ -132,7 +156,7 @@ export function createCareWorkflowService(deps: CareWorkflowDeps): CareWorkflowS
       const now = deps.now();
       switch (change.kind) {
         case 'owner':
-          return write(id, 'assignee', { assigneeKind: 'owner', assigneeAgentId: null, takenOverAt: now });
+          return write(id, 'assignee', { assigneeKind: 'owner', assigneeAgentId: null, takenOverAt: now }, undefined, withdrawAuto('TAKEN_OVER'));
         case 'agent':
           return write(id, 'assignee', { assigneeKind: 'agent', assigneeAgentId: validAgent(change.agentId), takenOverAt: null });
         case 'none':
@@ -145,7 +169,17 @@ export function createCareWorkflowService(deps: CareWorkflowDeps): CareWorkflowS
 
     setAiMode(id, mode) {
       if (!AI_MODES.includes(mode)) throw invalid('Unknown AI mode.');
-      return write(id, 'ai', { aiMode: mode });
+      return write(id, 'ai', { aiMode: mode }, undefined, mode === 'off' ? withdrawAuto('AI_OFF') : undefined);
+    },
+
+    setPause(id, minutes) {
+      if (minutes !== null && !PAUSE_MINUTES.includes(minutes)) throw invalid(`minutes must be one of ${PAUSE_MINUTES.join(', ')} or null.`);
+      const until = minutes === null ? null : deps.now() + minutes * 60_000;
+      return writePause(id, { isPaused: true, pausedUntilMs: until }, 'PAUSED');
+    },
+
+    resume(id) {
+      return writePause(id, { isPaused: false, pausedUntilMs: null }, null);
     },
 
     setTakeover(id, on) {
@@ -158,6 +192,8 @@ export function createCareWorkflowService(deps: CareWorkflowDeps): CareWorkflowS
         on
           ? { assigneeKind: 'owner', assigneeAgentId: null, takenOverAt: now }
           : { assigneeKind: cur?.assigneeKind === 'owner' ? 'default' : (cur?.assigneeKind ?? 'default'), takenOverAt: null },
+        undefined,
+        on ? withdrawAuto('TAKEN_OVER') : undefined,
       );
     },
 

@@ -9,7 +9,9 @@ import type { ModuleContext } from '../../../src/modules/sdk.js';
 import type { CareChannel, CareAccountRecord, NormalizedEvent } from '../../_lib/care-kit/index.js';
 import { CareError } from '../../_lib/care-kit/index.js';
 import { createLeanAgentRunner } from './application/agent-runner-lean.js';
-import type { AgentTurnOutcome } from './application/agent-turn.js';
+import { OWNER_SKIP_REASONS, type AgentTurnOutcome } from './application/agent-turn.js';
+import { createConversationControlReader, type CustomerHandoff } from './application/conversation-hold.js';
+import { parseHandoffKeywords, parseHandoffPauseMinutes } from './policy/handoff.js';
 import { CareMediaCache } from './application/media-cache.js';
 import { createTurnMediaSource, sweepTurnMedia, TURN_MEDIA_STALE_MS } from './application/turn-media.js';
 import { createConnectorRegistry, type CareConnectorExt, type MutableConnectorRegistry } from './connectors/registry.js';
@@ -87,6 +89,37 @@ function skillText(ctx: ModuleContext, agentId: string): string | null {
 
 const draftKey = (conversationId: string) => `care:draft:${conversationId}`;
 const handoffKey = (conversationId: string) => `care:handoff:${conversationId}`;
+/** T06: the customer asked for a person (hard rule); resolved by the sweep once the owner hands the conversation back. */
+const customerHandoffKey = (conversationId: string) => `care:customer-handoff:${conversationId}`;
+/** T06: a turn the bot could not take (images/files it cannot read, prompt over the runtime limit). */
+const needsOwnerKey = (conversationId: string) => `care:needs-owner:${conversationId}`;
+
+const NEEDS_OWNER_TITLE: Record<string, string> = {
+  media_needs_owner: 'Khách gửi ảnh hoặc tệp mà agent không đọc được, bạn xem giúp',
+  prompt_too_long: 'Cuộc trò chuyện quá dài để agent trả lời, bạn xem giúp',
+};
+
+/** Max prompt characters of the agent's runtime, when the core exposes it (optional SDK hook; null when unknown). */
+function promptLimitOf(ctx: ModuleContext, agentId: string): number | null {
+  const agents = ctx.agents as ModuleContext['agents'] & { promptLimit?: (agentId: string) => number | null };
+  try {
+    const v = agents.promptLimit?.(agentId);
+    return typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+function raiseCustomerHandoff(ctx: ModuleContext, raised: Set<string>, h: Pick<CustomerHandoff, 'conversationId' | 'keyword'>): void {
+  raised.add(customerHandoffKey(h.conversationId));
+  ctx.attention.raise({
+    key: customerHandoffKey(h.conversationId),
+    title: 'Khách muốn gặp người thật',
+    detail: `Khách nhắc tới "${h.keyword}". Agent đã dừng ở cuộc trò chuyện này cho tới khi bạn trả lại cho agent.`,
+    link: `/m/care/inbox/${h.conversationId}`,
+    severity: 'warn',
+  });
+}
 
 export function careState(ctx: ModuleContext): CareModuleState {
   const existing = states.get(ctx);
@@ -121,6 +154,9 @@ export function careState(ctx: ModuleContext): CareModuleState {
     } else if (out.status === 'skipped' && out.reason === 'agent_handoff_suggested') {
       raised.add(handoffKey(conversationId));
       ctx.attention.raise({ key: handoffKey(conversationId), title: 'Agent đề nghị người thật xem cuộc trò chuyện này', link, severity: 'warn' });
+    } else if (out.status === 'skipped' && OWNER_SKIP_REASONS.has(out.reason)) {
+      raised.add(needsOwnerKey(conversationId));
+      ctx.attention.raise({ key: needsOwnerKey(conversationId), title: NEEDS_OWNER_TITLE[out.reason] ?? 'Agent không trả lời được, bạn xem giúp', link, severity: 'warn' });
     }
   };
 
@@ -134,7 +170,8 @@ export function careState(ctx: ModuleContext): CareModuleState {
     killSwitches: () => ({
       moduleEnabled: true,
       aiEnabled: ctx.settings.get<boolean>('aiEnabled', true),
-      autoSendEnabled: ctx.settings.get<boolean>('autoSendEnabled', true),
+      // T06: draft-only unless the owner switched automatic sending on (module.json default false).
+      autoSendEnabled: ctx.settings.get<boolean>('autoSendEnabled', false),
       channels: {},
     }),
     agentCan: (agentId, scope) => ctx.access.can(agentId, scope),
@@ -147,15 +184,20 @@ export function careState(ctx: ModuleContext): CareModuleState {
       onError: (err, messageId, index) =>
         ctx.log.warn({ messageId, index, reason: err instanceof Error ? err.message.slice(0, 200) : 'unknown' }, 'care media: could not fetch a document for the agent'),
     }),
-    conversationControl: (conversationId) => {
-      const row = ctx.db.prepare('SELECT ai_mode AS aiMode, taken_over_at AS takenOverAt FROM care_conversation_state WHERE conversation_id = ?').get(conversationId) as
-        | { aiMode: 'off' | 'draft' | 'auto' | null; takenOverAt: number | null }
-        | undefined;
-      return row ? { takenOver: row.takenOverAt !== null, aiMode: row.aiMode } : null;
-    },
+    conversationControl: createConversationControlReader(ctx.db),
     autoDelaySeconds: () => {
       const v = Number(ctx.settings.get<number>('autoDelaySeconds', 10));
       return Number.isFinite(v) && v >= 0 ? Math.floor(v) : null;
+    },
+    promptLimit: (agentId) => promptLimitOf(ctx, agentId),
+    handoff: () => {
+      const all = ctx.settings.all();
+      return { keywords: parseHandoffKeywords(all.handoffKeywords), pauseMinutes: parseHandoffPauseMinutes(all.handoffPauseMinutes) };
+    },
+    onHandoff: (h) => raiseCustomerHandoff(ctx, raised, h),
+    turnDebounceMs: () => {
+      const v = Number(ctx.settings.get<number>('turnDebounceSeconds', 0));
+      return Number.isFinite(v) && v > 0 ? Math.min(Math.floor(v), 60) * 1000 : 0;
     },
     quietHours: (_channel, nowMs) =>
       quietHoursAt(
@@ -227,6 +269,27 @@ export function syncDraftAttention(ctx: ModuleContext, state: CareModuleState): 
   }
   for (const k of [...state.raised]) {
     if (!k.startsWith('care:draft:') || open.has(k)) continue;
+    state.raised.delete(k);
+    ctx.attention.resolve(k);
+  }
+  syncHandoffAttention(ctx, state);
+}
+
+/**
+ * T06: every open customer handoff has an attention item (also after a restart, or when the post-commit raise was
+ * lost), and the item goes away once the owner hands the conversation back.
+ */
+export function syncHandoffAttention(ctx: ModuleContext, state: CareModuleState): void {
+  const rows = ctx.db
+    .prepare(`SELECT conversation_id AS id, handoff_keyword AS keyword FROM care_conversation_state WHERE handoff_at IS NOT NULL`)
+    .all() as Array<{ id: string; keyword: string | null }>;
+  const open = new Set(rows.map((r) => customerHandoffKey(r.id)));
+  for (const r of rows) {
+    if (state.raised.has(customerHandoffKey(r.id))) continue;
+    raiseCustomerHandoff(ctx, state.raised, { conversationId: r.id, keyword: r.keyword ?? '' });
+  }
+  for (const k of [...state.raised]) {
+    if (!k.startsWith('care:customer-handoff:') || open.has(k)) continue;
     state.raised.delete(k);
     ctx.attention.resolve(k);
   }

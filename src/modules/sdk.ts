@@ -104,6 +104,11 @@ export interface ModuleContext {
     runLean(input: LeanRunInput): Promise<LeanRunResult>;
     /** which attachments the agent's runtime can actually read (false for an unknown agent) */
     attachments(agentId: string): { images: boolean; documents: boolean };
+    /**
+     * Most characters the agent's runtime accepts in one prompt (`RuntimeCapabilities.maxPromptChars`), null when the
+     * runtime states none or the agent is unknown. Optional so test doubles need not implement it.
+     */
+    promptLimit?(agentId: string): number | null;
   };
   access: {
     /** scope of THIS module, e.g. can('sales-a', 'reply.send') */
