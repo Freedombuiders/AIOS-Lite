@@ -49,6 +49,8 @@ export interface ModuleManager {
   provides<T = Record<string, unknown>>(id: string): T | undefined;
   /** mount /api/m/:id/* on the app, returning 404 for disabled modules */
   mount(app: Hono): void;
+  /** every route of the running modules, as served under /api/m/<id> (used by the owner-route coverage test) */
+  routeTable(): { method: string; path: string }[];
   /** boot: load + start every enabled module */
   start(): Promise<void>;
   stop(): Promise<void>;

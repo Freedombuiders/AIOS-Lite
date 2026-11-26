@@ -10,6 +10,7 @@ import { navOpen } from '@/lib/palette';
 import { setAppearance } from '@/lib/personalization';
 import { navItems } from '@/module-host/host';
 import { ToastHost } from '@/components/ToastHost';
+import { OwnerSignIn } from '@/components/OwnerSignIn';
 import { mockEnabled } from '@/lib/mock';
 import { startSse } from '@/lib/sse';
 import { routes, startModuleHost } from '@/module-host/host';
@@ -136,6 +137,7 @@ export function App() {
       <CommandPalette />
       {mockEnabled() && <div class="pointer-events-none fixed top-2 left-1/2 z-40 -translate-x-1/2 rounded-full border border-[var(--color-accent)] bg-[var(--color-card)] px-3 py-0.5 text-[11px] text-[var(--color-accent)]">Xem thử với dữ liệu giả, chưa nối máy chủ thật</div>}
       <ToastHost />
+      <OwnerSignIn />
     </Router>
   );
 }

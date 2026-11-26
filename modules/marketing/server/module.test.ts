@@ -20,12 +20,14 @@ async function boot() {
   h.fakes.connections.set('composio', { id: 'composio', type: 'composio' } as never);
   const mgr = createModuleManager(h.deps, { fromDist: false });
   (h.deps as { modules: unknown }).modules = mgr;
-  return { mgr, app: createApiServer(h.deps).app };
+  const server = createApiServer(h.deps);
+  const owner = `aios_owner=${server.owner.redeem(server.owner.issueCode())}`;
+  return { mgr, app: server.app, owner };
 }
 
 describe('marketing module with the manager', () => {
   it('adds, serves its routes, stays off until enabled, and removes cleanly', async () => {
-    const { mgr, app } = await boot();
+    const { mgr, app, owner } = await boot();
     const add = await mgr.add('marketing', { installAgents: true });
     expect(add.module.error).toBeUndefined();
     expect(add.migrationsApplied).toEqual(['001_init', '002_lineage_feed']);
@@ -39,7 +41,7 @@ describe('marketing module with the manager', () => {
     expect(isFbStudioEnabled()).toBe(false);
     expect(isEnabled('FB_PUBLISH_ENABLED')).toBe(true);
 
-    const put = await app.request('/api/m/marketing/settings', { method: 'PUT', body: JSON.stringify({ enabled: true, apiBudgetPerHour: 90 }), headers: { 'content-type': 'application/json' } });
+    const put = await app.request('/api/m/marketing/settings', { method: 'PUT', body: JSON.stringify({ enabled: true, apiBudgetPerHour: 90 }), headers: { 'content-type': 'application/json', cookie: owner } });
     expect(await put.json()).toMatchObject({ enabled: true, apiBudgetPerHour: 90 });
     expect(isFbStudioEnabled()).toBe(true);
     expect(mgr.settings('marketing')).toMatchObject({ enabled: true, api_budget_per_hour: 90 });

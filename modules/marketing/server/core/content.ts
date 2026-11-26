@@ -188,6 +188,9 @@ export function createContent(input: FbContentInput, actor: Actor, now: number =
 
 // ── Update ───────────────────────────────────────────────────────────
 
+/** Statuses an owner approval put the post in; the publisher may act on them. */
+const POST_APPROVAL: FbContentStatus[] = ['approved', 'scheduled', 'failed', 'missed'];
+
 const CONTENT_FIELDS: Array<[keyof FbContentInput, string]> = [
   ['title', 'title'],
   ['caption', 'caption'],
@@ -255,7 +258,10 @@ export function updateContent(id: number, patch: FbContentInput, actor: Actor, n
   if (patch.scheduledAt !== undefined) {
     if (editable === 'tags') throw new FbError(409, 'Bài đã đăng, không đổi giờ được.');
     const at = patch.scheduledAt;
-    if (current === 'approved' || current === 'scheduled' || (at !== null && (current === 'failed' || current === 'missed'))) {
+    // Only the owner (re)schedules. An agent's time is always a proposal; see the review rule below.
+    const ownerReschedule = actor.kind === 'user'
+      && (current === 'approved' || current === 'scheduled' || (at !== null && (current === 'failed' || current === 'missed')));
+    if (ownerReschedule) {
       if (at === null) {
         nextStatus = 'approved';
         set.scheduled_at = null;
@@ -276,7 +282,7 @@ export function updateContent(id: number, patch: FbContentInput, actor: Actor, n
       if (at !== null && (!Number.isFinite(at) || at <= now)) throw new FbError(400, 'Giờ đề xuất phải ở tương lai.');
       set.scheduled_at = at;
     }
-  } else if (current === 'scheduled' && (patch.pageId !== undefined && pageId !== row.page_id)) {
+  } else if (actor.kind === 'user' && current === 'scheduled' && (patch.pageId !== undefined && pageId !== row.page_id)) {
     // Moving a scheduled post to another Page must satisfy that Page's rules.
     const page = requirePageOf(merged);
     assertScheduleAllowed(page, row.scheduled_at ?? 0, id, now);
@@ -287,14 +293,12 @@ export function updateContent(id: number, patch: FbContentInput, actor: Actor, n
     if (problems.length) throw new FbError(400, problems.join(' '));
   }
 
-  // An agent editing approved content on a Page that needs approval sends it back for review.
-  const contentChanged = Object.keys(set).some((k) => !['scheduled_at', 'next_attempt_at', 'attempts', 'last_error'].includes(k));
-  if (actor.kind === 'agent' && contentChanged && (nextStatus === 'approved' || nextStatus === 'scheduled')) {
-    const page = pageId ? getFbPage(pageId) : undefined;
-    if (!page || page.approval_required === 1) {
-      nextStatus = 'review';
-      set.next_attempt_at = null;
-    }
+  // Agents never approve or schedule. Any agent edit (content or time) of a post that is past
+  // approval sends it back to review, whatever the Page's approval_required says: that flag only
+  // shapes the owner's own flow, never what an agent may do.
+  if (actor.kind === 'agent' && Object.keys(set).length > 0 && POST_APPROVAL.includes(current)) {
+    nextStatus = 'review';
+    set.next_attempt_at = null;
   }
 
   if (nextStatus !== current) set.status = nextStatus;

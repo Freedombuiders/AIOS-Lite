@@ -201,6 +201,7 @@ Vào **Hệ thống › Kết nối**.
 - **Dừng khẩn cấp:** bật để ngừng giao việc mới cho mọi agent. Việc đang chạy vẫn tiếp tục tới khi xong hoặc bạn huỷ.
 - **Giao diện:** Tối, Sáng hoặc theo hệ thống.
 - **Mã truy cập:** nếu máy chủ đặt `AIOS_TOKEN`, nhập token ở đây (lưu trong trình duyệt này).
+- **Đăng nhập chủ:** gửi tin cho khách, duyệt hay đăng bài, đổi quảng cáo, cài đặt module và quyền agent chỉ chủ làm được. Lần đầu, mở liên kết "Đăng nhập chủ AIOS-Lite" in ở terminal đang chạy app, hoặc nhập mã đó vào màn hình đăng nhập hiện ra khi bị chặn. Phiên giữ 30 ngày trên trình duyệt đó.
 - **Nhật ký:** mọi hành động quan trọng (ai, làm gì, lúc nào) để tra lại.
 
 ## 13. Sao lưu và chuyển máy

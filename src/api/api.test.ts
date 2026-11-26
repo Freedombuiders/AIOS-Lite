@@ -17,6 +17,7 @@ const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '
 let h: TestHarness;
 let app: Hono;
 let deps: AppDeps;
+let ownerHeaders: Record<string, string> = {};
 
 function wire(token?: string) {
   h = createTestHarness({ modulesDir: FIXTURES, env: token ? { AIOS_TOKEN: token } : {} });
@@ -98,13 +99,16 @@ function wire(token?: string) {
   f.agents.get('main')!.access.connections = { gh: true };
   f.connections.set('gh', { id: 'gh', type: 'env', env: { TOKEN: 'ghp_supersecretvalue1234567890', REF: '$GH_TOKEN', EMPTY: '' } });
   (deps as { modules: unknown }).modules = createModuleManager(deps, { fromDist: false });
-  app = createApiServer(deps, { webDir: path.join(h.root, 'no-web') }).app;
+  const server = createApiServer(deps, { webDir: path.join(h.root, 'no-web') });
+  app = server.app;
+  // these contract tests act as the paired owner browser (owner.test.ts covers the refusals)
+  ownerHeaders = { cookie: `aios_owner=${server.owner.redeem(server.owner.issueCode())}` };
 }
 
 const call = async (method: string, url: string, payload?: unknown, headers: Record<string, string> = {}) => {
   const res = await app.request(url, {
     method,
-    headers: { ...(payload !== undefined ? { 'content-type': 'application/json' } : {}), ...headers },
+    headers: { ...ownerHeaders, ...(payload !== undefined ? { 'content-type': 'application/json' } : {}), ...headers },
     body: payload !== undefined ? JSON.stringify(payload) : undefined,
   });
   const text = await res.text();
@@ -132,6 +136,7 @@ describe('conventions', () => {
 
   it('enforces AIOS_TOKEN (header; ?token= only for SSE)', async () => {
     wire('s3cret');
+    ownerHeaders = {};
     expect((await call('GET', '/api/health')).status).toBe(401);
     expect((await call('GET', '/api/health', undefined, { authorization: 'Bearer wrong' })).status).toBe(401);
     expect((await call('GET', '/api/health?token=s3cret')).status).toBe(401);

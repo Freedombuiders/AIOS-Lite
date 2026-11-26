@@ -153,8 +153,12 @@ export async function startApp(opts: BootstrapOptions = {}): Promise<RunningApp>
   await deps.modules.start();
   deps.dispatcher.start();
   deps.scheduler.start();
-  const server = await createApiServer(deps).listen();
+  const api = createApiServer(deps);
+  const server = await api.listen();
   deps.log.info({ host: deps.config.host, port: deps.config.port }, 'AIOS-Lite đang chạy');
+  // One-time owner pairing code on this terminal (stdout, not the logger): see src/api/owner.ts.
+  const linkHost = deps.config.host === '0.0.0.0' || deps.config.host === '::' ? '127.0.0.1' : deps.config.host;
+  if (process.env.AIOS_OWNER_PAIRING !== 'off') api.owner.announce(`http://${linkHost}:${server.port}`);
 
   // Second Brain: index once at boot, then every 15 minutes (incremental, mtime-based).
   const reindexBrain = () =>

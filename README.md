@@ -94,6 +94,8 @@ npm start
 |---|---|---|
 | `AIOS_PORT`, `AIOS_HOST` | `4380`, `127.0.0.1` | Địa chỉ nghe. Chỉ nghe trên máy này theo mặc định. |
 | `AIOS_TOKEN` | (trống) | Nếu đặt, mọi lời gọi API phải kèm `Authorization: Bearer <token>`. |
+| `AIOS_ALLOWED_ORIGINS` | (trống) | Thêm origin được phép gửi yêu cầu ghi (cách nhau bằng dấu phẩy), khi mở giao diện qua một địa chỉ khác `Host` của máy chủ. |
+| `AIOS_OWNER_PAIRING` | (bật) | `off` để không in mã đăng nhập chủ ra terminal khi chỉ dùng `AIOS_TOKEN`. Xem [docs/dev/OWNER-AUTH.md](docs/dev/OWNER-AUTH.md). |
 | `AIOS_MAX_PARALLEL` | `3` | Số lượt agent chạy cùng lúc trên toàn hệ thống. |
 | `AIOS_DATA_DIR` | `./data` | Nơi chứa `aios.db` (SQLite) và dữ liệu module. |
 | `AIOS_SKILLS_DIRS` | `./skills` | Thư viện skill (nhiều thư mục thì ngăn bằng dấu phẩy). |

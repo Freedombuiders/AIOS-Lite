@@ -297,10 +297,21 @@ describe('updateContent', () => {
     expect(updateContent(id2, { caption: 'user edit' }, user).status).toBe('approved');
   });
 
-  it('keeps the status for agent edits on Pages with approval off', () => {
+  it('sends agent edits back to review on Pages with approval off too; the owner path is unchanged', () => {
     makePage('p4', { approval_required: 0 });
     const id = seedContent({ page_id: 'p4', status: 'approved' });
-    expect(updateContent(id, { caption: 'agent edit' }, agent).status).toBe('approved');
+    expect(updateContent(id, { caption: 'agent edit' }, agent).status).toBe('review');
+    const sched = seedContent({ page_id: 'p4', status: 'scheduled', scheduled_at: futureAt(3, '12:00') });
+    expect(updateContent(sched, { scheduledAt: futureAt(2, '12:00') }, agent).status).toBe('review');
+    // an agent time on a failed post is a proposal, not a reschedule
+    const failed = seedContent({ page_id: 'p4', status: 'failed' });
+    expect(updateContent(failed, { scheduledAt: futureAt(2, '12:00') }, agent).status).toBe('review');
+    // the owner still edits, reschedules and approves directly
+    const own = seedContent({ page_id: 'p4', status: 'approved' });
+    expect(updateContent(own, { caption: 'owner edit' }, user).status).toBe('approved');
+    expect(updateContent(own, { scheduledAt: futureAt(2, '12:00') }, user).status).toBe('scheduled');
+    const review = seedContent({ page_id: 'p4', status: 'review' });
+    expect(approveContent(review, futureAt(2, '15:00')).status).toBe('scheduled');
   });
 
   it('answers 409 when the publisher claimed the row meanwhile', () => {
