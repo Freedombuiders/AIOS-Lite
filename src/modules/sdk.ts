@@ -15,6 +15,9 @@ import type { CreateTaskInput } from '../work/contracts.js';
 import type { ModuleNotes } from '../shared/notes.js';
 import type { IntegrationDefinition } from '../integrations/types.js';
 
+/** Wrap data an agent must read but not obey (notes, customer text) for agentContext / moduleContext. */
+export { untrusted } from '../shared/context.js';
+
 export interface ModuleSettingSpec {
   label: string;
   type: 'boolean' | 'number' | 'string' | 'select' | 'secret';

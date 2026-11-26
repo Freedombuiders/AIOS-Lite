@@ -1,19 +1,48 @@
 {
   "id": "learn",
   "name": "Học từ bài đăng",
-  "description": "Mỗi bài Facebook đã đăng thành một ghi chú trong Second Brain, kèm số đo theo mốc; tính dạng bài nào hiệu quả.",
-  "version": "0.1.0",
+  "description": "Mỗi bài Facebook đã đăng thành một ghi chú trong Second Brain, kèm số đo theo mốc; sổ bài học, tổng kết tuần và chấm bài trước khi đăng.",
+  "version": "0.2.0",
   "icon": "graduation-cap",
   "category": "marketing",
   "requires": { "modules": ["marketing"] },
-  "enhances": ["social"],
-  "tables": ["learn_state", "learn_post_index"],
+  "enhances": ["social", "care"],
+  "scopes": {
+    "playbook.read": "Đọc các bài học đã kiểm chứng có tên mình trong dung_boi",
+    "learn.propose": "Đề xuất bài học mới (vào ở Giả thuyết, chờ chủ xem)"
+  },
+  "tables": ["learn_state", "learn_post_index", "learn_weekly", "learn_lesson_log", "learn_proposals", "learn_hook_cache"],
   "settings": {
     "folder": {
       "label": "Thư mục Second Brain",
       "type": "string",
       "default": "",
-      "help": "Id thư mục Second Brain để ghi các bài đã đăng vào noi-dung/bai/. Để trống thì module không ghi gì."
+      "help": "Id thư mục Second Brain để ghi các bài đã đăng vào noi-dung/bai/, bài học vào bai-hoc/ và tổng kết vào tong-ket/. Để trống thì module không ghi gì."
+    },
+    "agent": {
+      "label": "Agent viết tổng kết và chấm kiểu mở đầu",
+      "type": "string",
+      "default": "",
+      "help": "Id agent chạy một lượt ngắn để viết phần lời của tổng kết tuần và nhận kiểu mở đầu của bài nháp. Agent cần quyền \"Đọc các bài học\" của module này. Để trống thì chỉ có phần số liệu."
+    },
+    "trial_posts": {
+      "label": "Số bài thử trước khi kết luận",
+      "type": "number",
+      "default": 4,
+      "help": "Đủ số bài thử đã đo thì máy đề xuất kiểm chứng hoặc bác bỏ một bài học đang thử. 3–4 bài chỉ là thăm dò."
+    },
+    "moc": {
+      "label": "Mốc so sánh",
+      "type": "select",
+      "default": "24h",
+      "options": [
+        { "value": "1h", "label": "1 giờ" },
+        { "value": "6h", "label": "6 giờ" },
+        { "value": "24h", "label": "24 giờ" },
+        { "value": "3d", "label": "3 ngày" },
+        { "value": "7d", "label": "7 ngày" }
+      ],
+      "help": "Bài thử và trung vị kênh luôn so ở cùng một mốc và cùng nền tảng."
     }
   }
 }
