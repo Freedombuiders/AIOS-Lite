@@ -22,7 +22,7 @@ import { integrationServiceFor } from './integrations/mount.js';
 import { INTEGRATIONS } from './integrations/registry.js';
 import { startCostWatcher } from './work/costs.js';
 import { createMemoryService } from './shared/memory.js';
-import { createNotesService } from './shared/notes.js';
+import { createNotes } from './shared/notes.js';
 import { createSkillLibrary } from './shared/skills.js';
 import { createAttentionService } from './work/attention.js';
 import { createChatService } from './work/chat.js';
@@ -82,7 +82,7 @@ export function bootstrap(opts: BootstrapOptions = {}): AppDeps {
     integrationToken: (agentId, taskId) => integrationServiceFor(lazy.deps!).createRunToken(agentId, taskId),
   });
 
-  const notes = createNotesService({ brain, canWrite: (a, f, p) => access.canWritePath(a, f, p), log });
+  const notes = createNotes({ brain, canRead: (a, f, p) => access.canReadPath(a, f, p), canWrite: (a, f, p) => access.canWritePath(a, f, p), log });
 
   const tasks = createTaskService({ db, bus, agents, abort: (id) => lazy.dispatcher?.abort(id) ?? false });
   const runs = createRunService({ db, bus });

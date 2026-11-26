@@ -19,6 +19,12 @@ function split(text: string): Split | null {
   return { bom: m[1] ?? '', eol: m[2] ?? '\n', yaml: m[3] ?? '', body: text.slice(m[0].length) };
 }
 
+/** Raw frontmatter block (fences included, '' when none) and the body after it, without parsing the YAML. */
+export function splitFrontmatter(text: string): { head: string; body: string } {
+  const m = FENCE_RE.exec(text);
+  return m ? { head: m[0], body: text.slice(m[0].length) } : { head: '', body: text };
+}
+
 /** Throws when the block is not valid YAML. A block that is not a mapping reads as `{}`. */
 export function parseFrontmatter(text: string): { data: Record<string, unknown>; body: string; has: boolean } {
   const s = split(text);

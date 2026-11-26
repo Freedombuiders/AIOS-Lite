@@ -15,6 +15,14 @@ const strList = opt(z.array(z.string()));
 const MO_DAU = ['cau-hoi', 'con-so', 'ten-san-pham', 'cau-chuyen', 'chi-loi-sai'] as const;
 const NEN_TANG = ['facebook', 'instagram', 'tiktok', 'youtube', 'zalo', 'threads', 'web'] as const;
 
+const SO_DO = z.looseObject({
+  moc: z.string().min(1),
+  luc_do: date,
+  reach: num,
+  er: num,
+  tb_xem: num,
+});
+
 export const NOTE_SCHEMAS = {
   'khach-hang': z.looseObject({
     loai: z.literal('khach-hang'),
@@ -34,8 +42,12 @@ export const NOTE_SCHEMAS = {
   }),
   'bai-dang': z.looseObject({
     loai: z.literal('bai-dang'),
-    id: z.string().min(1),
+    /** fb_content.id is an INTEGER; KOL keys are strings */
+    id: z.union([z.string().min(1), z.number().int()]),
+    // lineage: which idea, formula (and its version) and Dream 100 video this post came from
+    de_xuat: opt(z.union([z.string().min(1), z.number()])),
     cong_thuc: opt(wikiLink),
+    cong_thuc_phien_ban: opt(z.union([z.number(), z.string().min(1)])),
     hoc_tu: opt(wikiLink),
     nen_tang: z.enum(NEN_TANG),
     dinh_dang: opt(z.enum(['video-ngan', 'anh', 'chu', 'album'])),
@@ -43,6 +55,9 @@ export const NOTE_SCHEMAS = {
     mo_dau: opt(z.enum(MO_DAU)),
     do_dai: num,
     dang_luc: date,
+    /** one snapshot per milestone (1h, 6h, 24h…), appended, never overwritten */
+    so_do: opt(z.array(SO_DO)),
+    /** latest values, kept for readers of the plan's first draft; so_do is the history */
     reach: num,
     er: num,
     tb_xem: num,

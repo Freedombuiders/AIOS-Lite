@@ -248,6 +248,34 @@ export function createBrainService(opts: BrainOptions): BrainService & { folderI
       return { indexed, removed, durationMs: Date.now() - t0 };
     },
 
+    indexPaths(folderId, relPaths) {
+      const f = folderOf(folderId);
+      let indexed = 0;
+      let removed = 0;
+      for (const relPath of new Set(relPaths)) {
+        const rel = normalizeRel(relPath);
+        if (!rel || !rel.toLowerCase().endsWith('.md') || rel.split('/').some((seg) => SKIP_DIRS.has(seg))) continue;
+        let st: fs.Stats | undefined;
+        let abs: string | undefined;
+        try {
+          abs = safePath(f, rel).abs;
+          const l = fs.lstatSync(abs);
+          st = l.isFile() && l.size <= MAX_FILE_BYTES ? l : undefined;
+        } catch {
+          st = undefined;
+        }
+        try {
+          if (st && abs) {
+            indexFile(f.id, rel, abs, st);
+            indexed++;
+          } else if (db.prepare('DELETE FROM brain_docs WHERE folder_id = ? AND path = ?').run(f.id, rel).changes) removed++;
+        } catch (e) {
+          log.warn({ file: rel, err: (e as Error).message }, 'không đọc được ghi chú');
+        }
+      }
+      return { indexed, removed };
+    },
+
     search,
 
     searchForAccess(query, access: EffectiveAccess, limit = 5) {
