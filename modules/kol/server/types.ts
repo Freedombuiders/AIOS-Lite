@@ -149,7 +149,7 @@ export interface PersonaDto {
   /** Appended to every caption (AI disclosure). Never empty for an active persona. */
   disclosureText: string;
   voiceId: string;
-  /** Agent id that writes captions and plans ('main', any configured agent), or '@chatgpt' for Codex on the ChatGPT plan. */
+  /** Agent id that writes captions and plans ('' = the default bot), or '@chatgpt' (switched off: GenBot only). */
   brainAgent: string;
   imageModel: string;
   videoModel: string;

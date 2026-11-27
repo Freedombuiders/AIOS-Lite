@@ -37,7 +37,7 @@ describe('binding, db, logger, config', () => {
   it('live-binding config constants follow the bound deps', () => {
     expect(compat.PROJECT_ROOT).toBe(h.deps.config.rootDir);
     expect(compat.STORE_DIR).toBe(path.join(h.deps.config.dataDir, 'store'));
-    expect(compat.AGENT_ID).toBe('main');
+    expect(compat.AGENT_ID).toBe('bot-tro-ly');
     expect(compat.ZALO_CONTROL_PORT).toBe(h.deps.config.port + 1);
     expect(compat.CLAUDECLAW_CONFIG).toMatchObject({ timezone: h.deps.config.timezone });
     expect(compat.DB_ENCRYPTION_KEY).toBe('');
@@ -57,7 +57,7 @@ describe('binding, db, logger, config', () => {
   });
 });
 
-describe('agents and provider', () => {
+describe('agents', () => {
   it('agent config helpers', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'compat-agent-'));
     fs.writeFileSync(path.join(dir, 'persona.md'), 'x');
@@ -72,19 +72,6 @@ describe('agents and provider', () => {
     fs.rmSync(dir, { recursive: true });
   });
 
-  it('provider mapping and defaults', () => {
-    expect(compat.getMainProviderConfig()).toEqual({ type: 'harness' }); // mock runtime
-    h.fakes.agents.get('main')!.runtime = 'codex';
-    h.fakes.agents.get('main')!.model = 'gpt-x';
-    expect(compat.getMainProviderConfig()).toEqual({ type: 'acp-codex', model: 'gpt-x' });
-    expect(compat.DEFAULT_PROVIDER.type).toBe('claude');
-    expect(compat.defaultModelForProvider({ type: 'claude' })).toBe(compat.DEFAULT_CLAUDE_MODEL);
-    expect(compat.defaultModelForProvider({ type: 'claude' }, 'm')).toBe('m');
-    expect(compat.defaultModelForProvider({ type: 'openai', model: 'z' })).toBe('z');
-    expect(compat.defaultModelForProvider({ type: 'openai' })).toBeUndefined();
-    expect(compat.providerRunnable('claude')).toBe(true);
-    expect(compat.providerRunnable('openrouter')).toBe(false);
-  });
 });
 
 describe('kill switches', () => {

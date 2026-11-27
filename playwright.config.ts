@@ -19,13 +19,13 @@ export default defineConfig({
   use: { baseURL: `http://127.0.0.1:${port}`, viewport: { width: 1440, height: 900 } },
   webServer: [
     {
-      command: `rm -rf ${tmp} && mkdir -p ${tmp} && cp -R agents ${tmp}/agents && npx vite build && AIOS_PORT=${port} AIOS_DATA_DIR=${tmp}/data AIOS_WORKSPACES_DIR=${tmp}/ws AIOS_AGENTS_DIR=${tmp}/agents npx tsx src/main.ts`,
+      command: `rm -rf ${tmp} && mkdir -p ${tmp} && cp -R agents ${tmp}/agents && npx vite build && AIOS_MOCK=1 AIOS_PORT=${port} AIOS_DATA_DIR=${tmp}/data AIOS_WORKSPACES_DIR=${tmp}/ws AIOS_AGENTS_DIR=${tmp}/agents npx tsx src/main.ts`,
       url: `http://127.0.0.1:${port}/api/health`,
       reuseExistingServer: false,
       timeout: 180_000,
     },
     {
-      command: `rm -rf ${careTmp} && mkdir -p ${careTmp} && cp -R agents ${careTmp}/agents && AIOS_PORT=${carePort} CARE_E2E_CONTROL_PORT=${carePort + 1} AIOS_DATA_DIR=${careTmp}/data AIOS_WORKSPACES_DIR=${careTmp}/ws AIOS_AGENTS_DIR=${careTmp}/agents npx tsx e2e/support/care-fake-server.ts`,
+      command: `rm -rf ${careTmp} && mkdir -p ${careTmp} && cp -R agents ${careTmp}/agents && AIOS_MOCK=1 AIOS_PORT=${carePort} CARE_E2E_CONTROL_PORT=${carePort + 1} AIOS_DATA_DIR=${careTmp}/data AIOS_WORKSPACES_DIR=${careTmp}/ws AIOS_AGENTS_DIR=${careTmp}/agents npx tsx e2e/support/care-fake-server.ts`,
       url: `http://127.0.0.1:${carePort}/api/health`,
       reuseExistingServer: false,
       timeout: 180_000,

@@ -333,7 +333,7 @@ function ideaShape(): string {
 async function runTurn(runner: AgentRunner, persona: PersonaDto, step: string, system: string, prompt: string): Promise<unknown[]> {
   let res;
   try {
-    res = await runner({ agentId: persona.brainAgent || 'main', usageKey: `kol:${step}:${persona.id}`, system, prompt });
+    res = await runner({ agentId: persona.brainAgent || '', usageKey: `kol:${step}:${persona.id}`, system, prompt });
   } catch (err) {
     if (err instanceof KillSwitchDisabledError) throw new KolError(409, 'Agent đang bị tắt (công tắc LLM_SPAWN_ENABLED).');
     throw new KolError(502, `Agent lỗi: ${String((err as Error)?.message ?? err).slice(0, 200)}`);

@@ -1,9 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { parse, stringify } from 'yaml';
-import { RuntimeNotAllowedError, allowedRuntimes } from '../core/runtime-policy.js';
+import { RuntimeNotAllowedError, allowedRuntimes, isKnownRuntime } from '../core/runtime-policy.js';
 import { protectAgentSecrets } from '../core/secret-env.js';
-import { RUNTIME_IDS, type AgentConfig } from '../core/types.js';
+import type { AgentConfig } from '../core/types.js';
 import type { AgentInput, AgentLoadError, AgentRegistry, AgentRegistryOptions } from './contracts.js';
 import { AGENT_ID_RE, AgentValidationError, agentToYamlObject, parseAgentConfig, validateAgentId } from './schema.js';
 
@@ -22,7 +22,7 @@ export function createAgentRegistry(opts: AgentRegistryOptions): AgentRegistryWi
   /** Refuses a runtime that is not offered (never silently rewrites it). */
   const requireAllowed = (runtime: string) => {
     // an unknown name is left to the schema, which explains the valid values
-    if ((RUNTIME_IDS as readonly string[]).includes(runtime) && !allowed.includes(runtime)) throw new RuntimeNotAllowedError(runtime);
+    if (isKnownRuntime(runtime) && !allowed.includes(runtime)) throw new RuntimeNotAllowedError(runtime);
   };
   const agents = new Map<string, AgentConfig>();
   let errors: AgentLoadError[] = [];

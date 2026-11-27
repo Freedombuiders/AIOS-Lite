@@ -1,0 +1,26 @@
+# Bot CSKH của Đội AgenticOS mặc định (teams/agenticos-doi-mac-dinh), cài sẵn cho brain mẫu cong-ty-b (Trà Sen Việt).
+# Module Chăm sóc khách hàng gọi bot này để soạn trả lời khách; hãy gán ở chế độ Nháp trước.
+# Nối với một bot GenBot: mở Đội AI · Bot, bấm Sửa để điền mã bot, Đổi khoá để dán khoá Bot API, rồi Kiểm tra.
+name: "Bot CSKH"
+description: "Soạn trả lời khách của Trà Sen Việt theo sản phẩm, chính sách và giọng cửa hàng."
+runtime: genbot
+context: lean
+runtime_options:
+  base_url: "http://127.0.0.1:8800"
+  bot_id: ""
+  max_runs_day: 500
+permission: safe
+reports_to: bot-tro-ly
+can_delegate: false
+max_concurrent: 1
+enabled: true
+access:
+  brain:
+    cong-ty-b:
+      read: ["san-pham/**", "chinh-sach/**", "giong-noi.md"]
+      write: []
+  memory: { team: false, private: false }
+  skills: []
+  connections: {}
+  modules:
+    care: [reply.draft, reply.send]

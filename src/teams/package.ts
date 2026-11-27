@@ -5,7 +5,8 @@ import path from 'node:path';
 import { Cron } from 'croner';
 import { parse } from 'yaml';
 import { AGENT_ID_RE } from '../agents/schema.js';
-import { RUNTIME_IDS, type RuntimeId } from '../core/types.js';
+import { isKnownRuntime } from '../core/runtime-policy.js';
+import type { AgentRuntime } from '../core/types.js';
 import { parseFrontmatter } from '../shared/frontmatter.js';
 import {
   AGENT_YAML_TEMPLATE,
@@ -200,13 +201,13 @@ export function buildTeamManifest(files: TeamFiles, opts: { slugHint?: string } 
       if (!(AGENT_YAML_KEYS as readonly string[]).includes(key)) warnings.push(`agents/${id}: khoá "${key}" không dùng trong AIOS-Lite, sẽ bị bỏ qua khi cài.`);
     }
     const runtime = asString(cfg.runtime);
-    if (runtime && !(RUNTIME_IDS as readonly string[]).includes(runtime)) errors.push(`agents/${id}/${AGENT_YAML_TEMPLATE}: runtime "${runtime}" không hợp lệ.`);
+    if (runtime && !isKnownRuntime(runtime)) errors.push(`agents/${id}/${AGENT_YAML_TEMPLATE}: runtime "${runtime}" không hợp lệ.`);
     const skills = Array.isArray(cfg.skills) ? cfg.skills.filter((s): s is string => typeof s === 'string') : [];
     decls.push({
       id,
       name: agentName ?? id,
       description: asString(cfg.description) ?? '',
-      runtime: (runtime as RuntimeId | null) ?? null,
+      runtime: (runtime as AgentRuntime | null) ?? null,
       model: asString(cfg.model),
       skills,
       fileCount: [...files.keys()].filter((p) => p.startsWith(`agents/${id}/`)).length,

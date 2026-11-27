@@ -4,8 +4,9 @@ import * as d from './data';
 type Handler = (params: string[], q: URLSearchParams, body: any) => unknown;
 export const costRoutes: Array<[string, string, Handler]> = [];
 
-const RUNTIMES = ['claude', 'codex', 'grok'] as const;
-const MODELS: Record<string, string> = { claude: 'opus', codex: 'gpt-5', grok: 'grok-4' };
+// GenBot reports no cost (unpriced runs); 'claude' stands for the history of an engine of an earlier version
+const RUNTIMES = ['genbot', 'claude'] as const;
+const MODELS: Record<string, string> = { genbot: 'genbot', claude: 'opus' };
 const SOURCES: Array<[string, string]> = [['chat', 'Chat'], ['user', 'Việc tay'], ['schedule', 'Lịch'], ['module:care', 'Module care'], ['agent', 'Agent giao']];
 
 const bucket = () => ({ costUsd: 0, runs: 0, unpricedRuns: 0, inputTokens: 0, outputTokens: 0 });
@@ -22,7 +23,7 @@ costRoutes.push(['GET', '/costs/summary', (_p, q) => {
     const row = { day, costUsd: 0, runs: 0, unpricedRuns: 0, tokens: 0, byRuntime: {} as Record<string, number> };
     RUNTIMES.forEach((rt, ri) => {
       const runs = (k * 7 + ri * 3) % 5;
-      const priced = rt !== 'codex';
+      const priced = rt !== 'genbot';
       const cost = priced ? ((k * 13 + ri * 5) % 9) * 0.12 + 0.05 : 0;
       const tokens = runs * 1800;
       const a = agents[(k + ri) % agents.length]!;
@@ -53,7 +54,7 @@ costRoutes.push(['GET', '/costs/budgets', () => {
   const rows = d.agents.map((a) => {
     const budget = a.budgetUsdMonth && a.budgetUsdMonth > 0 ? a.budgetUsdMonth : null;
     const spent = a.stats.costMonthUsd;
-    return { agentId: a.id, name: a.name, budgetUsdMonth: budget, spentUsd: spent, unpricedRuns: a.runtime === 'codex' ? a.stats.runsMonth : 0, percent: budget ? (spent / budget) * 100 : null, forecastUsd: spent * 2 };
+    return { agentId: a.id, name: a.name, budgetUsdMonth: budget, spentUsd: spent, unpricedRuns: a.runtime === 'genbot' ? a.stats.runsMonth : 0, percent: budget ? (spent / budget) * 100 : null, forecastUsd: spent * 2 };
   });
   const spent = rows.reduce((s, r) => s + r.spentUsd, 0);
   const month = new Date().toISOString().slice(0, 7);

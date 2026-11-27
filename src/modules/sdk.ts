@@ -117,6 +117,11 @@ export interface ModuleContext {
      * screens list only these. Optional so test doubles need not implement it.
      */
     usable?(agentId: string): boolean;
+    /**
+     * The agent for work nobody assigned: the Trợ lý bot (bot-tro-ly) when it has a key, else the first GenBot bot with
+     * a key, else the first GenBot bot; null when there is none (src/agents/default-agent.ts). Optional for test doubles.
+     */
+    defaultId?(): string | null;
   };
   access: {
     /** scope of THIS module, e.g. can('sales-a', 'reply.send') */

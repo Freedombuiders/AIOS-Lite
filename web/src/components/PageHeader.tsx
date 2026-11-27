@@ -2,7 +2,7 @@ import type { ComponentChildren } from 'preact';
 
 export interface PageHeaderProps {
   title: string;
-  breadcrumb?: string;
+  breadcrumb?: ComponentChildren;
   actions?: ComponentChildren;
   tabs?: ComponentChildren;
   compact?: boolean;

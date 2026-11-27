@@ -1,34 +1,23 @@
-import { MessageSquarePlus, Trash2 } from 'lucide-preact';
-import { useEffect, useState } from 'preact/hooks';
+// One bot's activity, opened from its card on Đội AI · Bot (/bots): runs, conversations and brain/module access.
+// Name, role, bot id, key, pause and delete live on the bot card; the generic Agents list and form are gone (G3).
+import { ArrowLeft, MessageSquarePlus } from 'lucide-preact';
+import { useState } from 'preact/hooks';
 import { Link, useLocation } from 'wouter-preact';
 import type { Conversation, Run } from '@core/types';
 import { AccessEditor } from '@/components/agents/AccessEditor';
-import { AgentForm, toInput, validateAgent } from '@/components/agents/AgentForm';
-import type { AgentFormValue } from '@/components/agents/AgentForm';
 import { AgentAvatar } from '@/components/AgentAvatar';
-import { ConfirmModal } from '@/components/ConfirmModal';
 import { PageHeader, Tab } from '@/components/PageHeader';
 import { PageState } from '@/components/PageState';
 import { Pill } from '@/components/Pill';
 import { Card, Stat } from '@/components/ui';
-import { apiDelete, apiPost, apiPut, errorText } from '@/lib/api';
+import { apiPost, errorText } from '@/lib/api';
 import type { AgentDetail as AgentDetailDto } from '@/lib/api-types';
-import { useAgents } from '@/lib/agents';
 import { formatCost, formatDateTime, formatDuration, formatNumber, formatRelativeTime } from '@/lib/format';
-import { ERROR_FAMILY_LABEL, RUNTIME_LABEL } from '@/lib/labels';
+import { ERROR_FAMILY_LABEL, runtimeLabel } from '@/lib/labels';
 import { pushToast } from '@/lib/toasts';
 import { useFetch } from '@/lib/useFetch';
-import { RuntimeBadge } from './AgentsPage';
 
-type TabId = 'overview' | 'persona' | 'access' | 'runs' | 'chat';
-
-function toForm(a: AgentDetailDto): AgentFormValue {
-  return {
-    id: a.id, name: a.name, description: a.description, runtime: a.runtime, model: a.model ?? '', permission: a.permission, context: a.context, reportsTo: a.reportsTo ?? '',
-    canDelegate: a.canDelegate, maxConcurrent: a.maxConcurrent, budget: a.budgetUsdMonth === undefined ? '' : String(a.budgetUsdMonth), enabled: a.enabled, persona: a.persona,
-    runtimeOptions: { ...a.runtimeOptions },
-  };
-}
+type TabId = 'runs' | 'chat' | 'access';
 
 function RunsTab({ agentId }: { agentId: string }) {
   const f = useFetch<{ items: Run[] }>(`/runs?agentId=${agentId}&limit=50`);
@@ -95,112 +84,47 @@ function ChatTab({ agentId }: { agentId: string }) {
 }
 
 export default function AgentDetail({ id }: { id: string }) {
-  const [, nav] = useLocation();
-  const [tab, setTab] = useState<TabId>(() => (new URLSearchParams(location.search).get('tab') === 'access' ? 'access' : 'overview'));
+  const [tab, setTab] = useState<TabId>(() => (new URLSearchParams(location.search).get('tab') === 'access' ? 'access' : 'runs'));
   const f = useFetch<AgentDetailDto>(`/agents/${id}`);
-  const { agents, refresh: refreshList } = useAgents();
-  const [form, setForm] = useState<AgentFormValue | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [confirmDel, setConfirmDel] = useState(false);
   const a = f.data;
-
-  useEffect(() => {
-    if (a) setForm(toForm(a));
-  }, [a]);
-
-  async function save() {
-    if (!form) return;
-    const err = validateAgent(form, false);
-    if (err) return pushToast({ tone: 'error', title: err });
-    setBusy(true);
-    try {
-      await apiPut(`/agents/${id}`, toInput(form));
-      pushToast({ tone: 'success', title: 'Đã lưu agent' });
-      f.refresh();
-      refreshList();
-    } catch (e) {
-      pushToast({ tone: 'error', title: 'Không lưu được', description: errorText(e) });
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function archive() {
-    setBusy(true);
-    try {
-      await apiDelete(`/agents/${id}`);
-      pushToast({ tone: 'success', title: 'Đã lưu trữ agent', description: 'Thư mục được chuyển vào agents/_archive.' });
-      refreshList();
-      nav('/agents');
-    } catch (e) {
-      pushToast({ tone: 'error', title: 'Không lưu trữ được', description: errorText(e) });
-      setBusy(false);
-    }
-  }
-
-  if (!a || !form) return <div class="page"><PageState loading={f.loading} error={f.error} /></div>;
+  if (!a) return <div class="page"><PageState loading={f.loading} error={f.error} /></div>;
+  const legacy = a.runtimeAllowed === false;
   const budget = a.budgetUsdMonth;
-  const dirty = JSON.stringify(form) !== JSON.stringify(toForm(a));
-  const saveBar = (
-    <div class="mt-3 flex justify-end gap-2">
-      <button type="button" class="control-button" disabled={!dirty || busy} onClick={() => setForm(toForm(a))}>Hoàn tác</button>
-      <button type="button" class="control-button control-accent" disabled={!dirty || busy} onClick={() => void save()}>{busy ? 'Đang lưu…' : 'Lưu'}</button>
-    </div>
-  );
 
   return (
     <div class="page">
       <PageHeader
-        breadcrumb="Agents"
+        breadcrumb={<Link href="/bots" class="inline-flex items-center gap-1 no-underline"><ArrowLeft size={12} /> Đội AI · Bot</Link>}
         title={a.name}
         actions={
           <>
             <AgentAvatar agentId={a.id} name={a.name} size={26} running={a.stats.running > 0} />
-            <RuntimeBadge runtime={a.runtime} />
-            {a.model && <Pill>{a.model}</Pill>}
-            {!a.enabled && <Pill>Tắt</Pill>}
+            <Pill tone={legacy ? 'warn' : 'accent'}>{runtimeLabel(a.runtime)}</Pill>
+            {!a.enabled && <Pill>Tạm dừng</Pill>}
           </>
         }
         tabs={
           <>
-            <Tab label="Tổng quan" active={tab === 'overview'} onClick={() => setTab('overview')} />
-            <Tab label="Persona" active={tab === 'persona'} onClick={() => setTab('persona')} />
-            <Tab label="Quyền" active={tab === 'access'} onClick={() => setTab('access')} />
             <Tab label="Lượt chạy" active={tab === 'runs'} onClick={() => setTab('runs')} />
-            <Tab label="Chat" active={tab === 'chat'} onClick={() => setTab('chat')} />
+            <Tab label="Trò chuyện" active={tab === 'chat'} onClick={() => setTab('chat')} />
+            <Tab label="Quyền" active={tab === 'access'} onClick={() => setTab('access')} />
           </>
         }
       />
-
-      {tab === 'overview' && (
-        <>
-          <div class="mb-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Stat label="Đang chạy / chờ" value={`${a.stats.running} / ${a.stats.queued}`} />
-            <Stat label="Lượt chạy tháng này" value={a.stats.runsMonth} />
-            <Stat label="Chi phí tháng này" value={formatCost(a.stats.costMonthUsd)} sub={budget !== undefined ? `Ngân sách $${budget}` : 'Không giới hạn'} />
-            <Stat label="Chạy gần nhất" value={<span class="text-[16px]">{a.stats.lastRunAt ? formatRelativeTime(a.stats.lastRunAt) : 'Chưa chạy'}</span>} sub={RUNTIME_LABEL[a.runtime]} />
-          </div>
-          <Card title="Cài đặt">
-            <AgentForm value={form} onChange={setForm} others={agents} show="settings" />
-            {saveBar}
-          </Card>
-          <div class="mt-3 flex items-center justify-between">
-            <span class="hint mono">{a.dir}</span>
-            <button type="button" class="control-button control-danger" onClick={() => setConfirmDel(true)}><Trash2 size={12} /> Lưu trữ agent</button>
-          </div>
-        </>
+      {legacy && (
+        <p class="mb-3 rounded-[var(--radius-md)] border border-[var(--color-status-review)] p-2 text-[13px]" data-testid="legacy-note">
+          Agent này đang dùng {runtimeLabel(a.runtime)}, hãy chuyển sang GenBot: mở <Link href="/bots">Đội AI · Bot</Link> và bấm “Chuyển sang GenBot”.
+        </p>
       )}
-      {tab === 'persona' && (
-        <Card>
-          <AgentForm value={form} onChange={setForm} others={agents} show="persona" />
-          {saveBar}
-        </Card>
-      )}
-      {tab === 'access' && <AccessEditor key={JSON.stringify(a.access)} agentId={a.id} access={a.access} runtimeLabel={RUNTIME_LABEL[a.runtime]} onSaved={f.refresh} />}
+      <div class="mb-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Stat label="Đang chạy / chờ" value={`${a.stats.running} / ${a.stats.queued}`} />
+        <Stat label="Lượt chạy tháng này" value={a.stats.runsMonth} />
+        <Stat label="Chi phí tháng này" value={formatCost(a.stats.costMonthUsd)} sub={budget !== undefined ? `Ngân sách $${budget}` : 'Không giới hạn'} />
+        <Stat label="Chạy gần nhất" value={<span class="text-[16px]">{a.stats.lastRunAt ? formatRelativeTime(a.stats.lastRunAt) : 'Chưa chạy'}</span>} />
+      </div>
       {tab === 'runs' && <RunsTab agentId={a.id} />}
       {tab === 'chat' && <ChatTab agentId={a.id} />}
-
-      <ConfirmModal open={confirmDel} onClose={() => setConfirmDel(false)} onConfirm={() => void archive()} destructive loading={busy} title={`Lưu trữ ${a.name}?`} body="Agent sẽ ngừng nhận việc. Thư mục được chuyển vào agents/_archive, không bị xoá hẳn." confirmLabel="Lưu trữ" />
+      {tab === 'access' && <AccessEditor key={JSON.stringify(a.access)} agentId={a.id} access={a.access} runtimeLabel={runtimeLabel(a.runtime)} onSaved={f.refresh} />}
     </div>
   );
 }

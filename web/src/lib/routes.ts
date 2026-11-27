@@ -11,7 +11,9 @@ export const SECTION_LABEL: Record<RouteSection, string> = { workspace: 'Không 
 
 export const ROUTES: RouteDef[] = [
   { path: '/', label: 'Tổng quan', section: 'workspace' },
-  { path: '/agents', label: 'Agents', section: 'workspace' },
+  { path: '/bots', label: 'Đội AI · Bot', section: 'workspace' },
+  // a bot's runs and access, opened from its card on /bots
+  { path: '/agents', label: 'Đội AI · Bot', section: 'workspace' },
   { path: '/tasks', label: 'Công việc', section: 'workspace' },
   { path: '/schedules', label: 'Lịch định kỳ', section: 'workspace' },
   { path: '/chat', label: 'Trò chuyện', section: 'workspace' },

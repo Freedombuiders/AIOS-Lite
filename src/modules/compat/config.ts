@@ -1,12 +1,14 @@
 import path from 'node:path';
 import { defaultRootDir } from '../../core/config.js';
 import { onBind } from './state.js';
+import { DEFAULT_AGENT_ID } from '../../agents/default-agent.js';
 
 // Live bindings: re-assigned by bindCompat, so importers always see current values.
 export let PROJECT_ROOT: string = defaultRootDir();
 export let STORE_DIR: string = path.join(PROJECT_ROOT, 'data', 'store');
 export let ZALO_CONTROL_PORT = 4381;
-export let AGENT_ID = 'main';
+// the default team's Trợ lý bot (was the old sample agent 'main'); ported code uses it as its own agent id
+export let AGENT_ID = DEFAULT_AGENT_ID;
 export let CLAUDECLAW_CONFIG: Record<string, unknown> = {};
 export let DB_ENCRYPTION_KEY = '';
 

@@ -222,7 +222,7 @@ export function createTestHarness(opts: { modulesDir?: string; env?: Record<stri
       },
       errors: () => [],
     },
-    runtimes: { get: () => { throw new Error('no runtime'); }, list: () => [], register() {} },
+    runtimes: { get: () => { throw new Error('no runtime'); }, find: () => undefined, list: () => [], register() {} },
     connections: {
       reload() {},
       list: () => [...f.connections.values()],
@@ -264,7 +264,6 @@ export function createTestHarness(opts: { modulesDir?: string; env?: Record<stri
         if (i >= 0) f.skillRoots.splice(i, 1);
       },
       resolve: () => [] as Skill[],
-      linkIntoWorkspace() {},
     },
     board: { add: (e: { agentId: string | null; text: string }) => ({ id: 1, agentId: e.agentId, taskId: null, kind: 'note', text: e.text, createdAt: nowIso() }) as BoardEntry, recent: () => [] as BoardEntry[] },
     context: { build: () => { throw new Error('n/a'); } },

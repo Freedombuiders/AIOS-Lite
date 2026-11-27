@@ -1,10 +1,10 @@
 # Nối AIOS với GenBot
 
-**GenBot là động cơ duy nhất của Open AgenticOS.** Mọi agent là một bot GenBot (quyết định của chủ ngày 27/11: "chỉ dùng genbot agent, không dùng bot dạng khác"). Claude Code, Codex, Grok và Hermes không còn được chọn: tạo hoặc đổi agent sang các runtime đó bị từ chối, và agent cũ còn dùng chúng sẽ không chạy cho tới khi bạn bấm **Chuyển sang GenBot** (AIOS không tự sửa `agent.yaml` của bạn).
+**GenBot là động cơ duy nhất của Open AgenticOS.** Mọi agent là một bot GenBot (quyết định của chủ ngày 27/11: "chỉ dùng genbot agent, không dùng bot dạng khác"). Các động cơ cũ (Claude Code, Codex, Grok, Hermes) đã bị xoá khỏi code (G3), cùng Chợ Agent cũ và trang Agents chung. Một `agent.yaml` cũ còn ghi tên các động cơ đó vẫn được nạp nhưng không chạy, và hiện "Agent X đang dùng …, hãy chuyển sang GenBot" cho tới khi bạn bấm **Chuyển sang GenBot** (AIOS không tự sửa hay xoá `agent.yaml` của bạn).
 
 Hướng dẫn này nối một bot AIOS với một bot trong GenBot qua Bot API. Sau khi nối, mọi lượt chạy của bot (trả lời ở `/chat`, soạn trả lời khách Zalo, viết bài…) đi qua bot GenBot đó. Mọi việc làm ở màn **Đội AI · Bot** (thanh bên, mục ĐỘI AI VÀ HỆ THỐNG).
 
-Gói đội **Đội AgenticOS mặc định** (`teams/agenticos-doi-mac-dinh/`) dựng sẵn ba bot: Bot CSKH, Bot Nội dung, Bot Trợ lý. Có thể cài gói ở trang Gói Team, hoặc thêm từng bot ở Đội AI · Bot bằng mẫu CSKH Zalo, Nội dung, Trợ lý (quyền brain và quyền module điền sẵn theo gói). Mọi agent đi kèm repo (`agents/`, `modules/*/agents/`, `teams/`) đều là bot GenBot với mã bot để trống, nên hiện "Chưa nối GenBot" cho tới khi bạn điền.
+Gói đội **Đội AgenticOS mặc định** (`teams/agenticos-doi-mac-dinh/`) dựng sẵn ba bot: Bot CSKH, Bot Nội dung, Bot Trợ lý. Có thể cài gói ở trang Gói Team, hoặc thêm từng bot ở Đội AI · Bot bằng mẫu CSKH Zalo, Nội dung, Trợ lý (quyền brain và quyền module điền sẵn theo gói). Mọi agent đi kèm repo (`agents/`, `modules/*/agents/`, `teams/`) đều là bot GenBot với mã bot để trống, nên hiện "Chưa nối GenBot" cho tới khi bạn điền. Thư mục `agents/` của repo có sẵn ba bot của gói này (`bot-cskh`, `bot-noi-dung`, `bot-tro-ly`, quyền trên brain mẫu `cong-ty-b`): chỉ cần **Sửa** (mã bot) và **Đổi khoá** trên thẻ. Việc hay cuộc trò chuyện không chỉ định bot sẽ về Bot Trợ lý nếu nó có khoá, không thì về bot đầu tiên có khoá. Nút **Lượt chạy, quyền** trên thẻ mở lượt chạy, cuộc trò chuyện và quyền brain/module của bot (`/agents/<id>`).
 
 ## Trước khi bắt đầu: bot GenBot biết những gì
 
@@ -81,7 +81,8 @@ Không có khoá trong file này. `http://` chỉ dùng khi GenBot chạy trên 
 | `base_url` dùng http:// chỉ được trỏ về máy này | Dùng `https://` cho GenBot ở máy khác |
 | GenBot trả chuyển hướng | Sửa `base_url` thành địa chỉ cuối (AIOS không theo chuyển hướng để khoá không đi sang máy khác) |
 | Đã chạm trần … lượt chạy mỗi ngày | Chờ sang ngày mới, hoặc tăng `max_runs_day` |
-| Agent X đang dùng claude (codex, grok, hermes), hãy chuyển sang GenBot | Open AgenticOS chỉ chạy bằng GenBot: bấm **Chuyển sang GenBot** ở Đội AI · Bot hoặc trang Agents, rồi điền mã bot và khoá |
+| Agent X đang dùng Claude Code (Codex, Grok, Hermes), hãy chuyển sang GenBot | Động cơ đó đã bị xoá: bấm **Chuyển sang GenBot** ở mục "Agent dùng runtime cũ" của Đội AI · Bot, rồi điền mã bot và khoá |
+| Chưa có bot GenBot nào có khoá (thanh lệnh hiện "Nối bot") | Đội AI · Bot › thẻ bot › **Sửa** (mã bot) và **Đổi khoá** |
 
 ## Tính năng đã tắt vì chỉ dùng GenBot
 

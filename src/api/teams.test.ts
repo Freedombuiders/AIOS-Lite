@@ -69,12 +69,9 @@ describe('teams api', () => {
     expect((await post('/api/teams/import', { base64: Buffer.from('not a zip').toString('base64') })).status).toBe(400);
   });
 
-  it('agent market and recos respond', async () => {
-    const m = await (await app.request('/api/agent-market')).json();
-    expect(m.templates.length).toBeGreaterThan(3);
-    const r = await post('/api/agent-market/research-analyst/install', { runtime: 'mock', fields: { business: 'x' } });
-    expect(r.status).toBe(201);
-    expect((await post('/api/agent-market/nope/install', {})).status).toBe(404);
+  it('the old agent market is gone; recos respond', async () => {
+    expect((await app.request('/api/agent-market')).status).toBe(404);
+    expect((await post('/api/agent-market/research-analyst/install', { runtime: 'mock' })).status).toBe(404);
     const recos = await (await app.request('/api/recos')).json();
     expect(Array.isArray(recos.items)).toBe(true);
     expect((await post('/api/recos/apply-cart', {})).status).toBe(200);

@@ -82,13 +82,13 @@ describe('attachments', () => {
 });
 
 describe('pickAgent', () => {
-  const agents = [{ id: 'cskh', enabled: true }, { id: 'main', enabled: true }, { id: 'off', enabled: false }];
+  const agents = [{ id: 'cskh', enabled: true }, { id: 'bot-tro-ly', enabled: true }, { id: 'off', enabled: false }];
   it('keeps the remembered bot while it is still on', () => {
     expect(pickAgent(agents, 'cskh')).toBe('cskh');
   });
-  it('drops a remembered bot that is off or gone, preferring "main"', () => {
-    expect(pickAgent(agents, 'off')).toBe('main');
-    expect(pickAgent(agents, 'gone')).toBe('main');
+  it('drops a remembered bot that is off or gone, preferring the Trợ lý bot', () => {
+    expect(pickAgent(agents, 'off')).toBe('bot-tro-ly');
+    expect(pickAgent(agents, 'gone')).toBe('bot-tro-ly');
   });
   it('falls back to the first enabled bot, or none', () => {
     expect(pickAgent([{ id: 'a', enabled: true }], null)).toBe('a');

@@ -153,11 +153,11 @@ function TeamCard() {
     <section class="hd-card hd-team" aria-labelledby="hd-team">
       <div class="hd-card-head">
         <h2 id="hd-team">Đội AI</h2>
-        <Link href="/agents">Xem cả đội <ArrowUpRight size={12} /></Link>
+        <Link href="/bots">Xem cả đội <ArrowUpRight size={12} /></Link>
       </div>
       {error && !agents.length ? <p class="hd-error">Không tải được danh sách bot: {error}</p> : null}
       {!loading && !error && team.length === 0 ? (
-        <div class="hd-empty"><strong>Chưa có bot nào đang bật</strong><p>Thêm hoặc bật một bot để giao việc.</p><Link href="/agents" class="hd-btn"><Bot size={14} /> Mở trang Agents</Link></div>
+        <div class="hd-empty"><strong>Chưa có bot nào đang bật</strong><p>Thêm hoặc bật một bot để giao việc.</p><Link href="/bots" class="hd-btn"><Bot size={14} /> Mở Đội AI · Bot</Link></div>
       ) : (
         <ul class="hd-team-list">
           {team.map((a) => {

@@ -1,11 +1,12 @@
 // Preview and install of team packages. Install undoes everything it did if a step fails. Never writes secrets.
+import { DEFAULT_AGENT_ID } from '../agents/default-agent.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import type { AgentRegistry } from '../agents/contracts.js';
 import { AGENT_ID_RE } from '../agents/schema.js';
-import { allowedRuntimes, isRuntimeAllowed, runtimeRefusal } from '../core/runtime-policy.js';
-import { RUNTIME_IDS, type RuntimeId } from '../core/types.js';
+import { allowedRuntimes, isKnownRuntime, isRuntimeAllowed, runtimeRefusal } from '../core/runtime-policy.js';
+import type { AgentRuntime } from '../core/types.js';
 import type { SkillLibrary } from '../shared/contracts.js';
 import type { SchedulerService } from '../work/contracts.js';
 import { PLACEHOLDER_RE } from './package.js';
@@ -27,9 +28,9 @@ export interface InstallOptions {
   strategy?: CollisionStrategy;
   agentStrategies?: Record<string, CollisionStrategy>;
   /** per package-agent runtime override */
-  runtimes?: Record<string, RuntimeId>;
+  runtimes?: Record<string, AgentRuntime>;
   /** runtime for agents whose template names none */
-  defaultRuntime?: RuntimeId;
+  defaultRuntime?: AgentRuntime;
 }
 
 export interface AgentPlan {
@@ -39,7 +40,7 @@ export interface AgentPlan {
   finalId: string;
   action: 'create' | 'skip';
   collision: boolean;
-  runtime: RuntimeId;
+  runtime: AgentRuntime;
   model: string | null;
   skills: string[];
   files: string[];
@@ -75,7 +76,7 @@ export interface InstallPlan {
 export interface InstallResult {
   slug: string;
   name: string;
-  agents: Array<{ pkgId: string; id: string; name: string; runtime: RuntimeId }>;
+  agents: Array<{ pkgId: string; id: string; name: string; runtime: AgentRuntime }>;
   skills: string[];
   schedules: Array<{ id: number; name: string; agentId: string; cron: string }>;
   warnings: string[];
@@ -138,7 +139,7 @@ export function planInstall(deps: InstallDeps, team: LoadedTeam, opts: InstallOp
     if (action === 'create') taken.add(finalId);
     idMap.set(a.id, finalId);
     const runtime = opts.runtimes?.[a.id] ?? a.runtime ?? opts.defaultRuntime ?? 'genbot';
-    if (!(RUNTIME_IDS as readonly string[]).includes(runtime)) blockers.push(`Runtime "${runtime}" của ${a.id} không hợp lệ.`);
+    if (!isKnownRuntime(runtime)) blockers.push(`Runtime "${runtime}" của ${a.id} không hợp lệ.`);
     else if (!isRuntimeAllowed(runtime, deps.allowedRuntimes ?? allowedRuntimes())) blockers.push(`${a.id}: ${runtimeRefusal(runtime)}`);
     const bundled = [...new Set([...team.files.keys()].map(skillRel).filter((s) => s?.agent === a.id).map((s) => s!.skill))];
     agents.push({
@@ -156,10 +157,11 @@ export function planInstall(deps: InstallDeps, team: LoadedTeam, opts: InstallOp
     });
   }
   const managerFinal = idMap.get(m.manager) ?? m.manager;
-  const mainExists = !!deps.agents.get('main');
+  // the package's manager reports to the workspace's Trợ lý bot when one exists (and is not the manager itself)
+  const lead = deps.agents.get(DEFAULT_AGENT_ID) ? DEFAULT_AGENT_ID : null;
   for (const p of agents) {
     if (p.action === 'skip') continue;
-    p.reportsTo = p.pkgId === m.manager ? (mainExists && p.finalId !== 'main' ? 'main' : null) : managerFinal;
+    p.reportsTo = p.pkgId === m.manager ? (lead && p.finalId !== lead ? lead : null) : managerFinal;
   }
 
   const skillIds = new Set<string>();

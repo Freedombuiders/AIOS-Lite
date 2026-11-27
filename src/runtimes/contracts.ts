@@ -1,5 +1,5 @@
-// Runtime layer contract. One adapter per CLI; the engine only talks to this interface.
-import type { AgentConfig, ErrorFamily, RunEvent, RuntimeId, Usage } from '../core/types.js';
+// Runtime layer contract: GenBot (and the mock); the engine only talks to this interface.
+import type { AgentConfig, AgentRuntime, ErrorFamily, RunEvent, RuntimeId, Usage } from '../core/types.js';
 import type { EffectiveAccess } from '../access/contracts.js';
 import type { GenbotRuntimeOptions } from './genbot.js';
 
@@ -13,14 +13,14 @@ export interface AccessEnforcement {
   fileRead: Enforcement;
   fileWrite: Enforcement;
   shell: Enforcement;
-  /** short Vietnamese note for the UI, e.g. "Codex không chặn được đọc file ngoài thư mục" */
+  /** short Vietnamese note for the UI */
   note?: string;
 }
 
 export interface RuntimeCapabilities {
   /** can continue a previous session by id */
   resume: boolean;
-  /** 'native' = CLI has a system-prompt flag; 'inline' = adapter prepends it to the prompt */
+  /** 'native' = the engine takes a system prompt; 'inline' = adapter prepends it to the prompt */
   systemPrompt: 'native' | 'inline';
   reportsCost: boolean;
   /** can attach local image files to a prompt */
@@ -105,17 +105,16 @@ export interface Runtime {
 }
 
 export interface RuntimeRegistry {
-  get(id: RuntimeId): Runtime;
+  /** throws for an id with no adapter (an old engine named by a legacy agent.yaml) */
+  get(id: AgentRuntime): Runtime;
+  /** undefined for an id with no adapter */
+  find(id: AgentRuntime): Runtime | undefined;
   list(): Runtime[];
   /** replace an adapter (tests) */
   register(runtime: Runtime): void;
 }
 
 export interface RuntimeRegistryOptions {
-  /** override the binary used for a runtime (tests use fake CLIs) */
-  commands?: Partial<Record<RuntimeId, string>>;
-  /** extra env merged into every child process (after filtering) */
-  env?: Record<string, string>;
   /** GenBot adapter options (tests inject env, poll interval, limiter) */
   genbot?: GenbotRuntimeOptions;
 }

@@ -4,6 +4,7 @@ import { useEffect, useId, useState } from 'preact/hooks';
 import { Bot } from 'lucide-preact';
 import { AgentAvatar } from '@/components/AgentAvatar';
 import { StatusDot } from '@/components/Pill';
+import { DEFAULT_BOT_ID } from '@/lib/bots';
 
 export interface PickerAgent { id: string; name: string; description?: string; running?: boolean }
 const normalize = (value: string) => value.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd');
@@ -24,7 +25,7 @@ export function useAgentPicker(draft: string, input: RefObject<ComposerInput | H
   const triggerKey = `${caret}:${draft}`;
   const open = query !== undefined && dismissedKey !== triggerKey;
   const visible = agents
-    .filter((a) => a.id !== 'main' && normalize(`${a.id} ${a.name} ${a.description ?? ''}`).includes(normalize(query ?? '')))
+    .filter((a) => a.id !== DEFAULT_BOT_ID && normalize(`${a.id} ${a.name} ${a.description ?? ''}`).includes(normalize(query ?? '')))
     .sort((a, b) => Number(!!b.running) - Number(!!a.running) || (a.name || a.id).localeCompare(b.name || b.id));
   const active = Math.min(index, Math.max(0, visible.length - 1));
   useEffect(() => { setIndex(0); }, [query, start]);

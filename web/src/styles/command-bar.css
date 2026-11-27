@@ -17,6 +17,10 @@
 }
 .cmdbar-bot select:focus { outline: none; }
 .cmdbar-bot select option { color: var(--color-text); background: var(--color-card); }
+.cmdbar-howto {
+  display: inline-flex; align-items: center; min-height: 48px; padding: 0 14px; flex-shrink: 0; border-radius: 12px;
+  border: 1px dashed var(--color-border-strong); color: var(--color-accent); font-weight: 600; text-decoration: none; white-space: nowrap;
+}
 .cmdbar-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--color-status-done); flex-shrink: 0; }
 .cmdbar-round, .cmdbar-square, .cmdbar-send {
   display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; flex-shrink: 0; cursor: pointer;

@@ -1,10 +1,31 @@
-// Which agent runtimes Open AgenticOS offers. Product decision 27/11: every agent is a GenBot bot. The other adapters
-// (claude, codex, grok, hermes) stay in the code but are never offered: not listed for the UI, refused when an agent is
-// created or changed to them, and an existing agent on one of them does not run (src/work/engine.ts).
+// Which engines run agents. Product decision 27/11: every agent is a GenBot bot; G3 deleted the other adapters.
 // 'mock' is allowed only under tests (NODE_ENV=test / VITEST) or in mock mode (AIOS_MOCK=1).
-import type { RuntimeId } from './types.js';
+// An agent.yaml written by an earlier version may still name an old engine: it loads, never runs, and raises
+// the attention item below until the owner moves it to GenBot. AIOS never rewrites or deletes that file.
+import { RUNTIME_IDS, type RuntimeId } from './types.js';
 
-export const DEFAULT_ALLOWED_RUNTIMES: readonly RuntimeId[] = ['genbot'];
+/** Engines of earlier versions that an agent.yaml may still name. They no longer exist in the code. */
+export const LEGACY_RUNTIME_IDS = ['claude', 'codex', 'grok', 'hermes'] as const;
+export type LegacyRuntimeId = (typeof LEGACY_RUNTIME_IDS)[number];
+
+const LEGACY_LABEL: Record<LegacyRuntimeId, string> = { claude: 'Claude Code', codex: 'Codex', grok: 'Grok', hermes: 'Hermes' };
+
+export function isLegacyRuntime(runtime: string): runtime is LegacyRuntimeId {
+  return (LEGACY_RUNTIME_IDS as readonly string[]).includes(runtime);
+}
+
+/** Every name an agent.yaml may carry: current runtimes and legacy ones (which load but never run). */
+export const KNOWN_RUNTIME_NAMES: readonly string[] = [...RUNTIME_IDS, ...LEGACY_RUNTIME_IDS];
+
+export function isKnownRuntime(runtime: string): boolean {
+  return KNOWN_RUNTIME_NAMES.includes(runtime);
+}
+
+/** Display name of a runtime id, old or current. */
+export function runtimeLabel(runtime: string): string {
+  if (isLegacyRuntime(runtime)) return LEGACY_LABEL[runtime];
+  return runtime === 'genbot' ? 'GenBot' : runtime === 'mock' ? 'Mock' : runtime;
+}
 
 type Env = Record<string, string | undefined>;
 
@@ -13,25 +34,23 @@ export function mockRuntimeAllowed(env: Env = process.env): boolean {
   return env.NODE_ENV === 'test' || env.VITEST === 'true' || env.AIOS_MOCK === '1';
 }
 
-/** The single setting: runtimes an agent may use. Default ['genbot'], plus 'mock' under tests or mock mode. */
+/** Runtimes an agent may use: GenBot, plus 'mock' under tests or mock mode. */
 export function allowedRuntimes(env: Env = process.env): RuntimeId[] {
-  return mockRuntimeAllowed(env) ? [...DEFAULT_ALLOWED_RUNTIMES, 'mock'] : [...DEFAULT_ALLOWED_RUNTIMES];
+  return mockRuntimeAllowed(env) ? ['genbot', 'mock'] : ['genbot'];
 }
 
 export function isRuntimeAllowed(runtime: string, allowed: readonly string[] = allowedRuntimes()): boolean {
   return allowed.includes(runtime);
 }
 
-const LABEL: Record<string, string> = { claude: 'Claude Code', codex: 'Codex', grok: 'Grok', hermes: 'Hermes', mock: 'Mock' };
-
 /** Refusal when an agent is created or changed to a runtime that is not offered. */
 export function runtimeRefusal(runtime: string): string {
-  return `Runtime "${LABEL[runtime] ?? runtime}" không còn được dùng: Open AgenticOS chỉ chạy agent bằng GenBot. Hãy chọn runtime genbot (thêm bot ở màn Đội AI · Bot).`;
+  return `Runtime "${runtimeLabel(runtime)}" không còn được dùng: Open AgenticOS chỉ chạy agent bằng GenBot. Hãy chọn runtime genbot (thêm bot ở màn Đội AI · Bot).`;
 }
 
-/** Why an existing agent on a legacy runtime does not run. */
+/** Why an existing agent on a legacy runtime does not run (the attention item; its action is "Chuyển sang GenBot"). */
 export function legacyRuntimeMessage(agentName: string, runtime: string): string {
-  return `Agent ${agentName} đang dùng ${LABEL[runtime] ?? runtime}, hãy chuyển sang GenBot. Open AgenticOS chỉ chạy agent bằng GenBot; mở Đội AI · Bot hoặc trang Agents và bấm "Chuyển sang GenBot".`;
+  return `Agent ${agentName} đang dùng ${runtimeLabel(runtime)}, hãy chuyển sang GenBot. Open AgenticOS chỉ chạy agent bằng GenBot; mở Đội AI · Bot và bấm "Chuyển sang GenBot".`;
 }
 
 export class RuntimeNotAllowedError extends Error {

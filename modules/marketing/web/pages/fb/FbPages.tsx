@@ -264,7 +264,7 @@ function PageForm({ page, saving, onSave }: { page: FbPageDto; saving: boolean; 
     return (
       <Field label={label}>
         <select class={INPUT} value={value || 'main'} onChange={(e) => onChange((e.target as HTMLSelectElement).value)}>
-          {ids.map((id) => <option key={id} value={id}>{id}</option>)}
+          {ids.map((id) => <option key={id} value={id}>{id === 'main' ? 'Bot mặc định (Trợ lý)' : id}</option>)}
         </select>
       </Field>
     );

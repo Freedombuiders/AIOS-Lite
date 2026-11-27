@@ -385,7 +385,7 @@ export function createPersona(input: PersonaInput | unknown): PersonaDto {
   const base: PersonaDto = {
     id: randomUUID(), name: '', handle: '', status: 'draft', tagline: '', niche: '', languages: ['vi'], bio: '',
     appearance: { ...DEFAULT_APPEARANCE }, personality: { ...DEFAULT_PERSONALITY }, audience: '', pillars: [],
-    identitySource: 'synthetic', consentNote: '', disclosureText: DEFAULT_DISCLOSURE, voiceId: '', brainAgent: 'main',
+    identitySource: 'synthetic', consentNote: '', disclosureText: DEFAULT_DISCLOSURE, voiceId: '', brainAgent: '',
     imageModel: '', videoModel: '', realismPreset: 'pro-photo', consistencyThreshold: 80, autoRejectDrift: false, monthlyCapUsd: null,
     autopilot: { ...DEFAULT_AUTOPILOT, postsPerWeek: { ...DEFAULT_AUTOPILOT.postsPerWeek } }, coverAssetId: null, refs: [], createdAt: now, updatedAt: now,
   };

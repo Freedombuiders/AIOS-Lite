@@ -313,7 +313,7 @@ function RulesEditor({ page, pages, data, scope, setScope, postId, setPostId, po
             <div class="grid gap-3 grid-cols-[repeat(auto-fill,minmax(220px,1fr))]">
               <Field label="Agent trả lời">
                 <select class={INPUT} value={cfg.agentId} onChange={(e) => set('agentId', (e.target as HTMLSelectElement).value)}>
-                  {agentIds.map((a) => <option key={a} value={a}>{a}</option>)}
+                  {agentIds.map((a) => <option key={a} value={a}>{a === 'main' ? 'Bot mặc định (Trợ lý)' : a}</option>)}
                 </select>
               </Field>
               <Field label="Skill dùng để trả lời">

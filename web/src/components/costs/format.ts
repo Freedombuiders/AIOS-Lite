@@ -1,7 +1,8 @@
 import { formatCost, formatNumber } from '@/lib/format';
 import type { CostBucket } from './types';
 
-export const RUNTIME_COLORS: Record<string, string> = { claude: '#d95926', codex: '#3987e5', grok: '#199e70', hermes: '#c98500', genbot: '#7a5cd6', mock: '#8a8f98' };
+// runs of an engine of an earlier version (history) fall back to grey
+export const RUNTIME_COLORS: Record<string, string> = { genbot: '#7a5cd6', mock: '#8a8f98' };
 export const runtimeColor = (rt: string): string => RUNTIME_COLORS[rt] ?? '#8a8f98';
 
 /** Cost cell: unknown prices are shown as such, never as $0. */

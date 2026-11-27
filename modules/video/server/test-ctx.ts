@@ -47,6 +47,8 @@ export function fakeCtx(opts: FakeCtxOptions = {}): FakeCtx {
     agents: {
       list: () => agents,
       get: (id: string) => agents.find((a) => a.id === id),
+      // like ModuleContext.agents.defaultId: the Trợ lý bot, else the first agent
+      defaultId: () => agents.find((a) => a.id === 'bot-tro-ly')?.id ?? agents[0]?.id ?? null,
       async runLean(input: LeanRunInput): Promise<LeanRunResult> {
         leanCalls.push(input);
         return opts.runLean ? opts.runLean(input) : { ok: true, output: 'ok', taskId: 1, runId: 1 };

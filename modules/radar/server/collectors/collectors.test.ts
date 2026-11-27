@@ -144,10 +144,10 @@ describe('failureNotes', () => {
     const notes = failureNotes([
       { kind: 'reddit', name: 'r/A', via: 'rss', ok: false, count: 0, error: 'fetch failed' },
       { kind: 'reddit', name: 'r/B', via: 'rss', ok: false, count: 0, error: 'fetch failed' },
-      { kind: 'x', name: '@a', via: 'grok', ok: false, count: 0, error: 'Grok CLI chưa đăng nhập' },
+      { kind: 'x', name: '@a', via: 'grok', ok: false, count: 0, error: 'Grok chưa đăng nhập' },
       { kind: 'hn', name: 'Hacker News', via: 'api', ok: true, count: 3 },
       { kind: 'fb_group', name: 'Nhóm A', via: 'apify', ok: false, count: 0, error: 'Chưa có Apify token.' },
-    ], ['Grok CLI chưa đăng nhập. Bỏ qua X.', 'Chưa có Apify token — bỏ qua Facebook.']);
+    ], ['Grok chưa đăng nhập. Bỏ qua X.', 'Chưa có Apify token — bỏ qua Facebook.']);
     expect(notes).toEqual(['Reddit: không đọc được r/A, r/B (fetch failed).']);
   });
 });

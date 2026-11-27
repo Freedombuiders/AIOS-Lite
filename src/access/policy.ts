@@ -1,6 +1,6 @@
 import path from 'node:path';
 import type { AgentRegistry } from '../agents/contracts.js';
-import type { AgentConfig, RuntimeId } from '../core/types.js';
+import type { AgentConfig, AgentRuntime } from '../core/types.js';
 import type { RuntimeCapabilities } from '../runtimes/contracts.js';
 import type { BrainService, SkillLibrary } from '../shared/contracts.js';
 import { globBaseDir, matchAnyGlob, matchGlob, normalizeRel } from '../shared/glob.js';
@@ -18,7 +18,7 @@ export interface AccessPolicyDeps {
   /** API base the bridge calls back, e.g. http://127.0.0.1:4000 */
   apiUrl?: string;
   /** capabilities of an agent's runtime; a runtime with `mcp: false` (GenBot) gets no MCP server. Absent = every runtime takes MCP. */
-  runtimeCapabilities?: (runtime: RuntimeId) => Pick<RuntimeCapabilities, 'mcp'> | undefined;
+  runtimeCapabilities?: (runtime: AgentRuntime) => Pick<RuntimeCapabilities, 'mcp'> | undefined;
 }
 
 export function createAccessPolicy(deps: AccessPolicyDeps): AccessPolicy {
@@ -35,7 +35,7 @@ export function createAccessPolicy(deps: AccessPolicyDeps): AccessPolicy {
     return out;
   }
 
-  const runtimeTakesMcp = (runtime: RuntimeId): boolean => {
+  const runtimeTakesMcp = (runtime: AgentRuntime): boolean => {
     try {
       return deps.runtimeCapabilities?.(runtime)?.mcp !== false;
     } catch {

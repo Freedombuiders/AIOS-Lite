@@ -2,8 +2,6 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadEnvFile } from './env.js';
-import { allowedRuntimes } from './runtime-policy.js';
-import type { RuntimeId } from './types.js';
 
 export interface AppConfig {
   rootDir: string;
@@ -28,8 +26,6 @@ export interface AppConfig {
   runTimeoutMs: number;
   encryptionKey: string | undefined;
   timezone: string;
-  /** Runtimes an agent may use (core/runtime-policy.ts). Missing in hand-built test configs: callers fall back to allowedRuntimes(). */
-  allowedRuntimes?: RuntimeId[];
 }
 
 /** Repo root: two levels up from src/core (also works from dist/src/core). */
@@ -83,7 +79,5 @@ export function loadConfig(opts: { rootDir?: string; env?: NodeJS.ProcessEnv; lo
     runTimeoutMs: num(env.AIOS_RUN_TIMEOUT_SEC, 900) * 1000,
     encryptionKey: env.AIOS_ENCRYPTION_KEY || undefined,
     timezone: env.AIOS_TIMEZONE || 'Asia/Ho_Chi_Minh',
-    // mock mode may come from the given env or the process (NODE_ENV=test under vitest)
-    allowedRuntimes: allowedRuntimes(env.AIOS_MOCK === '1' ? env : process.env),
   };
 }

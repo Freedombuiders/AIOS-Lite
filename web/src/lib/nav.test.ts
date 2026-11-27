@@ -2,22 +2,25 @@ import { describe, expect, it } from 'vitest';
 import type { NavGroup } from '@/module-host/contracts';
 import { ADVANCED_GROUP, BOTTOM_NAV, CORE_NAV, GROUP_LABEL, GROUP_SECTION, NAV_SECTIONS, PLACEHOLDER_PATHS, bestMatch, moduleItemsFor, reachableCorePaths } from './nav';
 
-// Every core route that existed before the new menu (web/src/App.tsx at the time of T10), by path.
+// Every core route that existed before the new menu (web/src/App.tsx at the time of T10), by path. G3 removed the generic
+// Agents list (/agents) and the old agent market (/agent-market): both redirect to Đội AI · Bot (/bots).
 const OLD_PATHS = [
-  '/', '/agents', '/tasks', '/schedules', '/chat', '/brain', '/memory', '/skills', '/agent-market', '/teams', '/recos', '/usage', '/budgets',
+  '/', '/tasks', '/schedules', '/chat', '/brain', '/memory', '/skills', '/teams', '/recos', '/usage', '/budgets',
   '/modules', '/connections', '/audit', '/settings',
 ];
+const REMOVED_PATHS = ['/agents', '/agent-market'];
 
 describe('core menu', () => {
   it('still reaches every old page, directly or through "Nâng cao"', () => {
     const reachable = new Set(reachableCorePaths());
     for (const p of OLD_PATHS) expect(reachable.has(p), p).toBe(true);
+    for (const p of REMOVED_PATHS) expect(reachable.has(p), p).toBe(false);
   });
 
   it('folds the rarely used pages into "Nâng cao" and keeps them off the top level', () => {
     const top = NAV_SECTIONS.flatMap((s) => s.items.map((i) => i.path));
     const advanced = ADVANCED_GROUP.items.map((i) => i.path);
-    expect(advanced).toEqual(expect.arrayContaining(['/agents', '/agent-market', '/teams', '/skills', '/memory', '/recos', '/usage', '/budgets', '/audit', '/modules']));
+    expect(advanced).toEqual(['/teams', '/skills', '/memory', '/recos', '/usage', '/budgets', '/audit', '/modules']);
     for (const p of advanced) expect(top).not.toContain(p);
   });
 

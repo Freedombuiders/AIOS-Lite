@@ -19,7 +19,7 @@ export default defineModule({
     app.post('/ask', async (c) => {
       const { text, agentId } = (await c.req.json()) as { text?: string; agentId?: string };
       if (!text?.trim()) return c.json({ error: { code: 'bad_request', message: 'Thiếu nội dung câu hỏi.' } }, 400);
-      const agent = agentId ?? ctx.agents.list().find((a) => a.access.modules[ctx.id]?.includes('notes.write'))?.id ?? 'main';
+      const agent = agentId ?? ctx.agents.list().find((a) => a.access.modules[ctx.id]?.includes('notes.write'))?.id ?? ctx.agents.defaultId?.() ?? '';
       if (agentId && !ctx.access.can(agent, 'notes.write')) {
         return c.json({ error: { code: 'forbidden', message: `Agent "${agent}" chưa được cấp quyền notes.write.` } }, 403);
       }

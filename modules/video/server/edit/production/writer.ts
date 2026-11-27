@@ -119,7 +119,7 @@ export async function writeStoryboard(p: Production, cast: PersonaDto[], ready: 
   const lead = cast[0];
   if (!lead) throw new Error('Gọi ít nhất một KOL bằng @ để viết kịch bản đúng giọng.');
   const { system, prompt } = writerPrompt(p, cast, ready, brand);
-  const r = await runner({ agentId: lead.brainAgent || 'main', usageKey: `video:script:${p.id}`, system, prompt });
+  const r = await runner({ agentId: lead.brainAgent || '', usageKey: `video:script:${p.id}`, system, prompt });
   if (r.error) throw new Error(`Bộ não của ${lead.name} không viết được kịch bản: ${r.error}`);
   const objects = jsonObjectsOf(r.text);
   let lastError = 'Kịch bản trả về không đúng định dạng.';

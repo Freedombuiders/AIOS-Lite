@@ -131,7 +131,6 @@ export const OWNER_ROUTES: ReadonlyArray<readonly [Method, string, string]> = [
   ['*', '/api/teams/install', 'cài gói team'],
   ['*', '/api/teams/import', 'nhập gói team'],
   ['*', '/api/teams/import/*', 'nhập gói team'],
-  ['*', '/api/agent-market/:id/install', 'cài agent'],
   ['*', '/api/m/video/edit/templates/:id/install', 'cài mẫu video'],
   ['*', '/api/packs/*', 'xem trước, cài, cập nhật, gỡ gói dữ liệu'],
   // cloud account (sign-out is DELETE /api/integrations/agenticos-cloud, covered above; the GET callback stays open:

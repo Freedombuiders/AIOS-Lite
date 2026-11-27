@@ -1,8 +1,9 @@
 // Đội AI · Bot: every agent is a GenBot bot. Connection to GenBot at the top, one card per bot, add a bot from a template
 // (with a probe before saving), and the agents left on an old runtime with "Chuyển sang GenBot".
 // Drawing: docs/dev/design-mockups/Bots.dc.html.
-import { BookOpen, KeyRound, Pause, Pencil, Play, Plus, RefreshCw, Stethoscope, Trash2 } from 'lucide-preact';
+import { BookOpen, History, KeyRound, Pause, Pencil, Play, Plus, RefreshCw, Stethoscope, Trash2 } from 'lucide-preact';
 import { useEffect, useState } from 'preact/hooks';
+import { Link } from 'wouter-preact';
 import { ConfirmModal } from '@/components/ConfirmModal';
 import { Modal } from '@/components/Modal';
 import { PageHeader } from '@/components/PageHeader';
@@ -13,10 +14,9 @@ import { errorText } from '@/lib/api';
 import type { DoctorCheck } from '@/lib/api-types';
 import { formatRelativeTime } from '@/lib/format';
 import { botState, genbotApi, initials, keyLabel, type GenbotBot, type GenbotOverview, type GenbotProbeResult, type GenbotTemplate, type GenbotTemplateId } from '@/lib/genbot';
-import { RUNTIME_LABEL } from '@/lib/labels';
+import { runtimeLabel } from '@/lib/labels';
 import { renderMarkdown } from '@/lib/markdown';
 import { pushToast } from '@/lib/toasts';
-import type { RuntimeId } from '@core/types';
 
 const ONE_BOT_PER_COMPANY = 'Mỗi công ty nên dùng một bot GenBot riêng: bộ nhớ đã lưu và chỉ dẫn thường trực của bot GenBot nằm ngoài quyền brain của AIOS.';
 
@@ -175,6 +175,7 @@ function BotCard({ b, i, busy, onCheck, onEdit, onKey, onPause, onDelete }: {
           <Stethoscope size={13} /> {busy ? 'Đang kiểm tra…' : 'Kiểm tra'}
         </button>
         <button type="button" class="control-button" onClick={onEdit}><Pencil size={13} /> Sửa</button>
+        <Link href={`/agents/${b.id}`} class="control-button no-underline" data-testid="bot-activity"><History size={13} /> Lượt chạy, quyền</Link>
         <button type="button" class="control-button" onClick={onKey}><KeyRound size={13} /> Đổi khoá</button>
         <button type="button" class="control-button" onClick={onPause}>{b.enabled ? <><Pause size={13} /> Tạm dừng</> : <><Play size={13} /> Tiếp tục</>}</button>
         <button type="button" class="control-button control-danger" onClick={onDelete}><Trash2 size={13} /> Xoá</button>
@@ -534,7 +535,7 @@ export default function BotsPage() {
                 {data.legacy.map((a) => (
                   <li key={a.id} class="flex flex-wrap items-center gap-2 text-[13px]">
                     <strong>{a.name}</strong>
-                    <Pill tone="warn">{RUNTIME_LABEL[a.runtime as RuntimeId] ?? a.runtime}</Pill>
+                    <Pill tone="warn">{a.runtimeLabel ?? runtimeLabel(a.runtime)}</Pill>
                     <button type="button" class="control-button control-sm ml-auto" onClick={() => void convert(a.id, a.name)}>Chuyển sang GenBot</button>
                   </li>
                 ))}

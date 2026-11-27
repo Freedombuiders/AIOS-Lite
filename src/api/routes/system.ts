@@ -30,7 +30,7 @@ export function systemRoutes(app: Hono, deps: AppDeps): void {
   // Only the runtimes an agent may use (GenBot; 'mock' is never offered to the UI, even under tests or mock mode).
   app.get('/api/runtimes', async (c) => {
     const probe = c.req.query('probe') === '1';
-    const allowed = deps.config.allowedRuntimes ?? allowedRuntimes();
+    const allowed = allowedRuntimes();
     const items = await Promise.all(
       deps.runtimes.list().filter((r) => allowed.includes(r.id) && r.id !== 'mock').map(async (r) => ({ ...(await r.doctor({ probe })), label: r.label, capabilities: r.capabilities })),
     );

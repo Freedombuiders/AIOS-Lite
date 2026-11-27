@@ -86,8 +86,6 @@ export interface SkillLibrary {
   removeRoot(dir: string): void;
   /** resolve an agent's allowed list against the library */
   resolve(allowed: string[] | 'all'): Skill[];
-  /** symlink the given skills into <workspace>/.claude/skills (and prune stale links AIOS created) */
-  linkIntoWorkspace(workspace: string, skills: Skill[]): void;
 }
 
 // ---------------------------------------------------------------- team board

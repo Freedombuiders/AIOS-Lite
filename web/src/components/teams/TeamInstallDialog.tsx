@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
-import type { RuntimeId } from '@core/types';
 import { Modal } from '@/components/Modal';
 import { Pill } from '@/components/Pill';
 import { Field } from '@/components/ui';
@@ -7,13 +6,11 @@ import { apiPost, errorText } from '@/lib/api';
 import { invalidateFetchCache } from '@/lib/useFetch';
 import type { InstallPlan, InstallResult, Strategy, TeamSummary } from '@/lib/teams';
 import { pushToast } from '@/lib/toasts';
-import { RuntimeSelect } from './RuntimeSelect';
 
 /** Preview what a team package will create, then install it. */
 export function TeamInstallDialog({ team, onClose, onInstalled }: { team: TeamSummary | null; onClose: () => void; onInstalled?: () => void }) {
   const [inputs, setInputs] = useState<Record<string, string>>({});
   const [strategy, setStrategy] = useState<Strategy>('rename');
-  const [runtime, setRuntime] = useState<RuntimeId>('claude');
   const [plan, setPlan] = useState<InstallPlan | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -22,13 +19,13 @@ export function TeamInstallDialog({ team, onClose, onInstalled }: { team: TeamSu
   useEffect(() => {
     setInputs(Object.fromEntries((team?.inputs ?? []).map((i) => [i.key, i.defaultValue])));
     setStrategy('rename');
-    setRuntime('claude');
     setPlan(null);
     setErr(null);
     setResult(null);
   }, [team?.source.id]);
 
-  const body = useMemo(() => (team ? { source: team.source, inputs, strategy, defaultRuntime: runtime } : null), [team, inputs, strategy, runtime]);
+  // every agent runs on GenBot: an agent the package leaves without a runtime gets genbot
+  const body = useMemo(() => (team ? { source: team.source, inputs, strategy, defaultRuntime: 'genbot' as const } : null), [team, inputs, strategy]);
 
   useEffect(() => {
     if (!body) return;
@@ -98,7 +95,6 @@ export function TeamInstallDialog({ team, onClose, onInstalled }: { team: TeamSu
             </Field>
           ))}
           <div class="grid grid-cols-2 gap-3">
-            <Field label="Runtime mặc định"><RuntimeSelect value={runtime} onChange={setRuntime} /></Field>
             <Field label="Nếu trùng id agent">
               <select class="field" value={strategy} onChange={(e) => setStrategy((e.target as HTMLSelectElement).value as Strategy)}>
                 <option value="rename">Đổi tên agent mới (thêm -2)</option>

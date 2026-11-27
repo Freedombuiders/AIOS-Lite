@@ -24,7 +24,7 @@ export interface CreateTaskInput {
   prompt: string;
   /** default: first 80 chars of prompt */
   title?: string;
-  /** default: 'main' */
+  /** default: the default agent (src/agents/default-agent.ts: the Trợ lý bot, else the first bot with a key) */
   agentId?: string;
   kind?: TaskKind;
   priority?: number;

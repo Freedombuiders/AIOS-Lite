@@ -27,6 +27,7 @@ import {
 import { loadCurrentPlan, requestVideoPlanApproval } from './approval-handler.js';
 import { appendTasteRule } from '../routes-editor.js';
 import { moduleCtx } from '../../host.js';
+import { resolveDefaultAgentId } from '../turn.js';
 import { creationPrompt } from '../../create/prompt.js';
 import { buildProducePrompt } from '../production/prompt.js';
 import { creationServiceFor } from '../../create/runtime.js';
@@ -614,7 +615,7 @@ export async function runDirectorTurn(input: DirectorTurnInput, deps: DirectorDe
     const ctx = loadDirectorContext(store, input.projectId);
     if (!ctx) throw new Error('Không tìm thấy việc dựng này.');
     const { project } = ctx;
-    const agentId = project.agentId || 'main';
+    const agentId = project.agentId || resolveDefaultAgentId();
 
     const creating = project.mode === 'create';
     const producing = project.mode === 'produce' && !project.source;

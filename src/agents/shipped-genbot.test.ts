@@ -20,8 +20,8 @@ describe('shipped agent definitions', () => {
 
   it('finds the agents, module agents and team templates', () => {
     const rel = files.map((f) => path.relative(REPO_ROOT, f));
-    expect(rel).toEqual(expect.arrayContaining(['agents/main/agent.yaml', 'modules/care/agents/cskh/agent.yaml', 'teams/agenticos-doi-mac-dinh/agents/bot-cskh/agent.yaml.template']));
-    expect(files.length).toBeGreaterThanOrEqual(20);
+    expect(rel).toEqual(expect.arrayContaining(['agents/bot-tro-ly/agent.yaml', 'modules/care/agents/cskh/agent.yaml', 'teams/agenticos-doi-mac-dinh/agents/bot-cskh/agent.yaml.template']));
+    expect(files.length).toBeGreaterThanOrEqual(18);
   });
 
   it.each(files.map((f) => [path.relative(REPO_ROOT, f), f]))('%s is a GenBot bot not yet connected', (_rel, file) => {
@@ -33,5 +33,24 @@ describe('shipped agent definitions', () => {
     expect(ro.bot_id).toBe('');
     expect(typeof ro.base_url).toBe('string');
     expect(ro.key_env).toBeUndefined();
+  });
+
+  it('the repo ships exactly the three bots of the default team, with that team\'s brain access and module scopes', () => {
+    const dir = path.join(REPO_ROOT, 'agents');
+    const ids = fs.readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory() && !e.name.startsWith('_')).map((e) => e.name).sort();
+    expect(ids).toEqual(['bot-cskh', 'bot-noi-dung', 'bot-tro-ly']);
+    for (const id of ids) {
+      const shipped = parse(fs.readFileSync(path.join(dir, id, 'agent.yaml'), 'utf8')) as Record<string, any>;
+      const tpl = parse(
+        fs.readFileSync(path.join(REPO_ROOT, 'teams/agenticos-doi-mac-dinh/agents', id, 'agent.yaml.template'), 'utf8')
+          .replaceAll('{{input.BRAIN_FOLDER}}', 'cong-ty-b').replaceAll('{{input.SHOP_NAME}}', 'Trà Sen Việt').replaceAll('{{input.GENBOT_URL}}', 'http://127.0.0.1:8800'),
+      ) as Record<string, any>;
+      expect(shipped.name).toBe(tpl.name);
+      expect(shipped.context).toBe(tpl.context);
+      expect(shipped.runtime_options).toEqual(tpl.runtime_options);
+      expect(shipped.access.brain).toEqual(tpl.access.brain);
+      expect(shipped.access.memory).toEqual(tpl.access.memory);
+      expect(shipped.access.modules ?? {}).toEqual(tpl.access.modules ?? {});
+    }
   });
 });

@@ -1,3 +1,4 @@
+import { NO_BOT_MESSAGE, pickDefaultAgent } from '../agents/default-agent.js';
 import { camelRow, nowIso, parseJson, type DB } from '../core/db.js';
 import type { EventBus } from '../core/events.js';
 import { TERMINAL_STATUSES, type Task, type TaskStatus } from '../core/types.js';
@@ -27,9 +28,11 @@ export interface TaskServiceDeps {
   bus: EventBus;
   agents: AgentRegistry;
   abort?: (id: number) => boolean;
+  /** agent for a task created without one (src/agents/default-agent.ts); default: pickDefaultAgent without key info */
+  defaultAgent?: () => string | null;
 }
 
-export function createTaskService({ db, bus, agents, abort }: TaskServiceDeps): TaskService {
+export function createTaskService({ db, bus, agents, abort, defaultAgent }: TaskServiceDeps): TaskService {
   const emit = (task: Task): Task => {
     bus.emit({ type: 'task', task });
     return task;
@@ -65,7 +68,8 @@ export function createTaskService({ db, bus, agents, abort }: TaskServiceDeps): 
   }
 
   function create(input: CreateTaskInput): Task {
-    const agentId = input.agentId ?? 'main';
+    const agentId = input.agentId ?? defaultAgent?.() ?? pickDefaultAgent(agents.list());
+    if (!agentId) throw new Error(NO_BOT_MESSAGE);
     const agent = agents.get(agentId);
     if (!agent) throw new Error(`Không tìm thấy agent "${agentId}"`);
     if (!input.prompt?.trim()) throw new Error('Nội dung việc không được để trống');

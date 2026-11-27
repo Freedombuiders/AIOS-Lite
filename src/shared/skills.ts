@@ -10,8 +10,6 @@ interface Root {
   source: string;
 }
 
-const MANIFEST = '.aios-managed.json';
-
 function parseSkillFile(text: string, id: string): { name: string; description: string } {
   try {
     const fm = parseFrontmatter(text);
@@ -58,15 +56,6 @@ export function createSkillLibrary(deps: { dirs: string[]; log: Logger }): Skill
     }
   }
 
-  function readManifest(file: string): string[] {
-    try {
-      const j = JSON.parse(fs.readFileSync(file, 'utf8')) as { links?: unknown };
-      return Array.isArray(j.links) ? j.links.filter((x): x is string => typeof x === 'string') : [];
-    } catch {
-      return [];
-    }
-  }
-
   reload();
 
   return {
@@ -98,33 +87,5 @@ export function createSkillLibrary(deps: { dirs: string[]; log: Logger }): Skill
       return allowed.map((id) => skills.get(id)).filter((s): s is Skill => Boolean(s));
     },
 
-    linkIntoWorkspace(workspace, list) {
-      const base = path.join(workspace, '.claude', 'skills');
-      fs.mkdirSync(base, { recursive: true });
-      const manifestFile = path.join(base, MANIFEST);
-      const managed = new Set(readManifest(manifestFile));
-      const wanted = new Map(list.map((s) => [s.id, s]));
-
-      // prune only symlinks AIOS created earlier
-      for (const id of [...managed]) {
-        if (wanted.has(id)) continue;
-        const p = path.join(base, id);
-        const st = fs.lstatSync(p, { throwIfNoEntry: false });
-        if (st?.isSymbolicLink()) fs.unlinkSync(p);
-        managed.delete(id);
-      }
-      for (const [id, s] of wanted) {
-        const p = path.join(base, id);
-        const st = fs.lstatSync(p, { throwIfNoEntry: false });
-        if (st) {
-          if (!st.isSymbolicLink() || !managed.has(id)) continue; // user's own file or link: leave it
-          if (fs.readlinkSync(p) === s.dir) continue;
-          fs.unlinkSync(p);
-        }
-        fs.symlinkSync(s.dir, p, 'dir');
-        managed.add(id);
-      }
-      fs.writeFileSync(manifestFile, JSON.stringify({ links: [...managed].sort() }, null, 2));
-    },
   };
 }

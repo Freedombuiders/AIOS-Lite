@@ -37,20 +37,23 @@ export const CHATGPT_BRAIN = '@chatgpt';
  */
 export const CHATGPT_BRAIN_OFF = 'Viết nội dung bằng ChatGPT (Codex) đã tắt: Open AgenticOS chỉ chạy agent bằng GenBot. Chọn một bot GenBot ở mục "Agent viết nội dung".';
 
-/** The agent a brain id runs on: an agent id or 'main' (the default agent); '@chatgpt' runs on nothing (switched off). */
+/**
+ * The agent a brain id runs on: an existing agent id, else the default bot (Trợ lý, else the first GenBot bot with a
+ * key: src/agents/default-agent.ts). '' and a stored id that no longer exists (the old sample agent 'main') mean the
+ * default; '@chatgpt' runs on nothing (switched off).
+ */
 export function brainAgentId(brain: string): string | null {
   const ctx = moduleCompat('kol');
   if (!ctx) return null;
-  const agents = ctx.agents.list().filter((a) => a.enabled);
   if (brain === CHATGPT_BRAIN) return null;
-  if (brain && brain !== 'main' && ctx.agents.get(brain)) return brain;
-  return ctx.agents.get('main') ? 'main' : (agents[0]?.id ?? null);
+  if (brain && ctx.agents.get(brain)) return brain;
+  return ctx.agents.defaultId?.() ?? ctx.agents.list().find((a) => a.enabled)?.id ?? null;
 }
 
 export const runKolAgent: AgentRunner = async (input) => {
   requireEnabled('LLM_SPAWN_ENABLED');
   const ctx = moduleCompat('kol');
-  const agentId = brainAgentId(input.agentId || 'main');
+  const agentId = brainAgentId(input.agentId || '');
   if (!ctx || !agentId) {
     return { text: '', model: '', costUsd: 0, error: input.agentId === CHATGPT_BRAIN ? CHATGPT_BRAIN_OFF : 'Không tìm thấy agent để viết nội dung.' };
   }

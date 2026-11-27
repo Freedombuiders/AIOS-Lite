@@ -1,5 +1,7 @@
 # Bài 4. Thêm một runtime mới
 
+> **Lưu ý (G3, 27/11):** các adapter Claude Code, Codex, Grok và Hermes đã bị xoá khỏi `src/runtimes/`. Open AgenticOS chỉ còn `genbot` (và `mock` cho test). Nội dung dưới đây mô tả phiên bản cũ, giữ lại để tham khảo.
+
 Sau bài này bạn có thể:
 
 - Mô tả interface `Runtime` và vai trò của từng phần: `run`, `doctor`, `capabilities`.

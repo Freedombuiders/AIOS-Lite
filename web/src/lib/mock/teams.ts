@@ -1,5 +1,5 @@
-// Mock routes for /api/teams, /api/agent-market and /api/recos. Registered in mock/index.ts.
-import type { InstallPlan, InstallResult, MarketCatalog, MarketPreview, Reco, RecosList, TeamSummary, TeamsList } from '../teams';
+// Mock routes for /api/teams and /api/recos. Registered in mock/index.ts.
+import type { InstallPlan, InstallResult, Reco, RecosList, TeamSummary, TeamsList } from '../teams';
 
 type Handler = (params: string[], query: URLSearchParams, body: any) => unknown;
 export type MockRoute = [method: string, pattern: string, fn: Handler];
@@ -12,9 +12,9 @@ class Fail extends Error {
 
 const team = (slug: string, name: string, description: string, manager: string, agents: [string, string][], inputs: TeamSummary['inputs']): TeamSummary => ({
   slug, name, version: '1', description, tags: ['mẫu'], manager,
-  agents: agents.map(([id, n]) => ({ id, name: n, description: '', runtime: null, model: null, skills: [], fileCount: 2 })),
+  agents: agents.map(([id, n]) => ({ id, name: n, description: '', runtime: 'genbot', model: null, skills: [], fileCount: 2 })),
   schedules: [{ id: 'weekly', agent: manager, cron: '0 8 * * 1', tz: 'Asia/Ho_Chi_Minh' }],
-  requiredSkills: [], prerequisites: ['Bật agent trong Agents để lịch chạy.'], inputs, warnings: [], source: { kind: 'catalog', id: slug },
+  requiredSkills: [], prerequisites: ['Nối từng bot với GenBot ở Đội AI · Bot để lịch chạy.'], inputs, warnings: [], source: { kind: 'catalog', id: slug },
 });
 
 const catalog: TeamSummary[] = [
@@ -27,7 +27,7 @@ const catalog: TeamSummary[] = [
 ];
 let imported: TeamSummary[] = [];
 const history: TeamsList['history'] = [];
-const existingAgents = new Set(['main', 'cskh-agent']);
+const existingAgents = new Set(['bot-tro-ly', 'cskh-agent']);
 
 function find(kind: string, id: string): TeamSummary {
   const t = (kind === 'import' ? imported : catalog).find((x) => x.source.id === id);
@@ -41,7 +41,7 @@ function plan(b: { source: { kind: string; id: string }; inputs?: Record<string,
   const agents = t.agents.map((a) => {
     const collision = existingAgents.has(a.id);
     const skip = collision && strategy === 'skip';
-    return { pkgId: a.id, name: a.name, description: a.description, finalId: collision && !skip ? `${a.id}-2` : a.id, action: (skip ? 'skip' : 'create') as 'skip' | 'create', collision, runtime: b.defaultRuntime ?? 'claude', model: null, skills: [], files: [`agents/${a.id}/persona.md`], reportsTo: a.id === t.manager ? 'main' : t.manager };
+    return { pkgId: a.id, name: a.name, description: a.description, finalId: collision && !skip ? `${a.id}-2` : a.id, action: (skip ? 'skip' : 'create') as 'skip' | 'create', collision, runtime: b.defaultRuntime ?? 'genbot', model: null, skills: [], files: [`agents/${a.id}/persona.md`], reportsTo: a.id === t.manager ? null : t.manager };
   });
   const missingInputs = t.inputs.filter((i) => i.required && !b.inputs?.[i.key]?.trim()).map((i) => i.key);
   return {
@@ -53,31 +53,10 @@ function plan(b: { source: { kind: string; id: string }; inputs?: Record<string,
   };
 }
 
-const templates: MarketCatalog['templates'] = [
-  { id: 'research-analyst', name: 'Nghiên cứu thị trường', category: 'Nghiên cứu', description: 'Tìm, đối chiếu và tóm tắt thông tin về thị trường, luôn kèm nguồn.', outcome: 'Báo cáo ngắn có nguồn.', capabilities: ['Tóm tắt đối thủ', 'Tổng hợp xu hướng'], examples: ['Tóm tắt 3 đối thủ chính tuần này'], skills: [], fields: [{ key: 'business', label: 'Doanh nghiệp và lĩnh vực', required: true, multiline: true, placeholder: 'Bạn bán gì, cho ai.', help: '', defaultValue: '' }] },
-  { id: 'content-writer', name: 'Biên tập nội dung', category: 'Nội dung', description: 'Viết bài, caption và email theo giọng thương hiệu; mọi bản thảo chờ bạn duyệt.', outcome: 'Bản nháp đúng giọng.', capabilities: ['Viết caption', 'Soạn email'], examples: ['Viết 3 caption khuyến mãi'], skills: [], fields: [{ key: 'brand', label: 'Tên thương hiệu và sản phẩm', required: true, multiline: true, placeholder: 'Tên, sản phẩm chủ lực.', help: '', defaultValue: '' }] },
-  { id: 'education-advisor', name: 'Tư vấn học viên', category: 'Đào tạo', description: 'Giải đáp khóa học và hướng dẫn học viên đăng ký.', outcome: 'Có câu trả lời thử đầu tiên trong 5 phút.', capabilities: ['Tư vấn khóa học', 'Trả lời FAQs'], examples: ['Học phí bao nhiêu?'], skills: [{ id: 'course-advising', name: 'Gợi ý khóa học', description: 'Đối chiếu nhu cầu với khóa có thật.' }], fields: [{ key: 'businessName', label: 'Tên trung tâm', required: true, multiline: false, placeholder: 'Trung tâm của bạn', help: '', defaultValue: '' }, { key: 'courses', label: 'Khóa học / dịch vụ', required: true, multiline: true, placeholder: 'Tên khóa, học phí, lịch.', help: '', defaultValue: '' }] },
-];
-
-function marketPreview(id: string, b: { name?: string; id?: string; runtime?: any; fields?: Record<string, string> } = {}): MarketPreview {
-  const t = templates.find((x) => x.id === id);
-  if (!t) throw new Fail(404, 'not_found', 'Không tìm thấy mẫu agent.');
-  const name = b.name?.trim() || t.name;
-  const missingRequired = t.fields.filter((f) => f.required && !b.fields?.[f.key]?.trim()).map((f) => f.label);
-  return {
-    templateId: id, agentId: b.id?.trim() || id, name, runtime: b.runtime ?? 'claude', missingRequired, warnings: [], existingSkills: [], newSkills: t.skills.map((s) => s.id),
-    files: [
-      { path: 'CLAUDE.md', kind: 'persona', description: 'Vai trò, giọng và giới hạn hành vi.', content: `# ${name}\n\n${t.description}\n` },
-      { path: 'knowledge/customer-care.md', kind: 'knowledge', description: 'Hồ sơ điền từ biểu mẫu.', content: t.fields.map((f) => `## ${f.label}\n${b.fields?.[f.key] ?? 'Chưa cung cấp.'}`).join('\n\n') },
-      ...t.skills.map((s) => ({ path: `skills/${s.id}/SKILL.md`, kind: 'skill' as const, description: s.description, content: `# ${s.name}\n` })),
-    ],
-  };
-}
-
 const recos: Reco[] = [
-  { id: 'failed-tasks:content-fb', arm: 'work', title: 'Agent "content-fb" có 3 việc thất bại trong 7 ngày', benefit: 'Tìm nguyên nhân chung để việc không thất bại lặp lại.', actionText: 'Giao cho agent main xem các việc thất bại và đề xuất cách sửa.', actionKind: 'task', effort: 's', priority: 2, evidence: ['timeout sau 600s'], status: 'new', result: null, decidedAt: null },
-  { id: 'budget:sales-a', arm: 'agents', title: 'Agent "sales-a" sắp hết ngân sách tháng (86%)', benefit: 'Tránh agent bị dừng giữa chừng.', actionText: 'Giao cho agent main phân tích chi phí và đề xuất nâng ngân sách hoặc đổi runtime.', actionKind: 'task', effort: 'xs', priority: 1, evidence: ['Đã dùng $8.60 / $10.00'], status: 'new', result: null, decidedAt: null },
-  { id: 'brain-ungranted:kb', arm: 'brain', title: 'Second Brain "Tri thức công ty" chưa cấp cho agent nào', benefit: 'Agent chỉ trả lời dựa trên tri thức của bạn khi được cấp quyền đọc.', actionText: 'Cấp quyền ĐỌC (không ghi) thư mục cho agent "main".', actionKind: 'grant-brain', effort: 'xs', priority: 2, evidence: [], status: 'new', result: null, decidedAt: null },
+  { id: 'failed-tasks:content-fb', arm: 'work', title: 'Agent "content-fb" có 3 việc thất bại trong 7 ngày', benefit: 'Tìm nguyên nhân chung để việc không thất bại lặp lại.', actionText: 'Giao cho Bot Trợ lý xem các việc thất bại và đề xuất cách sửa.', actionKind: 'task', effort: 's', priority: 2, evidence: ['timeout sau 600s'], status: 'new', result: null, decidedAt: null },
+  { id: 'budget:sales-a', arm: 'agents', title: 'Agent "sales-a" sắp hết ngân sách tháng (86%)', benefit: 'Tránh agent bị dừng giữa chừng.', actionText: 'Giao cho Bot Trợ lý phân tích chi phí và đề xuất nâng ngân sách hoặc đổi runtime.', actionKind: 'task', effort: 'xs', priority: 1, evidence: ['Đã dùng $8.60 / $10.00'], status: 'new', result: null, decidedAt: null },
+  { id: 'brain-ungranted:kb', arm: 'brain', title: 'Second Brain "Tri thức công ty" chưa cấp cho agent nào', benefit: 'Agent chỉ trả lời dựa trên tri thức của bạn khi được cấp quyền đọc.', actionText: 'Cấp quyền ĐỌC (không ghi) thư mục cho Bot Trợ lý.', actionKind: 'grant-brain', effort: 'xs', priority: 2, evidence: [], status: 'new', result: null, decidedAt: null },
   { id: 'module:care', arm: 'modules', title: 'Module "Chăm sóc khách hàng" chưa được thêm', benefit: 'Hộp thư chung cho Zalo, Gmail và Telegram.', actionText: 'Thêm module (có thể gỡ lại bất cứ lúc nào).', actionKind: 'add-module', effort: 's', priority: 3, evidence: [], status: 'new', result: null, decidedAt: null },
 ];
 const recoList = (status = 'open', arm?: string): RecosList => {
@@ -96,7 +75,7 @@ const recoById = (id: string) => {
 const applyReco = (r: Reco) => {
   if (r.status === 'done') throw new Fail(409, 'conflict', 'Đề xuất này đã được áp dụng.');
   r.status = 'done';
-  r.result = r.actionKind === 'task' ? 'Đã giao việc #41 cho main.' : 'Đã áp dụng.';
+  r.result = r.actionKind === 'task' ? 'Đã giao việc #41 cho Bot Trợ lý.' : 'Đã áp dụng.';
   r.decidedAt = new Date().toISOString();
   return r;
 };
@@ -122,13 +101,6 @@ export const teamsMockRoutes: MockRoute[] = [
   ['POST', '/teams/export', (_p, _q, b) => {
     if (!b.agentIds?.length) throw new Fail(400, 'bad_request', 'Chọn ít nhất một agent để xuất.');
     return { filename: 'doi-cua-toi.zip', base64: btoa('PK mock'), files: ['TEAM.md', ...b.agentIds.map((a: string) => `agents/${a}/persona.md`)], redactions: 2, inputs: ['SECRET_1', 'EMAIL_1'] };
-  }],
-  ['GET', '/agent-market', (): MarketCatalog => ({ templates, teams: catalog })],
-  ['POST', '/agent-market/:id/preview', ([id], _q, b) => marketPreview(id!, b)],
-  ['POST', '/agent-market/:id/install', ([id], _q, b) => {
-    const p = marketPreview(id!, b);
-    if (p.missingRequired.length) throw new Fail(400, 'bad_request', `Cần điền: ${p.missingRequired.join(', ')}.`);
-    return { agent: { id: p.agentId, name: p.name, runtime: p.runtime }, createdSkills: p.newSkills, files: p.files.map((f) => f.path) };
   }],
   ['GET', '/recos', (_p, q) => recoList(q.get('status') ?? 'open', q.get('arm') ?? undefined)],
   ['POST', '/recos/apply-cart', () => ({ results: recos.filter((r) => r.status === 'cart').map((r) => { applyReco(r); return { id: r.id, ok: true, message: r.result ?? '' }; }) })],

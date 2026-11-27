@@ -7,7 +7,6 @@ vi.hoisted(() => {
   window.matchMedia ??= ((q: string) => ({ matches: false, media: q, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, onchange: null, dispatchEvent: () => false })) as typeof window.matchMedia;
 });
 import { startSse } from '@/lib/sse';
-import AgentMarketPage from './AgentMarket';
 import RecosPage from './Recos';
 import TeamsPage from './Teams';
 
@@ -45,15 +44,6 @@ describe('team screens with the mock api', () => {
     expect(install.disabled).toBe(true);
   });
 
-  it('Chợ Agent shows templates and the packages', async () => {
-    const el = await mount(<AgentMarketPage />, /Nghiên cứu thị trường/);
-    expect(el.textContent).toMatch(/Biên tập nội dung/);
-    expect(el.textContent).toMatch(/CSKH Zalo và Email/);
-    await click(byText(el, 'article[data-template="research-analyst"] button', /Cài vào đội/));
-    for (let i = 0; i < 20 && !/Sẽ tạo agent/.test(document.body.textContent ?? ''); i++) await act(() => wait(100));
-    expect(document.body.textContent).toMatch(/knowledge\/customer-care\.md/);
-    expect(document.body.textContent).toMatch(/Còn thiếu: Doanh nghiệp/);
-  });
 
   it('Đề xuất cải tiến: cart and apply', async () => {
     const el = await mount(<RecosPage />, /sắp hết ngân sách/);

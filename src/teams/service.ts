@@ -14,7 +14,7 @@ import { badPackagePath, loadPackageDir, loadPackageFiles, MAX_PACKAGE_BYTES, MA
 import { TeamError, type LoadedTeam, type TeamFiles } from './types.js';
 
 export interface TeamsServiceDeps {
-  config: Pick<AppConfig, 'rootDir' | 'skillsDirs' | 'timezone' | 'allowedRuntimes'>;
+  config: Pick<AppConfig, 'rootDir' | 'skillsDirs' | 'timezone'>;
   db: DB;
   agents: AgentRegistry;
   scheduler: SchedulerService;
@@ -42,7 +42,7 @@ export function createTeamsService(deps: TeamsServiceDeps) {
   const catalogDir = deps.catalogDir ?? path.join(deps.config.rootDir, 'teams');
   const imports = new Map<string, { team: LoadedTeam; at: number }>();
   const skillsDir = deps.config.skillsDirs[0] ?? path.join(deps.config.rootDir, 'skills');
-  const installDeps = () => ({ agents: deps.agents, scheduler: deps.scheduler, skills: deps.skills, skillsDir, timezone: deps.config.timezone, ...(deps.config.allowedRuntimes ? { allowedRuntimes: deps.config.allowedRuntimes } : {}) });
+  const installDeps = () => ({ agents: deps.agents, scheduler: deps.scheduler, skills: deps.skills, skillsDir, timezone: deps.config.timezone });
 
   function sweep(): void {
     const now = Date.now();

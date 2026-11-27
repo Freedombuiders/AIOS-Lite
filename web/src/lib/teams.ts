@@ -1,10 +1,8 @@
-// Types and small helpers for Gói Team, Chợ Agent and Đề xuất cải tiến (docs/dev/API-teams.md).
-import type { RuntimeId } from '@core/types';
-
-export const RUNTIMES: RuntimeId[] = ['claude', 'codex', 'grok', 'hermes', 'genbot', 'mock'];
+// Types and small helpers for Gói Team and Đề xuất cải tiến (docs/dev/API-teams.md).
+import type { AgentRuntime } from '@core/types';
 
 export interface TeamInputDecl { key: string; label: string; description: string; kind: 'plain' | 'secret'; required: boolean; defaultValue: string }
-export interface TeamAgentDecl { id: string; name: string; description: string; runtime: RuntimeId | null; model: string | null; skills: string[]; fileCount: number }
+export interface TeamAgentDecl { id: string; name: string; description: string; runtime: AgentRuntime | null; model: string | null; skills: string[]; fileCount: number }
 export interface TeamSummary {
   slug: string; name: string; version: string; description: string; tags: string[]; manager: string;
   agents: TeamAgentDecl[]; schedules: { id: string; agent: string; cron: string; tz: string | null }[];
@@ -15,7 +13,7 @@ export interface InstallRecord { at: string; slug: string; name: string; agents:
 export interface TeamsList { items: TeamSummary[]; imported: TeamSummary[]; problems: { name: string; errors: string[] }[]; history: InstallRecord[] }
 
 export type Strategy = 'rename' | 'skip';
-export interface AgentPlan { pkgId: string; name: string; description: string; finalId: string; action: 'create' | 'skip'; collision: boolean; runtime: RuntimeId; model: string | null; skills: string[]; files: string[]; reportsTo: string | null }
+export interface AgentPlan { pkgId: string; name: string; description: string; finalId: string; action: 'create' | 'skip'; collision: boolean; runtime: AgentRuntime; model: string | null; skills: string[]; files: string[]; reportsTo: string | null }
 export interface InstallPlan {
   team: { slug: string; name: string; version: string; description: string; manager: string; prerequisites: string[]; body: string };
   strategy: Strategy;
@@ -30,23 +28,11 @@ export interface InstallPlan {
 }
 export interface InstallResult {
   slug: string; name: string;
-  agents: { pkgId: string; id: string; name: string; runtime: RuntimeId }[];
+  agents: { pkgId: string; id: string; name: string; runtime: AgentRuntime }[];
   skills: string[];
   schedules: { id: number; name: string; agentId: string; cron: string }[];
   warnings: string[]; nextSteps: string[];
 }
-
-export interface MarketField { key: string; label: string; required: boolean; multiline: boolean; placeholder: string; help: string; defaultValue: string }
-export interface MarketTemplate {
-  id: string; name: string; category: string; description: string; outcome: string; capabilities: string[]; examples: string[];
-  fields: MarketField[]; skills: { id: string; name: string; description: string }[];
-}
-export interface MarketPreview {
-  templateId: string; agentId: string; name: string; runtime: RuntimeId;
-  files: { path: string; kind: 'persona' | 'knowledge' | 'skill'; description: string; content: string }[];
-  newSkills: string[]; existingSkills: string[]; missingRequired: string[]; warnings: string[];
-}
-export interface MarketCatalog { templates: MarketTemplate[]; teams: TeamSummary[] }
 
 export type RecoArm = 'agents' | 'work' | 'skills' | 'brain' | 'modules';
 export type RecoStatus = 'new' | 'cart' | 'done' | 'skipped';

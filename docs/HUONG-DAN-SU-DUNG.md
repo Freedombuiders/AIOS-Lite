@@ -16,7 +16,7 @@ Mục lục:
 8. [Module: thêm, gỡ, cài đặt](#8-module-thêm-gỡ-cài-đặt)
 9. [Từng module](#9-từng-module)
 10. [Kết nối và Integrations](#10-kết-nối-và-integrations)
-11. [Chi phí AI, Chợ Agent, Gói Team, Đề xuất](#11-chi-phí-ai-chợ-agent-gói-team-đề-xuất)
+11. [Chi phí AI, Gói Team, Đề xuất](#11-chi-phí-ai-gói-team-đề-xuất)
 12. [Cài đặt hệ thống và Dừng khẩn cấp](#12-cài-đặt-hệ-thống-và-dừng-khẩn-cấp)
 13. [Sao lưu và chuyển máy](#13-sao-lưu-và-chuyển-máy)
 14. [Xử lý sự cố](#14-xử-lý-sự-cố)
@@ -188,11 +188,11 @@ Vào **Hệ thống › Kết nối**.
 - **Chờ duyệt:** lệnh ghi mà agent xin chạy ở mức *Hỏi trước*. Bấm **Duyệt**, **Duyệt luôn lệnh y hệt** (lần sau tự chạy) hoặc **Từ chối**. Lệnh xoá hoặc huỷ luôn phải duyệt.
 - **MCP & khoá:** các máy chủ MCP trong `config/connections.yaml`. File này chỉ ghi **tên biến** trong `.env`, không ghi khoá thật.
 
-## 11. Chi phí AI, Chợ Agent, Gói Team, Đề xuất
+## 11. Chi phí AI, Gói Team, Đề xuất
 
 - **Chi phí AI › Sử dụng:** chi phí theo agent, runtime, ngày. Chỉ tính lượt chạy mà CLI báo giá.
 - **Chi phí AI › Ngân sách:** hạn mức tháng cho từng agent. Gần chạm hạn mức thì có cảnh báo ở **Cần bạn**; đã chạm thì việc mới của agent đó dừng với lỗi "ngân sách" cho tới tháng sau hoặc khi bạn nâng hạn mức.
-- **Chợ Agent:** mẫu agent dựng sẵn. Xem trước rồi **Cài vào đội**, chọn runtime lúc cài.
+- **Chợ Agent** cũ đã bỏ (G3): thêm bot từ mẫu ở **Đội AI · Bot**; `/agent-market` chuyển về đó.
 - **Gói Team:** cả nhóm agent dựng sẵn (persona, skill, lịch). Cài xong, agent ở chế độ an toàn, chưa có quyền gì, lịch để tắt; bạn cấp quyền theo hướng dẫn trong gói. Gói không bao giờ chứa khoá.
 - **Đề xuất cải tiến:** hệ thống tự xem việc lỗi, chi phí, skill, module để gợi ý. Không có gì thay đổi cho tới khi bạn bấm **Áp dụng**.
 

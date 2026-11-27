@@ -24,7 +24,7 @@ import {
   type TemplateVariable,
 } from '@/lib/marketing';
 import { addToSpintax, type ZaloStyle } from '@/lib/richText';
-import { pickerBots, type BotLike } from '@/lib/bots';
+import { defaultBotId, pickerBots, type BotLike } from '@/lib/bots';
 
 const INPUT = 'w-full px-3 py-2 rounded bg-[var(--color-bg)] border border-[var(--color-border)] focus:border-[var(--color-accent)] focus:outline-none text-[12.5px] text-[var(--color-text)]';
 const BTN = 'toolbar-control control-button inline-flex items-center gap-1.5 px-3 rounded-md text-[13px] text-[var(--color-text)] hover:bg-[var(--color-control-hover)] disabled:opacity-40';
@@ -157,7 +157,7 @@ function TemplateEditor({ template, onClose, onSaved }: {
   const [variantList, setVariantList] = useState<RichText[]>([]);
   // only GenBot bots that have a key (Open AgenticOS runs every agent on GenBot)
   const agentList = pickerBots(agents.data);
-  const effectiveAgent = agentId || agentList[0]?.id || 'main';
+  const effectiveAgent = agentId || defaultBotId(agentList);
 
   async function writeVariants() {
     setWriting(true);
@@ -322,7 +322,7 @@ function TemplateEditor({ template, onClose, onSaved }: {
             </div>
             <div class="flex flex-wrap items-center gap-2">
               <select class={`${INPUT} !w-auto`} value={effectiveAgent} onChange={(e) => setAgentId((e.target as HTMLSelectElement).value)} aria-label="Agent">
-                {agentList.length === 0 && <option value="main">main</option>}
+                {agentList.length === 0 && <option value="">Chưa có bot có khoá (Đội AI · Bot)</option>}
                 {agentList.map((a) => <option key={a.id} value={a.id}>{a.name || a.id}</option>)}
               </select>
               <select class={`${INPUT} !w-auto`} value={count} onChange={(e) => setCount(Number((e.target as HTMLSelectElement).value))} aria-label="Số biến thể">

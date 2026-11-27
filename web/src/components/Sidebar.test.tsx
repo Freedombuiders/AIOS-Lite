@@ -97,8 +97,11 @@ describe('Sidebar', () => {
 
   it('opens "Nâng cao" by itself when the current page is inside it', async () => {
     const el = await mount('/skills');
-    expect(labels(el)).toEqual(expect.arrayContaining(['Skills', 'Chợ Agent', 'Gói Team', 'Bộ nhớ', 'Đề xuất cải tiến', 'Chi phí AI', 'Ngân sách AI', 'Nhật ký', 'Module']));
+    expect(labels(el)).toEqual(expect.arrayContaining(['Skills', 'Gói Team', 'Bộ nhớ', 'Đề xuất cải tiến', 'Chi phí AI', 'Ngân sách AI', 'Nhật ký', 'Module']));
     expect(el.querySelector('[aria-current="page"]')?.textContent).toContain('Skills');
+    // the old agent market and the generic Agents list are gone (G3)
+    expect(labels(el)).not.toContain('Chợ Agent');
+    expect(labels(el)).not.toContain('Agents');
   });
 
   it('lights one entry only on a nested path', async () => {

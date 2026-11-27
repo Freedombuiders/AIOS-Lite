@@ -34,7 +34,7 @@ export const agents: AgentDetail[] = [
     stats: { running: 0, queued: 0, lastRunAt: mins(190), costMonthUsd: 0, runsMonth: 12 },
   },
   {
-    id: 'research', name: 'Nghiên cứu thị trường', description: 'Tìm tin, tóm tắt đối thủ và xu hướng.', runtime: 'hermes', runtimeAllowed: false, runtimeOptions: {}, permission: 'full', context: 'standard',
+    id: 'research', name: 'Nghiên cứu thị trường', description: 'Tìm tin, tóm tắt đối thủ và xu hướng.', runtime: 'claude', runtimeAllowed: false, runtimeOptions: {}, permission: 'full', context: 'standard',
     reportsTo: 'main', canDelegate: false, maxConcurrent: 1, budgetUsdMonth: 10, enabled: true,
     access: { ...emptyAccess, brain: { 'tri-thuc': { read: ['**'], write: ['Nghien-cuu/**'] } }, connections: { 'web-search': ['search_*'] } },
     persona: '# Nghiên cứu thị trường\n\nLuôn ghi nguồn. Tách rõ dữ kiện và nhận định.', dir: '/agents/research', workspace: '/workspaces/research',
@@ -69,9 +69,9 @@ const runBase = { sessionId: null, output: null, errorFamily: null, error: null,
 export const runs: Run[] = [
   { ...runBase, id: 1, taskId: 1, agentId: 'main', runtime: 'genbot', status: 'running', trigger: 'assigned', startedAt: mins(10), accessJson: '1' },
   { ...runBase, id: 2, taskId: 3, agentId: 'content', runtime: 'genbot', status: 'done', trigger: 'assigned', startedAt: mins(90), finishedAt: mins(86), durationMs: 240_000, inputTokens: 5200, outputTokens: 880, costUsd: null, output: '**Caption 1:** …', accessJson: '1' },
-  { ...runBase, id: 3, taskId: 4, agentId: 'research', runtime: 'hermes', status: 'done', trigger: 'assigned', startedAt: mins(296), finishedAt: mins(280), durationMs: 960_000, inputTokens: 21000, outputTokens: 3100, costUsd: 0.38, accessJson: '1' },
+  { ...runBase, id: 3, taskId: 4, agentId: 'research', runtime: 'claude', status: 'done', trigger: 'assigned', startedAt: mins(296), finishedAt: mins(280), durationMs: 960_000, inputTokens: 21000, outputTokens: 3100, costUsd: 0.38, accessJson: '1' },
   { ...runBase, id: 4, taskId: 5, agentId: 'main', runtime: 'genbot', status: 'failed', trigger: 'assigned', startedAt: mins(239), finishedAt: mins(238), durationMs: 41_000, errorFamily: 'auth', error: 'Composio trả về 401.', accessJson: '1' },
-  { ...runBase, id: 5, taskId: 8, agentId: 'research', runtime: 'hermes', status: 'done', trigger: 'assigned', startedAt: mins(18), finishedAt: mins(9), durationMs: 540_000, inputTokens: 9000, outputTokens: 1200, costUsd: 0.12, accessJson: '1' },
+  { ...runBase, id: 5, taskId: 8, agentId: 'research', runtime: 'claude', status: 'done', trigger: 'assigned', startedAt: mins(18), finishedAt: mins(9), durationMs: 540_000, inputTokens: 9000, outputTokens: 1200, costUsd: 0.12, accessJson: '1' },
   { ...runBase, id: 6, taskId: 7, agentId: 'sales-a', runtime: 'genbot', status: 'running', trigger: 'assigned', startedAt: mins(18), accessJson: '1' },
   { ...runBase, id: 7, taskId: 9, agentId: 'main', runtime: 'genbot', status: 'done', trigger: 'schedule', startedAt: mins(1499), finishedAt: mins(1495), durationMs: 200_000, inputTokens: 8000, outputTokens: 700, costUsd: 0.09, accessJson: '1' },
 ];

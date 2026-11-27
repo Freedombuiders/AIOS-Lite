@@ -1,0 +1,24 @@
+# Bot Nội dung của Đội AgenticOS mặc định (teams/agenticos-doi-mac-dinh), cài sẵn cho brain mẫu cong-ty-b (Trà Sen Việt).
+# Nối với một bot GenBot: mở Đội AI · Bot, bấm Sửa để điền mã bot, Đổi khoá để dán khoá Bot API, rồi Kiểm tra.
+name: "Bot Nội dung"
+description: "Viết bài cho Trà Sen Việt theo giọng cửa hàng, dựa trên sản phẩm, bài học và công thức đã có."
+runtime: genbot
+context: standard
+runtime_options:
+  base_url: "http://127.0.0.1:8800"
+  bot_id: ""
+  max_runs_day: 500
+permission: safe
+reports_to: bot-tro-ly
+can_delegate: false
+max_concurrent: 1
+enabled: true
+access:
+  brain:
+    cong-ty-b:
+      read: ["giong-noi.md", "noi-dung/**", "san-pham/**", "bai-hoc/**", "cong-thuc/**"]
+      write: []
+  memory: { team: true, private: true }
+  skills: []
+  connections: {}
+  modules: {}

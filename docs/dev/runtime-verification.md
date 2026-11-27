@@ -1,5 +1,7 @@
 # Kiểm chứng runtime (A-10)
 
+> **Lưu ý (G3, 27/11):** các adapter Claude Code, Codex, Grok và Hermes đã bị xoá khỏi `src/runtimes/`. Open AgenticOS chỉ còn `genbot` (và `mock` cho test). Nội dung dưới đây mô tả phiên bản cũ, giữ lại để tham khảo.
+
 Ngày kiểm: 2026-10-24, macOS 25.5 (arm64). Mọi lệnh gọi đi qua adapter trong `src/runtimes/` (trừ khi ghi "CLI trực tiếp"). Prompt chỉ vài từ, tổng chi phí khoảng 1 USD (đa phần là Claude không bật cache).
 
 | CLI | Phiên bản | Đăng nhập dùng khi kiểm |
