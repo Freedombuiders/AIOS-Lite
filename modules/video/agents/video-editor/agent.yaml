@@ -1,7 +1,9 @@
 name: Đạo diễn video
 description: "Đạo diễn AI của Video Studio: lập kế hoạch dựng video quay sẵn, viết kịch bản và phân cảnh, xin chủ duyệt trước khi tốn chi phí"
-runtime: claude
-runtime_options: {}
+runtime: genbot
+runtime_options:
+  base_url: "http://127.0.0.1:8800"
+  bot_id: ""
 permission: safe
 context: lean
 reports_to: main

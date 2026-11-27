@@ -1,2 +1,8 @@
 name: "Trưởng nhóm Content FB"
 description: "Lập kế hoạch, viết bài và rà lịch đăng Facebook cho {{input.BRAND_NAME}} qua Content Studio; mọi bài chờ chủ duyệt."
+runtime: genbot
+context: standard
+runtime_options:
+  base_url: "http://127.0.0.1:8800"
+  bot_id: ""
+  max_runs_day: 500

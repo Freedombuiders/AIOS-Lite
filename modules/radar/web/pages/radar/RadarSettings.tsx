@@ -137,9 +137,8 @@ function ToolsPanel({ status }: { status: RadarStatus | null }) {
             <span class="text-[12px] text-[var(--color-text-muted)]">{t.rsshub && !t.rsshub.reachable ? 'Chạy “docker start rsshub” trong Terminal.' : 'Đọc Facebook, Threads, TikTok miễn phí.'}</span>
           </div>
           <div class="flex flex-wrap items-center gap-3">
-            <b class="w-36">Agent đọc X</b>
-            <span>{t.grok.installed ? `Đã có agent ${t.grok.path ?? 'radar-analyst'} (runtime Grok)` : 'Chưa có agent radar-analyst'}</span>
-            <Link href="/agents" class={BTN}>{t.grok.installed ? 'Mở Agents' : 'Thêm agent từ mẫu'}</Link>
+            <b class="w-36">Đọc X</b>
+            <span>Đang tắt</span>
             <span class="text-[12px] text-[var(--color-text-muted)]">{t.grok.detail}</span>
           </div>
           <div class="flex flex-wrap items-center gap-3">

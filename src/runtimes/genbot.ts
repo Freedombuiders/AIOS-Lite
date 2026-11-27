@@ -15,6 +15,9 @@ import { clip } from './jsonl.js';
 import { probeRequest } from './probe.js';
 import { emitSafe, failed, makeReport } from './shared.js';
 
+/** Where GenBot desktop listens by default. */
+export const GENBOT_DEFAULT_BASE_URL = 'http://127.0.0.1:8800';
+
 /** Bot API limit on `message` (bot-api.md). The context builder fits the whole request inside it. */
 export const GENBOT_MAX_MESSAGE_CHARS = 20_000;
 
@@ -57,8 +60,12 @@ type Env = Record<string, string | undefined>;
 export interface GenbotConfig {
   baseUrl: string;
   botId: string;
-  keyEnv: string;
+  /** optional fallback: the key in .env under this name (older setups); the key pasted in the app wins */
+  keyEnv?: string;
 }
+
+/** Reads a bot's stored Bot API key by agent id (src/runtimes/genbot-keys.ts). Core-only, never exposed. */
+export type GenbotKeyLookup = (agentId: string) => string | undefined;
 
 // ------------------------------------------------------------------ config
 
@@ -83,7 +90,7 @@ function checkBaseUrl(raw: string): { ok: true; url: string } | { ok: false; pro
   return { ok: true, url: `${u.origin}${u.pathname}`.replace(/\/+$/, '') };
 }
 
-/** Reads and checks `base_url`, `bot_id`, `key_env`. Never reads the key itself. */
+/** Reads and checks `base_url`, `bot_id` and the optional `key_env`. Never reads the key itself. */
 export function readGenbotConfig(options: RuntimeOptions | undefined): { ok: true; config: GenbotConfig } | { ok: false; problems: string[] } {
   const problems: string[] = [];
   const rawUrl = optString(options, 'base_url');
@@ -98,12 +105,27 @@ export function readGenbotConfig(options: RuntimeOptions | undefined): { ok: tru
   }
   if (!botId) problems.push('Thiếu runtime_options.bot_id (mã bot trong GenBot).');
   else if (!BOT_ID_RE.test(botId)) problems.push('bot_id chỉ gồm chữ, số, "_" và "-" (tối đa 128 ký tự).');
-  if (!keyEnv) problems.push('Thiếu runtime_options.key_env (tên biến môi trường chứa khoá Bot API, ví dụ GENBOT_KEY_CSKH).');
-  // the value is never echoed: a key pasted here by mistake must not end up in an error
-  else if (!KEY_ENV_RE.test(keyEnv)) problems.push(`key_env phải là tên biến dạng GENBOT_KEY_<TÊN> (chữ in hoa, số, "_"); giá trị hiện tại (${keyEnv.length} ký tự) không hợp lệ.`);
-  if (problems.length || !botId || !keyEnv || !baseUrl) return { ok: false, problems };
-  return { ok: true, config: { baseUrl, botId, keyEnv } };
+  // key_env is optional: the key is normally pasted on the Đội AI · Bot screen and stored encrypted.
+  // The value is never echoed: a key pasted here by mistake must not end up in an error.
+  if (keyEnv && !KEY_ENV_RE.test(keyEnv)) problems.push(`key_env phải là tên biến dạng GENBOT_KEY_<TÊN> (chữ in hoa, số, "_"); giá trị hiện tại (${keyEnv.length} ký tự) không hợp lệ.`);
+  if (problems.length || !botId || !baseUrl) return { ok: false, problems };
+  return { ok: true, config: { baseUrl, botId, ...(keyEnv ? { keyEnv } : {}) } };
 }
+
+/** The key for one agent: the one stored in the app first, then `key_env` in .env (older setups). */
+export function resolveGenbotKey(agentId: string | undefined, keyEnv: string | undefined, keyFor: GenbotKeyLookup | undefined, env: Env): { key: string; source: 'store' | 'env' } | undefined {
+  const stored = keyFor?.(agentId ?? '')?.trim();
+  if (stored) return { key: stored, source: 'store' };
+  if (!keyEnv) return undefined;
+  protectEnvName(keyEnv, env);
+  const fromEnv = env[keyEnv]?.trim();
+  return fromEnv ? { key: fromEnv, source: 'env' } : undefined;
+}
+
+const NO_KEY_MESSAGE = (keyEnv?: string) =>
+  keyEnv
+    ? `Chưa có khoá Bot API cho bot này: chưa dán khoá trong màn Đội AI · Bot và biến ${keyEnv} trong .env cũng trống.`
+    : 'Chưa có khoá Bot API cho bot này. Mở Đội AI · Bot, bấm "Đổi khoá" và dán khoá chép từ app GenBot.';
 
 /** `systemPrompt + "\n\n" + prompt`; refuses (never truncates) a message over the Bot API limit. */
 export function buildMessage(req: Pick<RunRequest, 'systemPrompt' | 'prompt'>): { ok: true; message: string } | { ok: false; error: RunError } {
@@ -281,8 +303,10 @@ async function readAnswer(res: Response, clean: (s: string) => string): Promise<
 // ------------------------------------------------------------------ runtime
 
 export interface GenbotRuntimeOptions {
-  /** env to read `key_env` from (defaults to process.env) */
+  /** env to read the fallback `key_env` from (defaults to process.env) */
   env?: Env;
+  /** the key stored in the app, by agent id (wins over `key_env`) */
+  keyFor?: GenbotKeyLookup;
   /** ms between `GET …/messages?thread=` reads after a `202 working` */
   pollMs?: number;
   /** per-bot gate; one shared instance per runtime by default */
@@ -298,9 +322,9 @@ export function createGenbotRuntime(opts: GenbotRuntimeOptions = {}): Runtime {
     const cfg = readGenbotConfig(req.agent.runtimeOptions);
     if (!cfg.ok) return failed({ family: 'config', message: `Cấu hình GenBot chưa đủ: ${cfg.problems.join(' ')}` });
     const { baseUrl, botId, keyEnv } = cfg.config;
-    protectEnvName(keyEnv, env());
-    const key = env()[keyEnv]?.trim();
-    if (!key) return failed({ family: 'config', message: `Biến môi trường ${keyEnv} chưa có khoá Bot API. Chép khoá từ app GenBot vào file .env rồi khởi động lại AIOS.` });
+    const found = resolveGenbotKey(req.agent.id, keyEnv, opts.keyFor, env());
+    if (!found) return failed({ family: 'config', message: NO_KEY_MESSAGE(keyEnv) });
+    const key = found.key;
     protectValue(key);
     // The key never leaves this function: every outgoing string goes through `clean`.
     const clean = (s: string) => redactString(s.split(key).join('[redacted]'));
@@ -386,7 +410,7 @@ export function createGenbotRuntime(opts: GenbotRuntimeOptions = {}): Runtime {
     // Generic: GenBot is reached over HTTP and configured per agent; checkGenbotAgent checks one agent.
     async doctor(): Promise<DoctorReport> {
       return makeReport('genbot', [
-        { code: 'genbot.http', level: 'info', message: 'GenBot gọi qua Bot API (HTTP), không cần cài lệnh. Mỗi agent tự khai base_url, bot_id, key_env.', hint: 'Kiểm một agent bằng nút "Kiểm tra" trên form agent (POST /api/runtimes/genbot/check).' },
+        { code: 'genbot.http', level: 'info', message: 'GenBot gọi qua Bot API (HTTP), không cần cài lệnh. Mỗi bot có địa chỉ GenBot, mã bot và khoá dán trong app.', hint: 'Kiểm từng bot bằng nút "Kiểm tra" ở màn Đội AI · Bot.' },
       ]);
     },
   } satisfies Runtime;
@@ -414,18 +438,23 @@ function connectCheck(baseUrl: string): Promise<{ ok: true } | { ok: false; reas
  * Checks one agent's GenBot configuration: the three values, the key in the env, a TCP connection to base_url, and with
  * `probe` one real "ping" message through `runtime` (it counts against the bot's ten calls a minute).
  */
-export async function checkGenbotAgent(runtime: Runtime, agent: { runtimeOptions: RuntimeOptions }, opts: { probe?: boolean; env?: Env } = {}): Promise<DoctorReport> {
+export async function checkGenbotAgent(
+  runtime: Runtime,
+  agent: { id?: string; runtimeOptions: RuntimeOptions },
+  opts: { probe?: boolean; env?: Env; keyFor?: GenbotKeyLookup } = {},
+): Promise<DoctorReport> {
   const env = opts.env ?? process.env;
   const checks: DoctorCheck[] = [];
   const cfg = readGenbotConfig(agent.runtimeOptions);
   if (!cfg.ok) {
-    for (const p of cfg.problems) checks.push({ code: 'genbot.config', level: 'error', message: p, hint: 'Điền base_url, bot_id, key_env trong runtime_options của agent.' });
+    for (const p of cfg.problems) checks.push({ code: 'genbot.config', level: 'error', message: p, hint: 'Điền địa chỉ GenBot và mã bot ở màn Đội AI · Bot.' });
     return makeReport('genbot', checks);
   }
   const { baseUrl, botId, keyEnv } = cfg.config;
   checks.push({ code: 'genbot.config', level: 'info', message: `Bot ${botId} ở ${baseUrl}.` });
-  if (!env[keyEnv]?.trim()) checks.push({ code: 'genbot.key', level: 'error', message: `Biến môi trường ${keyEnv} chưa có giá trị.`, hint: 'Bật Bot API cho bot trong app GenBot, chép khoá vào .env rồi khởi động lại AIOS.' });
-  else checks.push({ code: 'genbot.key', level: 'info', message: `Có khoá trong ${keyEnv}.` });
+  const found = resolveGenbotKey(agent.id, keyEnv, opts.keyFor, env);
+  if (!found) checks.push({ code: 'genbot.key', level: 'error', message: NO_KEY_MESSAGE(keyEnv), hint: 'Bật Bot API cho bot trong app GenBot (Cài đặt bot › Nâng cao › Truy cập › Bot API), chép khoá rồi dán ở màn Đội AI · Bot.' });
+  else checks.push({ code: 'genbot.key', level: 'info', message: found.source === 'store' ? 'Đã có khoá (lưu mã hoá trong AIOS).' : `Có khoá trong ${keyEnv} (.env).` });
   const conn = await connectCheck(baseUrl);
   if (conn.ok) checks.push({ code: 'genbot.connect', level: 'info', message: `Kết nối được tới ${baseUrl}.` });
   else checks.push({ code: 'genbot.connect', level: 'error', message: `Không kết nối được tới ${baseUrl} (${conn.reason}).`, hint: 'Mở app GenBot và kiểm tra cổng nhận webhook.' });
@@ -433,9 +462,9 @@ export async function checkGenbotAgent(runtime: Runtime, agent: { runtimeOptions
     const cwd = await mkdtemp(path.join(tmpdir(), 'aios-probe-genbot-'));
     try {
       const base = probeRequest(cwd, 'genbot');
-      const res = await runtime.run({ ...base, agent: { ...base.agent, runtimeOptions: agent.runtimeOptions }, prompt: 'ping. Trả lời đúng một từ: pong', timeoutMs: 60_000 });
+      const res = await runtime.run({ ...base, agent: { ...base.agent, ...(agent.id ? { id: agent.id } : {}), runtimeOptions: agent.runtimeOptions }, prompt: 'ping. Trả lời đúng một từ: pong', timeoutMs: 60_000 });
       if (res.ok) checks.push({ code: 'genbot.probe', level: 'info', message: `Gửi "ping" thành công: ${clip(res.output.trim(), 60)}` });
-      else checks.push({ code: 'genbot.probe', level: 'error', message: `Gửi "ping" thất bại: ${res.error?.message ?? 'không có trả lời'}`, hint: res.error?.family === 'auth' ? 'Tạo khoá mới trong app GenBot (Bot API, New key) rồi chép vào .env.' : undefined });
+      else checks.push({ code: 'genbot.probe', level: 'error', message: `Gửi "ping" thất bại: ${res.error?.message ?? 'không có trả lời'}`, hint: res.error?.family === 'auth' ? 'Tạo khoá mới trong app GenBot (Bot API, New key) rồi bấm "Đổi khoá" ở màn Đội AI · Bot.' : undefined });
     } finally {
       await rm(cwd, { recursive: true, force: true }).catch(() => undefined);
     }

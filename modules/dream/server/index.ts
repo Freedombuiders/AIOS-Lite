@@ -119,7 +119,8 @@ function routes(app: Hono, ctx: ModuleContext): void {
       channels: listChannels(ctx).length,
       maxChannels: MAX_CHANNELS,
       agent: agentId ? { id: agentId, name: ctx.agents.get(agentId)?.name ?? agentId, images: ctx.agents.attachments(agentId).images } : null,
-      agents: ctx.agents.list().filter((a) => a.enabled !== false).map((a) => ({ id: a.id, name: a.name, images: ctx.agents.attachments(a.id).images })),
+      // only GenBot bots that have a key (Open AgenticOS runs every agent on GenBot)
+      agents: ctx.agents.list().filter((a) => a.enabled !== false && (ctx.agents.usable?.(a.id) ?? a.runtime === 'genbot')).map((a) => ({ id: a.id, name: a.name, images: ctx.agents.attachments(a.id).images })),
       tools: mediaTools(),
     });
   });

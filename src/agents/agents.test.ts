@@ -57,10 +57,10 @@ describe('agent registry', () => {
     // samples must exist; learners may add their own agents next to them
     expect(reg.list().map((a) => a.id)).toEqual(expect.arrayContaining(['assistant', 'coder', 'demo', 'main', 'researcher']));
     const main = reg.require('main');
-    expect(main).toMatchObject({ runtime: 'claude', canDelegate: true, access: { skills: 'all', memory: { team: true, private: true } } });
+    expect(main).toMatchObject({ runtime: 'genbot', canDelegate: true, access: { skills: 'all', memory: { team: true, private: true } } });
     expect(Object.keys(main.access.brain)).toEqual(['ca-nhan', 'cong-ty-a', 'cong-ty-b']);
     expect(main.persona).toContain('Trợ lý chính');
-    expect(reg.require('assistant').runtimeOptions).toEqual({ profile: 'default' });
+    expect(reg.require('assistant').runtimeOptions).toEqual({ base_url: 'http://127.0.0.1:8800', bot_id: '' });
     expect(reg.require('coder').access.skills).toEqual(['review-code']);
   });
 
@@ -80,7 +80,7 @@ describe('agent registry', () => {
   it('creates, updates and round-trips through yaml', () => {
     const t = tempRegistry();
     const reg = t.registry();
-    const a = reg.create('sales-a', { name: 'Sale A', runtime: 'claude', description: 'Trả lời khách', persona: 'Bạn là sale.', context: 'lean', access: { brain: { 'cong-ty-a': { read: ['**'], write: [] } }, memory: { team: true, private: true }, skills: ['x'], connections: {}, modules: { care: ['inbox.read'] } } });
+    const a = reg.create('sales-a', { name: 'Sale A', runtime: 'genbot', description: 'Trả lời khách', persona: 'Bạn là sale.', context: 'lean', access: { brain: { 'cong-ty-a': { read: ['**'], write: [] } }, memory: { team: true, private: true }, skills: ['x'], connections: {}, modules: { care: ['inbox.read'] } } });
     expect(a.context).toBe('lean');
     expect(fs.existsSync(path.join(t.workspacesDir, 'sales-a'))).toBe(true);
     const yamlText = fs.readFileSync(path.join(t.agentsDir, 'sales-a', 'agent.yaml'), 'utf8');
@@ -94,8 +94,28 @@ describe('agent registry', () => {
     const again = t.registry();
     expect(again.require('sales-a')).toEqual(u);
     expect(() => reg.update('sales-a', { runtime: 'nope' as never })).toThrow(AgentValidationError);
-    expect(reg.require('sales-a').runtime).toBe('claude');
+    expect(reg.require('sales-a').runtime).toBe('genbot');
     expect(() => reg.require('ghost')).toThrow('Không tìm thấy');
+  });
+
+  it('GenBot only: creating, changing to or installing a claude agent is refused; a legacy agent still loads and may be edited', () => {
+    const t = tempRegistry();
+    writeFile(path.join(t.agentsDir, 'old-claude', 'agent.yaml'), 'name: Old\nruntime: claude\n');
+    const reg = t.registry();
+    expect(reg.require('old-claude').runtime).toBe('claude');
+    expect(() => reg.create('new-claude', { name: 'X', runtime: 'claude' })).toThrow(/không còn được dùng.*GenBot/);
+    expect(fs.existsSync(path.join(t.agentsDir, 'new-claude'))).toBe(false);
+    reg.create('bot-a', { name: 'A', runtime: 'genbot' });
+    expect(() => reg.update('bot-a', { runtime: 'codex' })).toThrow(/Codex.*không còn được dùng/);
+    expect(reg.require('bot-a').runtime).toBe('genbot');
+    // editing a legacy agent without moving it to another refused runtime is allowed (never silently rewritten)
+    expect(reg.update('old-claude', { enabled: false }).runtime).toBe('claude');
+    expect(fs.readFileSync(path.join(t.agentsDir, 'old-claude', 'agent.yaml'), 'utf8')).toContain('runtime: claude');
+    expect(() => reg.update('old-claude', { runtime: 'grok' })).toThrow(/Grok/);
+    const tpl = path.join(tmpDir(), 'claude-tpl');
+    writeFile(path.join(tpl, 'agent.yaml'), 'name: T\nruntime: hermes\n');
+    expect(() => reg.installTemplate(tpl)).toThrow(/Hermes/);
+    expect(fs.existsSync(path.join(t.agentsDir, 'claude-tpl'))).toBe(false);
   });
 
   it('archives to agents/_archive/<id>-<timestamp>', () => {

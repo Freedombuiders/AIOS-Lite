@@ -52,8 +52,16 @@ export interface AgentStats {
   runsMonth: number;
 }
 
-export type AgentSummary = Omit<AgentConfig, 'persona'> & { stats: AgentStats };
-export type AgentDetail = AgentConfig & { stats: AgentStats };
+/**
+ * runtimeAllowed: false for an agent left on a runtime that is no longer offered (GenBot only).
+ * genbotKey: "đã có khoá" + last four characters for a GenBot bot; never the key.
+ */
+export interface AgentGenbotFields {
+  runtimeAllowed?: boolean;
+  genbotKey?: { hasKey: boolean; last4: string };
+}
+export type AgentSummary = Omit<AgentConfig, 'persona'> & AgentGenbotFields & { stats: AgentStats };
+export type AgentDetail = AgentConfig & AgentGenbotFields & { stats: AgentStats };
 export interface AgentLoadError {
   id: string;
   file: string;

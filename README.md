@@ -1,8 +1,10 @@
 # AIOS-Lite
 
-AIOS-Lite là một **hệ điều hành cho đội agent**, viết nhỏ gọn để làm template dạy học. Bạn khai báo các agent (chạy bằng Claude Code, Codex, Grok hoặc Hermes), giao việc cho chúng, cấp cho từng agent đúng những gì nó được xem và được làm, và thêm các nghiệp vụ như Chăm sóc khách hàng hay Marketing bằng một cú bấm **Add**.
+AIOS-Lite là một **hệ điều hành cho đội agent**, viết nhỏ gọn để làm template dạy học. Bạn khai báo các agent (mỗi agent là một bot **GenBot**), giao việc cho chúng, cấp cho từng agent đúng những gì nó được xem và được làm, và thêm các nghiệp vụ như Chăm sóc khách hàng hay Marketing bằng một cú bấm **Add**.
 
 Lõi đủ nhỏ để đọc hiểu trong một buổi. Nghiệp vụ nằm trong **module**: cần cái nào thì Add cái đó, không cần thì thôi.
+
+> **GenBot là động cơ duy nhất.** Từ 27/11, mọi agent của Open AgenticOS là một bot GenBot, nối qua Bot API ở màn **Đội AI · Bot**. Claude Code, Codex, Grok và Hermes không còn được chọn (code adapter vẫn còn nhưng tạo hoặc đổi agent sang chúng bị từ chối, agent cũ dùng chúng không chạy cho tới khi bạn bấm "Chuyển sang GenBot"). Hướng dẫn: [docs/huong-dan-noi-genbot.md](docs/huong-dan-noi-genbot.md).
 
 - Tài liệu thiết kế: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), danh mục module: [docs/MODULES.md](docs/MODULES.md).
 - Học từng bước: [docs/lessons/](docs/lessons/README.md) (8 bài, tiếng Việt).
@@ -26,7 +28,7 @@ Lõi đủ nhỏ để đọc hiểu trong một buổi. Nghiệp vụ nằm tro
 │ agent.yaml    │ ai được xem/làm gì │ Second Brain · bộ nhớ ·   │
 │               │                    │ skill · bảng đội          │
 ├───────────────┴──────────────────┴───────────────────────────┤
-│ TẦNG RUNTIME  src/runtimes/   claude · codex · grok · hermes · mock │
+│ TẦNG RUNTIME  src/runtimes/   genbot (duy nhất được dùng) · mock (test) │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -36,7 +38,7 @@ Sáu nguyên tắc giữ cho hệ thống dễ hiểu (chi tiết ở [ARCHITECT
 2. Mọi lượt chạy, kể cả do module tạo, đi qua một cổng duy nhất là `src/work/engine.ts`.
 3. Chỉ có một mô hình việc: Task và Run.
 4. Bộ nhớ, Second Brain và skill được nạp ở cổng chạy, nên runtime nào cũng nhận như nhau.
-5. `src/access/policy.ts` tính quyền, adapter dịch quyền thành cờ của từng CLI, mọi thứ được ghi nhật ký.
+5. `src/access/policy.ts` tính quyền, lọc ngữ cảnh gửi cho bot GenBot theo quyền, mọi thứ được ghi nhật ký.
 6. Mặc định không cấp gì. Hành động ra ngoài (gửi Zalo, email, đăng Facebook) mặc định chỉ là nháp.
 
 ## Yêu cầu
@@ -45,20 +47,15 @@ Sáu nguyên tắc giữ cho hệ thống dễ hiểu (chi tiết ở [ARCHITECT
 |---|---|---|
 | Node.js 22 trở lên | Có | `node -v` phải ra v22.x. Xem `engines` trong `package.json`. |
 | npm | Có | Đi kèm Node. |
-| Ít nhất một CLI agent | Không | Chạy thử không cần CLI nào: agent `demo` dùng runtime `mock`. |
+| GenBot (app desktop hoặc máy chủ) | Có, để agent chạy thật | Mỗi bot bật Bot API; khoá dán ở màn **Đội AI · Bot**, lưu mã hoá trong AIOS. |
 
-Bốn CLI agent mà AIOS-Lite có thể gọi. Bạn tự cài và đăng nhập; AIOS-Lite chỉ chạy chúng như tiến trình con:
+Mọi agent chạy bằng GenBot: mỗi lượt là một tin gửi tới Bot API của một bot GenBot (`POST {base_url}/hooks/api/bots/{bot_id}/messages`). Không cần cài CLI nào. Các bước nối: [docs/huong-dan-noi-genbot.md](docs/huong-dan-noi-genbot.md).
 
-| Runtime | Cài | Đăng nhập |
-|---|---|---|
-| `claude` (Claude Code) | `npm i -g @anthropic-ai/claude-code` | `claude auth login`, hoặc đặt `ANTHROPIC_API_KEY` |
-| `codex` (Codex) | `npm i -g @openai/codex` | `codex login`, hoặc đặt `OPENAI_API_KEY` |
-| `grok` (Grok Build) | xem https://x.ai/cli | `grok login`, hoặc đặt `XAI_API_KEY` |
-| `hermes` (Hermes / Rocket Agent) | cài theo hướng dẫn của Hermes | `hermes model` hoặc `hermes auth add …` |
+Mọi agent mẫu đi kèm repo (`agents/`, `modules/*/agents/`, `teams/`) là bot GenBot với mã bot để trống, nên hiện "Chưa nối GenBot" cho tới khi bạn điền mã bot và khoá. Agent `assistant` đang **tắt** (`enabled: false`): nối với một bot GenBot rồi bật ở Đội AI · Bot hoặc trang Agents.
 
-Agent mẫu `assistant` (Hermes) đang **tắt** (`enabled: false`). Muốn dùng: cài Hermes, chạy `hermes model` hoặc `hermes auth add …` để đăng nhập, rồi đặt `enabled: true` trong `agents/assistant/agent.yaml` (hoặc bật ở trang Agents) và `POST /api/agents/reload`.
+Runtime `mock` (giả lập, không gọi gì ra ngoài) chỉ được dùng trong test (`NODE_ENV=test`) hoặc chế độ thử `AIOS_MOCK=1`.
 
-Sau khi cài, vào **Cài đặt** trên giao diện (hoặc mở `http://127.0.0.1:4380/api/runtimes` khi đang chạy) để xem kết quả kiểm tra của từng CLI: có lệnh không, phiên bản, đã đăng nhập chưa. Thêm `?probe=1` vào địa chỉ đó thì hệ thống gửi thử một câu "hello" (có tốn một lượt gọi thật).
+Kiểm tra kết nối ở **Đội AI · Bot**: nút **Kiểm tra** ở ô Kết nối GenBot (không tạo hay đổi gì trong GenBot) và trên thẻ từng bot (gửi một tin "ping" thật, tính vào 10 lượt mỗi phút của bot). `GET /api/runtimes` chỉ liệt kê `genbot`.
 
 ## Cài đặt và chạy
 
@@ -107,7 +104,7 @@ Khoá bí mật (khoá API, token) chỉ nằm trong `.env` (đã có trong `.gi
 ## Bước đầu tiên
 
 1. **Mở Tổng quan.** Vào http://localhost:5173. Mục **Cần bạn** ở đầu trang gom mọi thứ cần bạn xử lý: việc chờ duyệt, việc thất bại, nháp trả lời khách của module. Bên dưới là số liệu kinh doanh của các module đã thêm (doanh thu và chi phí, hiệu quả nội dung, bán hàng qua Zalo) theo kỳ 7/30/90 ngày.
-2. **Giao việc cho `demo`.** Agent `demo` chạy bằng runtime giả lập nên không cần CLI hay khoá API. Vào **Công việc**, bấm **Tạo việc**, chọn `demo`, gõ một yêu cầu. Trạng thái đi từ `queued` sang `running` rồi `done`; xem lượt chạy ở trang chi tiết.
+2. **Nối một bot rồi giao việc.** Mở **Đội AI · Bot**, bấm **Thêm bot GenBot** (hoặc **Sửa** và **Đổi khoá** trên thẻ `demo`), điền mã bot và dán khoá, bấm **Kiểm tra**. Vào **Công việc**, bấm **Tạo việc**, chọn bot đó, gõ một yêu cầu. Trạng thái đi từ `queued` sang `running` rồi `done`; xem lượt chạy ở trang chi tiết.
 
    Cùng việc đó bằng dòng lệnh (khi API đang chạy):
 
@@ -115,7 +112,7 @@ Khoá bí mật (khoá API, token) chỉ nằm trong `.env` (đã có trong `.gi
    npm run aios -- task "Tóm tắt mục tiêu quý này" --agent demo --wait
    ```
 
-   Runtime `mock` hiểu vài từ khoá để bạn xem hệ thống phản ứng: thêm `#memory:điều cần nhớ` để agent ghi bộ nhớ, `#review` để việc dừng ở trạng thái chờ duyệt, `#delegate:<id-agent>` để giao việc con, `#fail` để thử lỗi.
+   Khi dạy học không có GenBot: chạy với `AIOS_MOCK=1` và đổi `runtime: mock` cho `demo` trong `agent.yaml`. Runtime `mock` hiểu vài từ khoá để bạn xem hệ thống phản ứng: thêm `#memory:điều cần nhớ` để agent ghi bộ nhớ, `#review` để việc dừng ở trạng thái chờ duyệt, `#delegate:<id-agent>` để giao việc con, `#fail` để thử lỗi.
 3. **Thêm một module.** Vào **Module**, bấm **Thêm** ở `care` (hộp thư chăm sóc khách), giữ ô "cài agent mẫu". Menu **Sales** hiện ra ngay, không cần khởi động lại. Cùng việc đó bằng dòng lệnh:
 
    ```bash
@@ -144,7 +141,7 @@ AIOS-Lite/
 │   ├── core/           cấu hình, DB, sự kiện, kiểu dữ liệu, che khoá bí mật
 │   ├── agents/         schema agent.yaml (zod) và registry
 │   ├── access/         policy (tính quyền), connections, audit
-│   ├── runtimes/       claude · codex · grok · hermes · mock + bộ chạy tiến trình chung
+│   ├── runtimes/       genbot (động cơ duy nhất) · mock (test); adapter claude/codex/grok/hermes còn trong code nhưng không được chọn
 │   ├── shared/         brain · memory · skills · board · context builder
 │   ├── work/           tasks · runs · engine · dispatcher · directives · team · scheduler · chat
 │   ├── modules/        Module SDK, loader, manager (Add/Remove/Purge)
@@ -193,7 +190,7 @@ Lưu ý: `npm test` đọc thư mục `agents/` thật để kiểm tra các age
 | `gmail` | Sales | `care` + khoá Composio | Đưa thư Gmail vào hộp thư của `care` |
 | `marketing` | Marketing | khoá Composio | Soạn, lên lịch, đăng bài Facebook Page; bình luận AI |
 | `ads` | Marketing | khoá Composio | Theo dõi quảng cáo Meta, chấm điểm bằng quy tắc (chỉ đọc) |
-| `radar` | Marketing | Grok CLI; Apify/RSSHub tuỳ chọn | Nghiên cứu thị trường hằng ngày (3 phiên), báo cáo nỗi đau và xu hướng |
+| `radar` | Marketing | Apify/RSSHub tuỳ chọn (nguồn X tắt: cần Grok) | Nghiên cứu thị trường hằng ngày (3 phiên), báo cáo nỗi đau và xu hướng |
 | `kol` | AI Studio | khoá Composio; fal/Higgsfield/Gemini tuỳ chọn | KOL ảo giữ khuôn mặt: hồ sơ, tạo ảnh/video, thư viện, bài đăng (qua `marketing`) |
 | `video` | AI Studio | ffmpeg; HeyGen/Veo/fal tuỳ chọn | Dựng video quay sẵn, viết kịch bản và sản xuất video cùng KOL |
 | `finance` | Finance | ERP/Whop MCP tuỳ chọn | P&L và dòng tiền, mô hình kinh doanh, sổ thu chi, đọc ERP (chỉ đọc) |

@@ -31,4 +31,9 @@ export interface AgentRegistry {
 export interface AgentRegistryOptions {
   agentsDir: string;
   workspacesDir: string;
+  /**
+   * Runtimes a create, a runtime change or a template install may use (core/runtime-policy.ts; default allowedRuntimes()).
+   * Agents already on disk with another runtime still load: the engine refuses to run them.
+   */
+  allowedRuntimes?: readonly string[];
 }

@@ -15,6 +15,7 @@ import {
   fmtCompact, fmtInt, fmtPct,
   type FbPageDto, type FbPageUpdate, type FbPillar, type FbStatusDto,
 } from '@modules/marketing/web/lib/fbstudio';
+import { pickerBots, type BotLike } from '@/lib/bots';
 
 interface AgentOption { id: string; name: string }
 
@@ -226,8 +227,9 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
 }
 
 function PageForm({ page, saving, onSave }: { page: FbPageDto; saving: boolean; onSave: (body: FbPageUpdate) => Promise<void> }) {
-  const agents = useFetch<{ agents: AgentOption[] }>('/api/agents', 60_000);
-  const agentList = agents.data?.agents ?? [];
+  const agents = useFetch<{ items?: (AgentOption & BotLike)[]; agents?: (AgentOption & BotLike)[] }>('/api/agents', 60_000);
+  // only GenBot bots that have a key (Open AgenticOS runs every agent on GenBot)
+  const agentList = pickerBots(agents.data);
 
   const [d, setD] = useState(() => fromPage(page));
   // Pick up server-side changes (toggle, sync) without clobbering edits in progress.

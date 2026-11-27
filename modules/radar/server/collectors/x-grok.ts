@@ -15,6 +15,17 @@ export const GROK_TIMEOUT_MS = 4 * 60_000;
 const NOT_SIGNED_IN = /not signed in|not logged in|please (log ?in|sign ?in)|login required|unauthenticated|grok login/i;
 export const GROK_LOGIN_ERROR = 'Grok chưa đăng nhập: vào Kết nối › Runtime để đăng nhập Grok.';
 
+/**
+ * Open AgenticOS runs agents on GenBot only (27/11). Reading X needed Grok's live X search; a GenBot bot answers from
+ * the text AIOS sends and cannot search the web, so the default X reader is switched off (tests still inject execGrok).
+ */
+export const X_OFF_NOTE = 'Nguồn X đang tắt: đọc X cần Grok tìm trực tiếp trên X, mà Open AgenticOS chỉ chạy agent bằng GenBot (bot GenBot không tự tìm trên mạng).';
+
+/** True only when a test or a host injects its own X reader. */
+export function xReaderAvailable(ctx: Pick<CollectContext, 'deps'>): boolean {
+  return typeof ctx.deps?.execGrok === 'function';
+}
+
 /** Working folder of the module (browser profile, caches). */
 export function radarHome(): string { return path.join(currentContext()?.dataDir ?? path.join(tmpdir(), 'aios-radar'), 'radar'); }
 
@@ -31,6 +42,12 @@ export function analystAgent(): string | null {
  * (`-p <prompt> --json-schema <schema>`), so tests can still inject `execGrok`.
  */
 export async function defaultExecGrok(args: string[], opts: { timeoutMs: number; signal?: AbortSignal }): Promise<string> {
+  void args; void opts; void requireContext;
+  throw new Error(X_OFF_NOTE);
+}
+
+/** The former Grok reader (kept for reference; not reachable while agents run on GenBot only). */
+export async function legacyExecGrok(args: string[], opts: { timeoutMs: number; signal?: AbortSignal }): Promise<string> {
   const ctx = requireContext();
   const agentId = analystAgent();
   if (!agentId) throw new Error('Chưa có agent radar-analyst: thêm agent từ mẫu của module Radar.');
@@ -239,6 +256,7 @@ export async function collectX(ctx: CollectContext, accounts: string[], queries:
 
 /** What Vietnamese-language X discussed about AI in the last N days. Null when grok is unavailable. */
 export async function collectVnChatter(ctx: CollectContext, days: number): Promise<VnChatter | null> {
+  if (!xReaderAvailable(ctx)) return null; // X is off on GenBot (X_OFF_NOTE)
   try {
     const prompt = `Use your X search to see what Vietnamese-language posts discussed about AI (ChatGPT, Claude, Gemini, agents, AI tools, AI courses) in the last ${days} days. `
       + 'Group them into at most 12 topics. For each topic return: topic (short, in Vietnamese), posts (approximate number of posts you saw), examples (up to 3 short real quotes). '

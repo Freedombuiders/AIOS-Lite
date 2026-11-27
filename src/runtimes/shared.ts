@@ -7,7 +7,7 @@ import { homedir } from 'node:os';
 import path from 'node:path';
 import type { ErrorFamily, RunEvent, RuntimeId, Usage } from '../core/types.js';
 import { redactString } from '../core/redact.js';
-import { isProtectedEnvName } from '../core/secret-env.js';
+import { isProtectedEnvName, carriesCoreValue } from '../core/secret-env.js';
 import type { DoctorCheck, DoctorReport, RunError, RunRequest, RunResult } from './contracts.js';
 import type { ProcessResult } from './process.js';
 
@@ -46,7 +46,7 @@ export function buildChildEnv(input: ChildEnvInput = {}): Record<string, string>
   // granted vars are applied after stripping, so an agent can be given e.g. COMPOSIO_API_KEY explicitly
   const out = { ...env, ...input.extra, ...input.adapter, ...input.envVars };
   // core-only credentials (GenBot keys, any registered key_env) never reach a child, not even through a grant or override
-  for (const k of Object.keys(out)) if (isProtectedEnvName(k)) delete out[k];
+  for (const k of Object.keys(out)) if (isProtectedEnvName(k) || carriesCoreValue(String(out[k]))) delete out[k];
   return out;
 }
 

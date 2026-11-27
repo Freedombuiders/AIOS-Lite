@@ -1,4 +1,5 @@
 import type { RocketFlowService } from '../studio/service.js';
+import { VIDEO_CREATE_OFF } from './turn.js';
 import { createCreationService } from '../create/service.js';
 import { bindCreationService } from '../create/runtime.js';
 import fs from 'node:fs';
@@ -188,7 +189,9 @@ export function registerVideoEditRoutes(app: Hono, options: VideoEditRouteOption
   app.post(`${P}/creation/projects`, small, guard(async c => {
     const body = await parse(c, z.object({ requestId: z.string().uuid(), text: z.string().trim().min(1).max(12000), agentId: z.string().optional() }).strict());
     const agentId = body.agentId ?? resolveDefaultAgentId();
-    if (!listVideoAgents().some(a => a.id === agentId && ['claude', 'anthropic-compatible', 'openai'].includes(a.provider))) return fail(c, 400, 'Chọn agent Claude hoặc Codex đã cấu hình.');
+    // Creating from chat needs an agent that reads files and runs tools (Claude, Codex). Open AgenticOS runs every agent on
+    // GenBot (text only, no files), so this path switches itself off with a clear message.
+    if (!listVideoAgents().some(a => a.id === agentId && ['claude', 'anthropic-compatible', 'openai'].includes(a.provider))) return fail(c, 400, VIDEO_CREATE_OFF);
     const requestDir = path.join(root, 'creation-requests'); fs.mkdirSync(requestDir, { recursive: true, mode: 0o700 });
     const requestFile = path.join(requestDir, `${body.requestId}.json`), payload = JSON.stringify({ ...body, agentId });
     if (fs.existsSync(requestFile)) {

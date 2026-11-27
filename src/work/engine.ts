@@ -4,6 +4,7 @@ import type { AppDeps } from '../core/deps.js';
 import type { AgentConfig, Conversation, ErrorFamily, Message, Run, Task } from '../core/types.js';
 import type { ChildResult } from '../shared/contracts.js';
 import type { Engine } from './contracts.js';
+import { allowedRuntimes, legacyRuntimeMessage } from '../core/runtime-policy.js';
 import { budgetKey } from './attention.js';
 import { dayStartIso } from './runs.js';
 import { parseDirectives, validateDirectives, type Directive } from './directives.js';
@@ -190,6 +191,16 @@ export function createEngine(deps: AppDeps): Engine {
       const agent = deps.agents.get(task.agentId);
       if (!agent || !agent.enabled) {
         failTask(task, 'config', agent ? `Agent "${agent.name}" đang tắt` : `Không tìm thấy agent "${task.agentId}"`);
+        return await finalize(task.id, null);
+      }
+      // Open AgenticOS runs agents on GenBot only: an agent left on another runtime is refused, never silently switched
+      if (!(deps.config.allowedRuntimes ?? allowedRuntimes()).includes(agent.runtime)) {
+        const message = legacyRuntimeMessage(agent.name, agent.runtime);
+        failTask(task, 'config', `${FAMILY_MESSAGE.config}: ${message}`);
+        deps.attention.raise({
+          key: `legacy-runtime:${agent.id}`, kind: 'failed', title: `Agent ${agent.name} đang dùng ${agent.runtime}, hãy chuyển sang GenBot`,
+          detail: message, link: '/bots', severity: 'warn',
+        });
         return await finalize(task.id, null);
       }
       if (agent.budgetUsdMonth && deps.runs.monthCost(agent.id) >= agent.budgetUsdMonth) {

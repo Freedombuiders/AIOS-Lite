@@ -8,10 +8,13 @@ import type { CareAssignmentDto } from '@modules/care/server/api/dto-ops';
 import { useFetch } from '@/lib/useFetch';
 import '@modules/care/web/styles/care.css';
 import '@modules/care/web/styles/care-channels.css';
+import { pickerBots, type BotLike } from '@/lib/bots';
+
+type BotRow = BotLike & { name?: string };
 
 /** /m/care/rules: "Ai trả lời ở đâu", the same table the channels screen shows, as a screen of its own. */
 export function CareRules() {
-  const agents = useFetch<{ agents: Array<{ id: string; name?: string }> }>('/api/agents', 60_000);
+  const agents = useFetch<{ items?: BotRow[]; agents?: BotRow[] }>('/api/agents', 60_000);
   const [accounts, setAccounts] = useState<CareAccountDto[]>([]);
   const [rules, setRules] = useState<CareAssignmentDto[]>([]);
   const [reload, setReload] = useState(0);
@@ -26,7 +29,8 @@ export function CareRules() {
     return () => { live = false; };
   }, [reload]);
 
-  const agentOptions = (agents.data?.agents ?? []).map((a) => ({ id: a.id, name: a.name ?? a.id }));
+  // only GenBot bots that have a key (Open AgenticOS runs every agent on GenBot)
+  const agentOptions = pickerBots(agents.data).map((a) => ({ id: a.id, name: a.name ?? a.id }));
   return (
     <div class="care-page module-fill" data-testid="care-rules">
       <PageHeader compact breadcrumb="Chăm sóc khách" title="Quy tắc" tabs={<CareTabs current="rules" />} />

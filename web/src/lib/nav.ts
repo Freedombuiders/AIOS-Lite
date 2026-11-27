@@ -1,5 +1,5 @@
 import {
-  Bot, Boxes, Brain, Cable, CircleDollarSign, ClipboardList, Calendar, House, Library, Lightbulb, MessageSquare, Mic, Network, Package,
+  Bot, Boxes, Users, Brain, Cable, CircleDollarSign, ClipboardList, Calendar, House, Library, Lightbulb, MessageSquare, Mic, Network, Package,
   Puzzle, ScrollText, Settings, Sparkles, Store, Wallet, Gauge, Wrench, Handshake, Megaphone, Landmark, Workflow, Wand2,
 } from 'lucide-preact';
 import type { LucideIcon } from 'lucide-preact';
@@ -21,7 +21,9 @@ const CHAT: CoreNavItem = { label: 'Trò chuyện', path: '/chat', icon: Message
 const GRAPH: CoreNavItem = { label: 'Đồ thị', path: '/brain/graph', icon: Network };
 const BRAIN: CoreNavItem = { label: 'Second Brain', path: '/brain', icon: Brain, match: ['/brain/search', '/brain/all'] };
 const PACKS: CoreNavItem = { label: 'Kho dữ liệu', path: '/packs', icon: Boxes };
-const AGENTS: CoreNavItem = { label: 'Agents', path: '/agents', icon: Bot };
+/** Every agent is a GenBot bot: this screen is the main way in; the generic Agents pages stay under "Nâng cao". */
+const BOTS: CoreNavItem = { label: 'Đội AI · Bot', path: '/bots', icon: Bot };
+const AGENTS: CoreNavItem = { label: 'Agents', path: '/agents', icon: Users };
 const TASKS: CoreNavItem = { label: 'Công việc', path: '/tasks', icon: ClipboardList };
 const SCHEDULES: CoreNavItem = { label: 'Lịch định kỳ', path: '/schedules', icon: Calendar };
 const MARKET: CoreNavItem = { label: 'Chợ Agent', path: '/agent-market', icon: Store };
@@ -37,11 +39,11 @@ const AUDIT: CoreNavItem = { label: 'Nhật ký', path: '/audit', icon: ScrollTe
 const SETTINGS: CoreNavItem = { label: 'Cài đặt', path: '/settings', icon: Settings };
 
 /** The rarely used core pages. Folded into "Nâng cao" (closed until opened); no route is removed. */
-export const ADVANCED_NAV: CoreNavItem[] = [MARKET, TEAMS, SKILLS, MEMORY, RECOS, USAGE, BUDGETS, AUDIT, MODULES];
+export const ADVANCED_NAV: CoreNavItem[] = [AGENTS, MARKET, TEAMS, SKILLS, MEMORY, RECOS, USAGE, BUDGETS, AUDIT, MODULES];
 
 /** Every core page that has a route, for the breadcrumb and the quick-search palette. */
 export const CORE_NAV: CoreNavItem[] = [
-  HOME, VOICE, CHAT, GRAPH, BRAIN, PACKS, AGENTS, TASKS, SCHEDULES, CONNECTIONS, SETTINGS, ...ADVANCED_NAV.filter((i) => i !== AUDIT && i !== MODULES),
+  HOME, VOICE, CHAT, GRAPH, BRAIN, PACKS, BOTS, TASKS, SCHEDULES, CONNECTIONS, SETTINGS, ...ADVANCED_NAV.filter((i) => i !== AUDIT && i !== MODULES),
 ];
 
 /** Kept for the palette, which lists these under "Hệ thống". */
@@ -80,7 +82,7 @@ export const NAV_SECTIONS: NavSectionDef[] = [
   { id: 'brain', label: 'BRAIN', items: [GRAPH, BRAIN, PACKS], tone: 'intelligence' },
   { id: 'care', label: 'CHĂM KHÁCH', items: [], tone: 'care' },
   { id: 'marketing', label: 'MARKETING', items: [], tone: 'marketing' },
-  { id: 'system', label: 'ĐỘI AI VÀ HỆ THỐNG', items: [AGENTS, TASKS, SCHEDULES, CONNECTIONS, SETTINGS], tone: 'collaborate' },
+  { id: 'system', label: 'ĐỘI AI VÀ HỆ THỐNG', items: [BOTS, TASKS, SCHEDULES, CONNECTIONS, SETTINGS], tone: 'collaborate' },
 ];
 
 export interface NavGroupDef {

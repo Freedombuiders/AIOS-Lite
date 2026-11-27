@@ -13,9 +13,12 @@ vi.mock('@/lib/toasts', () => ({ pushToast }));
 vi.mock('@/lib/agents', () => ({
   useAgents: () => ({
     agents: [
-      { id: 'main', name: 'Trợ lý chính', enabled: true },
-      { id: 'cskh', name: 'Bot CSKH', enabled: true },
-      { id: 'old', name: 'Bot cũ', enabled: false },
+      { id: 'main', name: 'Trợ lý chính', enabled: true, runtime: 'genbot', genbotKey: { hasKey: true, last4: 'abcd' } },
+      { id: 'cskh', name: 'Bot CSKH', enabled: true, runtime: 'genbot', genbotKey: { hasKey: true, last4: 'efgh' } },
+      { id: 'old', name: 'Bot cũ', enabled: false, runtime: 'genbot', genbotKey: { hasKey: true, last4: 'ijkl' } },
+      // GenBot only: an agent left on claude and a bot without a key are never offered
+      { id: 'legacy', name: 'Agent Claude cũ', enabled: true, runtime: 'claude' },
+      { id: 'nokey', name: 'Bot chưa nối', enabled: true, runtime: 'genbot', genbotKey: { hasKey: false, last4: '' } },
     ],
     loading: false, error: null, loadErrors: [], refresh() {},
   }),
@@ -50,7 +53,7 @@ describe('CommandBar', () => {
   beforeEach(() => { vi.stubGlobal('localStorage', memoryStorage); apiPost.mockClear(); createConversation.mockClear(); pushToast.mockClear(); store.clear(); });
   afterEach(() => { document.body.innerHTML = ''; vi.unstubAllGlobals(); });
 
-  it('offers only enabled bots, with the mic disabled and explained', async () => {
+  it('offers only enabled GenBot bots that have a key, with the mic disabled and explained', async () => {
     const el = await mount();
     const options = [...el.querySelectorAll('select option')].map((o) => o.textContent);
     expect(options).toEqual(['Trợ lý chính', 'Bot CSKH']);

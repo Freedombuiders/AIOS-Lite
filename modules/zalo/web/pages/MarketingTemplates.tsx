@@ -24,6 +24,7 @@ import {
   type TemplateVariable,
 } from '@/lib/marketing';
 import { addToSpintax, type ZaloStyle } from '@/lib/richText';
+import { pickerBots, type BotLike } from '@/lib/bots';
 
 const INPUT = 'w-full px-3 py-2 rounded bg-[var(--color-bg)] border border-[var(--color-border)] focus:border-[var(--color-accent)] focus:outline-none text-[12.5px] text-[var(--color-text)]';
 const BTN = 'toolbar-control control-button inline-flex items-center gap-1.5 px-3 rounded-md text-[13px] text-[var(--color-text)] hover:bg-[var(--color-control-hover)] disabled:opacity-40';
@@ -125,7 +126,7 @@ function TemplateEditor({ template, onClose, onSaved }: {
   onSaved: () => void;
 }) {
   const variables = useFetch<{ variables: TemplateVariable[] }>('/api/m/zalo/templates/variables');
-  const agents = useFetch<{ agents: AgentOption[] }>('/api/agents', 60_000);
+  const agents = useFetch<{ items?: (AgentOption & BotLike)[]; agents?: (AgentOption & BotLike)[] }>('/api/agents', 60_000);
 
   const [name, setName] = useState(template?.name ?? '');
   const [text, setText] = useState(template?.text ?? '');
@@ -154,7 +155,8 @@ function TemplateEditor({ template, onClose, onSaved }: {
   const [count, setCount] = useState(3);
   const [writing, setWriting] = useState(false);
   const [variantList, setVariantList] = useState<RichText[]>([]);
-  const agentList = agents.data?.agents ?? [];
+  // only GenBot bots that have a key (Open AgenticOS runs every agent on GenBot)
+  const agentList = pickerBots(agents.data);
   const effectiveAgent = agentId || agentList[0]?.id || 'main';
 
   async function writeVariants() {

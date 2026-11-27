@@ -11,7 +11,7 @@ import { apifyComments, collectAds, collectFbGroup, collectFbPages, collectGithu
 import { browserAvailable, openBrowserSession, profileDir, profileExists, type BrowserSession } from './fb-browser.js';
 import { getApifyToken, getApifyTokens, type RotationStore } from './apify.js';
 import { collectRsshubGroup, collectRsshubInstagram, collectRsshubPages, collectRsshubThreadsAccounts, collectRsshubThreadsQueries, collectRsshubTiktokAccounts, resolveRsshub, rsshubGroupPath, rsshubReachable, type RsshubOutcome, type RsshubTarget } from './rsshub.js';
-import { analystAgent, collectVnChatter as grokVnChatter, collectX } from './x-grok.js';
+import { X_OFF_NOTE, collectVnChatter as grokVnChatter, collectX, xReaderAvailable } from './x-grok.js';
 
 export { openBrowserLogin } from './fb-browser.js';
 
@@ -182,7 +182,8 @@ export async function collectLayer(ctx: CollectContext): Promise<CollectResult> 
   if (lc.youtube.enabled && lc.youtube.channels.length) add('YouTube', () => collectYoutube(ctx, lc.youtube.channels));
   if (lc.github.enabled && lc.github.queries.length) add('GitHub', () => collectGithub(ctx, lc.github.queries));
   if (lc.news.enabled && lc.news.rss.length) add('Báo chí', () => collectNews(ctx, lc.news.rss));
-  if (lc.x.enabled && (lc.x.accounts.length || lc.x.queries.length)) {
+  if (lc.x.enabled && (lc.x.accounts.length || lc.x.queries.length) && !xReaderAvailable(ctx)) result.notes.push(X_OFF_NOTE);
+  else if (lc.x.enabled && (lc.x.accounts.length || lc.x.queries.length)) {
     add('X', async () => {
       const r = await collectX(ctx, lc.x.accounts, lc.x.queries);
       return { ...r, costUsd: 0 };
@@ -278,8 +279,8 @@ export async function toolStatus(deps?: CollectDeps): Promise<{
   let keys = 0;
   try { keys = getApifyTokens(deps).length; } catch { /* not configured */ }
   const configured = keys > 0;
-  const agent = analystAgent();
-  const grokDetail = agent ? `Agent ${agent} (runtime Grok) đọc X.` : 'Chưa có agent radar-analyst, nên chưa đọc được X. Thêm agent từ mẫu của module Radar.';
+  // X needed Grok's live search; agents run on GenBot only, so the X reader is off (x-grok.ts X_OFF_NOTE)
+  const grokDetail = X_OFF_NOTE;
   const available = await browserAvailable();
   const dir = profileDir();
   const hasProfile = existsSync(dir);
@@ -289,7 +290,7 @@ export async function toolStatus(deps?: CollectDeps): Promise<{
   const rsUrl = rsTarget?.base ?? '';
   const rsReachable = rsTarget ? await rsshubReachable(rsTarget.base, deps?.fetchImpl) : false;
   const rsDetail = !rsTarget ? 'RSSHub đang tắt.' : rsReachable ? `RSSHub đang chạy ở ${rsUrl}.` : `Không thấy RSSHub ở ${rsUrl} — chạy \`docker start rsshub\`.`;
-  return { apify: { configured, keys }, grok: { installed: !!agent, path: agent, loggedIn: null, detail: grokDetail }, browser: { available, profileDir: dir, detail: browserDetail }, rsshub: { url: rsUrl, reachable: rsReachable, detail: rsDetail } };
+  return { apify: { configured, keys }, grok: { installed: false, path: null, loggedIn: null, detail: grokDetail }, browser: { available, profileDir: dir, detail: browserDetail }, rsshub: { url: rsUrl, reachable: rsReachable, detail: rsDetail } };
 }
 
 const KIND_LABEL: Record<string, string> = {

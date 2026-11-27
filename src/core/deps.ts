@@ -1,6 +1,7 @@
 // The wiring of the whole app. main.ts builds one AppDeps; services receive the parts they need.
 import type { AccessPolicy, AuditService, ConnectionsService } from '../access/contracts.js';
 import type { AgentRegistry } from '../agents/contracts.js';
+import type { GenbotKeyStore } from '../integrations/genbot-keys.js';
 import type { ModuleManager } from '../modules/contracts.js';
 import type { RuntimeRegistry } from '../runtimes/contracts.js';
 import type { BoardService, BrainService, ContextBuilder, MemoryService, SkillLibrary } from '../shared/contracts.js';
@@ -34,6 +35,8 @@ export interface AppDeps {
 
   agents: AgentRegistry;
   runtimes: RuntimeRegistry;
+  /** GenBot Bot API keys pasted in the app (encrypted); optional so hand-built test deps keep working: use genbotKeysFor(deps) */
+  genbotKeys?: GenbotKeyStore;
 
   connections: ConnectionsService;
   access: AccessPolicy;

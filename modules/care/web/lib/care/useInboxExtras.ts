@@ -4,6 +4,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { apiGet } from '@/lib/api';
+import { isUsableBot } from '@/lib/bots';
 import { careApi } from './client';
 import { newRequestId } from './composer';
 import type { CareCannedReplyDto, CareInlineDraftDto, CareNoteDto } from './dto';
@@ -16,18 +17,23 @@ export interface AgentLite {
   enabled?: boolean;
   /** Scopes of the care module this agent holds (`access.modules.care`). */
   careScopes?: string[];
+  /** false: not a GenBot bot with a Bot API key, so it cannot answer (Open AgenticOS runs every agent on GenBot) */
+  usable?: boolean;
 }
 
-/** Bots the owner can pick for a chat: enabled agents holding the care scope `reply.draft` (without it no draft is ever made). */
+/**
+ * Bots the owner can pick for a chat: enabled GenBot bots that have a key and hold the care scope `reply.draft`
+ * (without it no draft is ever made).
+ */
 export function botAgents(agents: readonly AgentLite[]): AgentLite[] {
-  return agents.filter((a) => a.enabled !== false && (a.careScopes ?? []).includes('reply.draft'));
+  return agents.filter((a) => a.enabled !== false && a.usable !== false && (a.careScopes ?? []).includes('reply.draft'));
 }
 
-interface RawAgent { id: string; name?: string; enabled?: boolean; access?: { modules?: Record<string, string[]> } }
+interface RawAgent { id: string; name?: string; enabled?: boolean; runtime?: string; genbotKey?: { hasKey: boolean } | null; access?: { modules?: Record<string, string[]> } }
 
 export function toAgentLite(a: RawAgent): AgentLite {
   const scopes = a.access?.modules?.care;
-  return { id: a.id, name: a.name || a.id, enabled: a.enabled !== false, careScopes: Array.isArray(scopes) ? scopes.filter((x) => typeof x === 'string') : [] };
+  return { id: a.id, name: a.name || a.id, enabled: a.enabled !== false, usable: isUsableBot(a), careScopes: Array.isArray(scopes) ? scopes.filter((x) => typeof x === 'string') : [] };
 }
 
 let agentsCache: AgentLite[] | null = null;

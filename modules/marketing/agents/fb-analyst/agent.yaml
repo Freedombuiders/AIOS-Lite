@@ -1,7 +1,9 @@
 name: Phân tích Facebook
 description: "Đọc số liệu Fanpage, phân loại bài theo tuyến nội dung và viết tóm tắt kèm đề xuất hành động"
-runtime: claude
-runtime_options: {}
+runtime: genbot
+runtime_options:
+  base_url: "http://127.0.0.1:8800"
+  bot_id: ""
 permission: safe
 context: lean
 reports_to: main

@@ -10,6 +10,7 @@ import { activeConversation, conversations, createConversation, refreshConversat
 import { FormatChip, StatusPill } from '@modules/marketing/web/components/fb/common';
 import { composeAgentMessage } from '@modules/marketing/web/lib/agent-message';
 import type { FbContentDto } from '@modules/marketing/web/lib/fbstudio';
+import { pickerBots, type BotLike } from '@/lib/bots';
 
 interface AgentOption { id: string; name: string }
 
@@ -31,8 +32,9 @@ export function AgentChatPanel({ initialDraft = '', selected, onDeselect, onClea
   onReply: () => void;
   onClose: () => void;
 }) {
-  const agents = useFetch<{ items: AgentOption[] }>('/api/agents', 60_000);
-  const agentList = agents.data?.items ?? [];
+  const agents = useFetch<{ items?: (AgentOption & BotLike)[] }>('/api/agents', 60_000);
+  // only GenBot bots that have a key (Open AgenticOS runs every agent on GenBot)
+  const agentList = pickerBots(agents.data);
   const [agentId, setAgentId] = useState('');
   // Default writer: the module's template agent when it exists, else main.
   useEffect(() => {

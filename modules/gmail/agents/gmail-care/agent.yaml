@@ -1,7 +1,9 @@
 name: Trợ lý chăm sóc Gmail
 description: "Soạn thư chăm sóc khách hàng trong Care"
-runtime: mock
-runtime_options: {}
+runtime: genbot
+runtime_options:
+  base_url: "http://127.0.0.1:8800"
+  bot_id: ""
 permission: safe
 context: lean
 reports_to: main

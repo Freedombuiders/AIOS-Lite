@@ -7,6 +7,9 @@ import { apiPost, errorText } from '@/lib/api';
 import type { AgentInput, AgentSummary, DoctorCheck } from '@/lib/api-types';
 import { RUNTIME_LABEL } from '@/lib/labels';
 
+/** Runtimes the form offers: GenBot only (core/runtime-policy.ts). */
+export const RUNTIME_CHOICES: RuntimeId[] = ['genbot'];
+
 export interface AgentFormValue {
   id: string;
   name: string;
@@ -26,8 +29,8 @@ export interface AgentFormValue {
 }
 
 export const EMPTY_AGENT: AgentFormValue = {
-  id: '', name: '', description: '', runtime: 'claude', model: '', permission: 'safe', context: 'standard', reportsTo: '', canDelegate: false,
-  maxConcurrent: 1, budget: '', enabled: true, persona: '', runtimeOptions: {},
+  id: '', name: '', description: '', runtime: 'genbot', model: '', permission: 'safe', context: 'standard', reportsTo: '', canDelegate: false,
+  maxConcurrent: 1, budget: '', enabled: true, persona: '', runtimeOptions: { base_url: 'http://127.0.0.1:8800', bot_id: '' },
 };
 
 export function toInput(v: AgentFormValue): AgentInput {
@@ -54,18 +57,20 @@ export function validateAgent(v: AgentFormValue, creating: boolean): string | nu
   if (!v.name.trim()) return 'Hãy nhập tên agent.';
   if (v.maxConcurrent < 1) return 'Số việc chạy song song tối thiểu là 1.';
   if (v.budget.trim() !== '' && !(Number(v.budget) >= 0)) return 'Ngân sách phải là số không âm.';
+  if (creating && v.runtime !== 'genbot') return 'Open AgenticOS chỉ chạy agent bằng GenBot.';
   if (v.runtime === 'genbot') {
     const o = v.runtimeOptions;
-    if (!String(o.base_url ?? '').trim() || !String(o.bot_id ?? '').trim() || !String(o.key_env ?? '').trim()) return 'Agent GenBot cần đủ địa chỉ GenBot, mã bot và tên biến chứa khoá.';
-    if (!/^GENBOT_KEY_[A-Z0-9_]+$/.test(String(o.key_env).trim())) return 'Tên biến chứa khoá phải có dạng GENBOT_KEY_<TÊN>, ví dụ GENBOT_KEY_CSKH. Đừng dán khoá vào đây.';
+    if (!String(o.base_url ?? '').trim()) return 'Agent GenBot cần địa chỉ GenBot (ví dụ http://127.0.0.1:8800).';
+    // key_env is an optional fallback for older setups; the key itself is pasted on the Đội AI · Bot screen
+    const keyEnv = String(o.key_env ?? '').trim();
+    if (keyEnv && !/^GENBOT_KEY_[A-Z0-9_]+$/.test(keyEnv)) return 'Tên biến chứa khoá phải có dạng GENBOT_KEY_<TÊN>. Đừng dán khoá vào đây: dán khoá ở màn Đội AI · Bot.';
   }
   return null;
 }
 
-const GENBOT_FIELDS: { key: 'base_url' | 'bot_id' | 'key_env'; label: string; placeholder: string; hint: string }[] = [
+const GENBOT_FIELDS: { key: 'base_url' | 'bot_id'; label: string; placeholder: string; hint: string }[] = [
   { key: 'base_url', label: 'Địa chỉ GenBot', placeholder: 'http://127.0.0.1:8800', hint: 'Cổng nhận webhook của GenBot. http:// chỉ cho máy này, máy khác dùng https://.' },
   { key: 'bot_id', label: 'Mã bot', placeholder: 'bot_abc123', hint: 'Lấy trong app GenBot, thẻ Bot API của bot.' },
-  { key: 'key_env', label: 'Biến chứa khoá', placeholder: 'GENBOT_KEY_CSKH', hint: 'Tên biến trong file .env, không phải khoá.' },
 ];
 
 /** The three GenBot values and a "Kiểm tra" button that sends one real message through the Bot API. */
@@ -86,13 +91,14 @@ function GenbotSettings({ value, onChange, agentId }: { value: AgentConfig['runt
   };
   return (
     <div class="flex flex-col gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] p-3">
-      <div class="grid gap-3 sm:grid-cols-3">
+      <div class="grid gap-3 sm:grid-cols-2">
         {GENBOT_FIELDS.map((f) => (
           <Field key={f.key} label={f.label} hint={f.hint}>
             <input class="field mono" value={String(value[f.key] ?? '')} placeholder={f.placeholder} onInput={(e) => onChange({ ...value, [f.key]: (e.target as HTMLInputElement).value.trim() })} />
           </Field>
         ))}
       </div>
+      <p class="hint m-0">Khoá Bot API không nhập ở đây: dán khoá ở màn <a href="/bots">Đội AI · Bot</a> (lưu mã hoá, không ghi vào agent.yaml hay .env).</p>
       <div class="flex flex-wrap items-center gap-2">
         <button type="button" class="control-button control-sm" disabled={busy} onClick={() => void check()}>{busy ? 'Đang kiểm tra…' : 'Kiểm tra'}</button>
         <span class="hint">Gửi một tin "ping" thật tới bot (tính vào 10 lượt mỗi phút của bot).</span>
@@ -152,17 +158,15 @@ export function AgentForm({ value, onChange, creating, others, show = 'all' }: P
             <input class="field" value={value.description} placeholder="Việc agent này phụ trách" onInput={text('description')} />
           </Field>
           <div class="grid gap-3 sm:grid-cols-3">
-            <Field label="Runtime (CLI)">
+            <Field label="Runtime" hint={value.runtime === 'genbot' ? 'Open AgenticOS chỉ chạy agent bằng GenBot.' : 'Runtime này không còn được dùng: agent không chạy cho tới khi chuyển sang GenBot.'}>
               <select class="field" value={value.runtime} onChange={(e) => set('runtime', (e.target as HTMLSelectElement).value as RuntimeId)}>
-                {(Object.keys(RUNTIME_LABEL) as RuntimeId[]).map((r) => (
-                  <option key={r} value={r}>
-                    {RUNTIME_LABEL[r]}
-                  </option>
-                ))}
+                {/* GenBot is the only runtime offered; a legacy agent shows its current runtime, not selectable again */}
+                {RUNTIME_CHOICES.map((r) => <option key={r} value={r}>{RUNTIME_LABEL[r]}</option>)}
+                {value.runtime !== 'genbot' && <option value={value.runtime} disabled>{RUNTIME_LABEL[value.runtime]} (không còn dùng)</option>}
               </select>
             </Field>
-            <Field label="Model" hint="Để trống = mặc định của CLI.">
-              <input class="field mono" value={value.model} placeholder="claude-sonnet-5-5" onInput={text('model')} />
+            <Field label="Model" hint="GenBot chọn AI trong app GenBot; để trống.">
+              <input class="field mono" value={value.model} placeholder="" disabled={value.runtime === 'genbot' && !value.model} onInput={text('model')} />
             </Field>
             <Field label="Báo cáo cho">
               <select class="field" value={value.reportsTo} onChange={(e) => set('reportsTo', (e.target as HTMLSelectElement).value)}>

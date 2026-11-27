@@ -1,8 +1,9 @@
 name: Trợ lý chăm sóc Zalo
 description: "Soạn câu trả lời cho khách và nhóm Zalo (qua hộp thư Chăm sóc khách hàng), không bịa giá"
-runtime: claude
-model: haiku
-runtime_options: {}
+runtime: genbot
+runtime_options:
+  base_url: "http://127.0.0.1:8800"
+  bot_id: ""
 permission: safe
 context: lean
 reports_to: main

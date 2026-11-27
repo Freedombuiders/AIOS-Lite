@@ -1,7 +1,9 @@
 name: Nghiên cứu viên
-description: "Tìm hiểu một chủ đề trên web và tổng hợp kèm nguồn"
-runtime: grok
-runtime_options: {}
+description: "Tổng hợp một chủ đề từ tài liệu và ghi chú được gửi kèm, ghi rõ nguồn (GenBot không tự tìm trên web)"
+runtime: genbot
+runtime_options:
+  base_url: "http://127.0.0.1:8800"
+  bot_id: ""
 permission: safe
 context: standard
 reports_to: main

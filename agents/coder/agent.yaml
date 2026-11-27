@@ -1,7 +1,9 @@
 name: Lập trình viên
-description: "Viết, sửa và review code; chạy lệnh trong thư mục làm việc riêng"
-runtime: codex
-runtime_options: {}
+description: "Đọc và review đoạn code được gửi kèm, gợi ý cách sửa bằng lời (GenBot chỉ trả lời bằng chữ, không chạy lệnh)"
+runtime: genbot
+runtime_options:
+  base_url: "http://127.0.0.1:8800"
+  bot_id: ""
 permission: safe
 context: standard
 reports_to: main

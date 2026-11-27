@@ -5,7 +5,6 @@ context: standard
 runtime_options:
   base_url: "{{input.GENBOT_URL}}"
   bot_id: ""
-  key_env: GENBOT_KEY_TRO_LY
   max_runs_day: 500
 access:
   brain:

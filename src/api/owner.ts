@@ -114,6 +114,9 @@ export const OWNER_ROUTES: ReadonlyArray<readonly [Method, string, string]> = [
   // agent access and runtime options
   ['*', '/api/agents', 'tạo agent'],
   ['*', '/api/agents/*', 'sửa, xoá agent, quyền và runtime'],
+  ['*', '/api/genbot/*', 'bot GenBot: khoá Bot API, địa chỉ GenBot, mã bot, thêm, tạm dừng, xoá, kiểm tra'],
+  // a check may send the stored key to the base_url given in the body: owner only
+  ['POST', '/api/runtimes/genbot/check', 'kiểm bot GenBot bằng khoá đã lưu'],
   ['*', '/api/skills/*', 'skill của agent, thư mục skill'],
   ['*', '/api/brain/folders', 'thư mục brain (quyền đọc ghi)'],
   ['*', '/api/brain/folders/*', 'thư mục brain (quyền đọc ghi)'],
@@ -154,14 +157,13 @@ export const SENSITIVE_SEGMENTS = [
   'ads', 'recos', 'apply', 'apply-cart', 'budgets', 'accounts', 'connect', 'reconnect',
   'settings', 'config', 'enable', 'enabled', 'enable-all', 'switches', 'runtime', 'runtimes', 'autopilot', 'takeover', 'ai',
   'agents', 'access', 'grants', 'integrations', 'oauth', 'composio-key', 'folders', 'roots', 'install', 'uninstall', 'update', 'updates',
-  'import', 'pack', 'packs', 'cloud', 'login', 'logout', 'pause', 'mode', 'crm', 'learn',
+  'import', 'pack', 'packs', 'cloud', 'login', 'logout', 'pause', 'mode', 'crm', 'learn', 'genbot', 'key', 'keys', 'bots', 'probe', 'convert',
 ] as const;
 
 /** Sensitive-looking routes that are deliberately NOT owner routes, with the reason. */
 export const NOT_OWNER_ROUTES: ReadonlyArray<readonly [Method, string, string]> = [
   ['POST', '/api/integrations/call', 'cầu MCP của agent, dùng token của lượt chạy, không phải chủ'],
   ['POST', '/api/integrations/:id/test', 'chỉ kiểm khoá đã lưu, không ghi gì'],
-  ['POST', '/api/runtimes/genbot/check', 'chỉ kiểm kết nối runtime'],
   ['POST', '/api/owner/pair', 'đổi mã ghép lấy phiên chủ'],
   ['POST', '/api/owner/pair/request', 'in mã ghép mới ra terminal của máy chủ, không trả mã'],
   ['POST', '/api/owner/logout', 'đăng xuất chính phiên của mình'],
