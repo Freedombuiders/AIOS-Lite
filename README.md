@@ -1,5 +1,7 @@
 # AIOS-Lite
 
+> **Cài đặt: [CAI-DAT.md](CAI-DAT.md).** Một lệnh cài cả app và GenBot: `./install.sh` (macOS Apple Silicon) hoặc `powershell -ExecutionPolicy Bypass -File .\install.ps1` (Windows), hoặc `npm run setup`. Kiểm tra máy: `npm run doctor`.
+
 AIOS-Lite là một **hệ điều hành cho đội agent**, viết nhỏ gọn để làm template dạy học. Bạn khai báo các agent (mỗi agent là một bot **GenBot**), giao việc cho chúng, cấp cho từng agent đúng những gì nó được xem và được làm, và thêm các nghiệp vụ như Chăm sóc khách hàng hay Marketing bằng một cú bấm **Add**.
 
 Lõi đủ nhỏ để đọc hiểu trong một buổi. Nghiệp vụ nằm trong **module**: cần cái nào thì Add cái đó, không cần thì thôi.
@@ -59,6 +61,8 @@ Kiểm tra kết nối ở **Đội AI · Bot**: nút **Kiểm tra** ở ô Kế
 
 ## Cài đặt và chạy
 
+Cách nhanh: `npm run setup` (hoặc `./install.sh`, `install.ps1`), xem [CAI-DAT.md](CAI-DAT.md). Cài tay:
+
 ```bash
 npm install
 cp .env.example .env        # mọi biến đều có mặc định, sửa nếu cần
@@ -69,7 +73,7 @@ npm run dev
 
 | Thành phần | Địa chỉ | Ghi chú |
 |---|---|---|
-| Giao diện (Vite) | http://localhost:5173 | Mở trình duyệt vào đây khi phát triển. Mọi lời gọi `/api` được chuyển sang API. |
+| Giao diện (Vite) | http://127.0.0.1:5173 | Mở trình duyệt vào đây khi phát triển (nghe ở 127.0.0.1, nơi cookie của chủ được đặt; `localhost:5173` vẫn mở được). Mọi lời gọi `/api` được chuyển sang API. |
 | API (`tsx watch`) | http://127.0.0.1:4380 | Tự khởi động lại khi bạn sửa file trong `src/`. |
 
 Kiểm tra nhanh: `curl http://127.0.0.1:4380/api/health` trả `{"ok":true,...}`.
@@ -103,7 +107,7 @@ Khoá bí mật (khoá API, token) chỉ nằm trong `.env` (đã có trong `.gi
 
 ## Bước đầu tiên
 
-1. **Mở Tổng quan.** Vào http://localhost:5173. Mục **Cần bạn** ở đầu trang gom mọi thứ cần bạn xử lý: việc chờ duyệt, việc thất bại, nháp trả lời khách của module. Bên dưới là số liệu kinh doanh của các module đã thêm (doanh thu và chi phí, hiệu quả nội dung, bán hàng qua Zalo) theo kỳ 7/30/90 ngày.
+1. **Mở Tổng quan.** Vào http://127.0.0.1:5173. Mục **Cần bạn** ở đầu trang gom mọi thứ cần bạn xử lý: việc chờ duyệt, việc thất bại, nháp trả lời khách của module. Bên dưới là số liệu kinh doanh của các module đã thêm (doanh thu và chi phí, hiệu quả nội dung, bán hàng qua Zalo) theo kỳ 7/30/90 ngày.
 2. **Nối một bot rồi giao việc.** Mở **Đội AI · Bot**, bấm **Thêm bot GenBot** (hoặc **Sửa** và **Đổi khoá** trên thẻ `demo`), điền mã bot và dán khoá, bấm **Kiểm tra**. Vào **Công việc**, bấm **Tạo việc**, chọn bot đó, gõ một yêu cầu. Trạng thái đi từ `queued` sang `running` rồi `done`; xem lượt chạy ở trang chi tiết.
 
    Cùng việc đó bằng dòng lệnh (khi API đang chạy):
@@ -158,6 +162,8 @@ AIOS-Lite/
 
 | Lệnh | Việc làm |
 |---|---|
+| `npm run setup` | Cài một lệnh: thư viện, `.env`, GenBot, rồi chạy app ([CAI-DAT.md](CAI-DAT.md)) |
+| `npm run doctor` | Kiểm tra máy: Node, cổng, GenBot, bot, yt-dlp/ffmpeg, git của brain |
 | `npm run dev` | Chạy API (:4380) và giao diện (:5173) ở chế độ phát triển |
 | `npm run build` | Biên dịch server và đóng gói giao diện vào `dist/` |
 | `npm start` | Chạy bản build ở một cổng |
@@ -177,6 +183,7 @@ npm run aios -- memory add "<nội dung>" [--agent id] [--pin]
 npm run aios -- memory search <từ khoá>
 npm run aios -- brain search <từ khoá>                   tìm trong Second Brain
 npm run aios -- module list | add <id> [--agents] | remove <id> | new <id>
+npm run aios -- doctor [--probe]                         kiểm tra máy (chạy được khi chưa bật server)
 ```
 
 Lưu ý: `npm test` đọc thư mục `agents/` thật để kiểm tra các agent mẫu, nên nếu bạn tạo hoặc xoá agent trong thư mục này, một vài test về "agent mẫu" có thể báo lệch. Hãy thử trên bản sao hoặc đặt `AIOS_AGENTS_DIR` sang thư mục khác khi chạy ứng dụng.

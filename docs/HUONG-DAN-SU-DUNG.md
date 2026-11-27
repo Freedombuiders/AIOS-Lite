@@ -38,7 +38,7 @@ npm start
 
 Mở http://127.0.0.1:4380. Lần chạy đầu, app tự tạo khoá mã hoá `AIOS_ENCRYPTION_KEY` trong `.env` (xem mục 2).
 
-Khi sửa code, dùng `npm run dev` (giao diện ở http://localhost:5173, API ở cổng 4380, tự tải lại khi lưu file). Khi chạy bản build, sau mỗi lần sửa code hoặc thêm module phải chạy lại `npm run build` rồi `npm start`.
+Khi sửa code, dùng `npm run dev` (giao diện ở http://127.0.0.1:5173, API ở cổng 4380, tự tải lại khi lưu file). Khi chạy bản build, sau mỗi lần sửa code hoặc thêm module phải chạy lại `npm run build` rồi `npm start`.
 
 Chạy thử không cần khoá nào: agent `demo` dùng runtime giả lập `mock`, không tốn tiền.
 

@@ -21,6 +21,10 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
+      // The owner cookie is set for 127.0.0.1 (docs/dev/OWNER-AUTH.md), and Vite's default "localhost" listens on
+      // ::1 only on macOS. 127.0.0.1 is what the setup and the pairing link open; http://localhost:5173 still works
+      // because browsers fall back from ::1 to 127.0.0.1.
+      host: '127.0.0.1',
       port: 5173,
       fs: { allow: ['..'] },
       proxy: { '/api': `http://127.0.0.1:${apiPort}` },
