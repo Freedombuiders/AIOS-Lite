@@ -13,6 +13,7 @@ import type { AppDeps } from './core/deps.js';
 import { createEventBus } from './core/events.js';
 import { createLogger } from './core/log.js';
 import { createModuleManager } from './modules/manager.js';
+import { botHasKey, pickDefaultAgent } from './agents/default-agent.js';
 import { createRuntimeRegistry } from './runtimes/index.js';
 import { adminServices } from './shared/admin-services.js';
 import { createBoardService } from './shared/board.js';
@@ -61,7 +62,7 @@ export function bootstrap(opts: BootstrapOptions = {}): AppDeps {
   const cipher = createCipher(config.encryptionKey);
   const hooks: AppDeps['hooks'] = { taskFinished: new Set(), moduleContext: new Map(), moduleActions: new Map(), agentContext: new Map() };
 
-  const agents = createAgentRegistry({ agentsDir: config.agentsDir, workspacesDir: config.workspacesDir, ...(config.allowedRuntimes ? { allowedRuntimes: config.allowedRuntimes } : {}) });
+  const agents = createAgentRegistry({ agentsDir: config.agentsDir, workspacesDir: config.workspacesDir });
   // GenBot keys pasted in the app: registered with the redactor before anything can log, read only by the genbot runtime
   const genbotKeys = createGenbotKeyStore({ db, cipher });
   genbotKeys.protectAll();
@@ -86,7 +87,7 @@ export function bootstrap(opts: BootstrapOptions = {}): AppDeps {
     // integrations bridge (MCP server `aios-integrations`): calls back into this API with a per-task token
     apiUrl: `http://${config.host}:${config.port}`,
     integrationToken: (agentId, taskId) => integrationServiceFor(lazy.deps!).createRunToken(agentId, taskId),
-    runtimeCapabilities: (id) => runtimes.get(id).capabilities,
+    runtimeCapabilities: (id) => runtimes.find(id)?.capabilities,
   });
 
   // every machine write to a brain folder that is a git repo becomes a commit (coalesced per folder, ~2 s)
@@ -111,7 +112,10 @@ export function bootstrap(opts: BootstrapOptions = {}): AppDeps {
     canWrite: (a, f, p) => access.canWritePath(a, f, p),
   });
 
-  const tasks = createTaskService({ db, bus, agents, abort: (id) => lazy.dispatcher?.abort(id) ?? false });
+  const tasks = createTaskService({
+    db, bus, agents, abort: (id) => lazy.dispatcher?.abort(id) ?? false,
+    defaultAgent: () => pickDefaultAgent(agents.list(), (id) => botHasKey(agents.get(id), genbotKeys)),
+  });
   const runs = createRunService({ db, bus });
   const comments = createCommentService({ db, bus, tasks });
   const attention = createAttentionService({ db, bus, tasks, runs, agents });

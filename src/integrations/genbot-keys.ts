@@ -2,7 +2,7 @@
 // Stored with the existing credentials store (encrypted with the core cipher, table integration_credentials, row id
 // `genbot-key:<agentId>`). The key leaves this module only through get(), called by the genbot runtime in this process:
 // it is never returned by an API (status() gives "đã có khoá" + the last four characters), never written to agent.yaml,
-// a log line or an event (every loaded value is registered with core/redact), and never put in a child environment.
+// a log line or an event (every loaded value is registered with core/redact). GenBot is the only engine and is reached over HTTP: no child process ever gets a key.
 import type { Cipher } from '../core/crypto.js';
 import type { DB } from '../core/db.js';
 import { protectCoreValue } from '../core/secret-env.js';
@@ -37,7 +37,7 @@ export function createGenbotKeyStore(deps: { db: DB; cipher: Cipher }) {
   function get(agentId: string): string | undefined {
     if (!agentId) return undefined;
     const key = store.loadValues(rowId(agentId))?.key?.trim();
-    // masked in logs, errors and events, and dropped from any child environment that would carry it
+    // masked in logs, errors and events
     protectCoreValue(key);
     return key || undefined;
   }

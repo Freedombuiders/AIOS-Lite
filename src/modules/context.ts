@@ -1,3 +1,4 @@
+import { botHasKey, pickDefaultAgent } from '../agents/default-agent.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { Cron } from 'croner';
@@ -132,13 +133,8 @@ export function createModuleContext(
           return null; // runtime not registered
         }
       },
-      usable: (agentId) => {
-        const a = deps.agents.get(agentId);
-        if (!a || a.runtime !== 'genbot') return false;
-        if (genbotKeysFor(deps).has(agentId)) return true;
-        const keyEnv = typeof a.runtimeOptions.key_env === 'string' ? a.runtimeOptions.key_env.trim() : '';
-        return keyEnv.startsWith('GENBOT_KEY_') && !!process.env[keyEnv]?.trim();
-      },
+      usable: (agentId) => botHasKey(deps.agents.get(agentId), genbotKeysFor(deps)),
+      defaultId: () => pickDefaultAgent(deps.agents.list(), (a) => botHasKey(deps.agents.get(a), genbotKeysFor(deps))),
     },
     access: {
       can: (agentId, scope) => deps.access.can(agentId, id, scope),

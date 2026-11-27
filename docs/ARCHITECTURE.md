@@ -234,6 +234,9 @@ Ngoài MCP và khoá API trong `connections.yaml`, lõi có sẵn **danh mục i
 
 ## 6. Tầng Runtime
 
+> **Lưu ý (G3, 27/11):** các adapter Claude Code, Codex, Grok và Hermes đã bị xoá khỏi `src/runtimes/`. Open AgenticOS chỉ còn `genbot` (và `mock` cho test). Mục 5.3 và 6.2 mô tả phiên bản cũ, giữ lại để tham khảo.
+
+
 ### 6.1 Interface
 
 ```ts

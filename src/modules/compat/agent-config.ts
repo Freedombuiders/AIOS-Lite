@@ -1,7 +1,21 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { AgentConfig } from '../../core/types.js';
-import { getDeps } from './state.js';
+import { DEFAULT_AGENT_ID, botHasKey, pickDefaultAgent } from '../../agents/default-agent.js';
+import { genbotKeysFor } from '../../integrations/genbot-keys.js';
+import { getDeps, tryDeps } from './state.js';
+
+/**
+ * The agent for a module turn that names none (what ported code called 'main'): the Trợ lý bot when it has a key, else
+ * the first GenBot bot with a key, else the first bot; DEFAULT_AGENT_ID when unbound or when there is no agent at all,
+ * so the turn fails with "không tìm thấy agent" instead of running on someone else.
+ */
+export function defaultAgentId(): string {
+  const deps = tryDeps();
+  if (!deps) return DEFAULT_AGENT_ID;
+  const keys = genbotKeysFor(deps);
+  return pickDefaultAgent(deps.agents.list(), (id) => botHasKey(deps.agents.get(id), keys)) ?? DEFAULT_AGENT_ID;
+}
 
 export function listAgentIds(): string[] {
   return getDeps().agents.list().map((a) => a.id);

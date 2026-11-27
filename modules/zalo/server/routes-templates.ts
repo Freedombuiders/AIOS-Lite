@@ -119,6 +119,8 @@ function sampleVars(): TemplateVars {
 /** What the template routes need from the module context (kept tiny so tests can pass fakes). */
 export interface TemplateRouteEnv {
   agentIds(): string[];
+  /** the default bot for a request that names none (src/agents/default-agent.ts) */
+  defaultAgentId?(): string | null;
   runLean(input: LeanRunInput): Promise<LeanRunResult>;
 }
 
@@ -234,7 +236,7 @@ export function registerZaloTemplateRoutes(app: Hono, env: TemplateRouteEnv): vo
     if (text.length > MAX_TEMPLATE_TEXT) return c.json({ error: `Nội dung tối đa ${MAX_TEMPLATE_TEXT} ký tự.` }, 400);
     const countRaw = Number(body?.count ?? 3);
     const count = Number.isFinite(countRaw) ? Math.min(Math.max(Math.round(countRaw), 2), 5) : 3;
-    const agentId = typeof body?.agentId === 'string' && body.agentId ? body.agentId : 'main';
+    const agentId = typeof body?.agentId === 'string' && body.agentId ? body.agentId : (env.defaultAgentId?.() ?? '');
     if (!env.agentIds().includes(agentId)) return c.json({ error: 'Agent không tồn tại.' }, 400);
     const instructions = typeof body?.instructions === 'string' ? body.instructions.slice(0, 1000) : undefined;
     try {

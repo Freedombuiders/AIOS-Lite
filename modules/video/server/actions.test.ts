@@ -94,14 +94,14 @@ describe('video actions', () => {
 });
 
 describe('default director', () => {
-  it('prefers video-editor, then an agent holding studio.write, then main', async () => {
+  it('prefers video-editor, then an agent holding studio.write, then the default bot', async () => {
     const { resolveDefaultAgentId } = await import('./edit/turn.js');
     const make = (agents: string[], grants: Record<string, string[]> = {}) => bindModuleCtx(fakeCtx({ agents: agents.map((id) => ({ id, runtime: 'claude' as const })), grants }));
     make(['main', 'a', 'video-editor']);
     expect(resolveDefaultAgentId()).toBe('video-editor');
     make(['main', 'a', 'b'], { b: ['studio.write'] });
     expect(resolveDefaultAgentId()).toBe('b');
-    make(['main', 'a']);
-    expect(resolveDefaultAgentId()).toBe('main');
+    make(['a', 'bot-tro-ly']);
+    expect(resolveDefaultAgentId()).toBe('bot-tro-ly');
   });
 });

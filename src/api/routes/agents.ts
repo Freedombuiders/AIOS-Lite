@@ -3,13 +3,14 @@ import type { Hono } from 'hono';
 import { z } from 'zod';
 import type { AgentInput } from '../../agents/contracts.js';
 import type { AppDeps } from '../../core/deps.js';
-import { allowedRuntimes, runtimeRefusal } from '../../core/runtime-policy.js';
-import { RUNTIME_IDS, type RuntimeId } from '../../core/types.js';
+import { KNOWN_RUNTIME_NAMES, allowedRuntimes, legacyRuntimeMessage, runtimeRefusal } from '../../core/runtime-policy.js';
+import type { AgentRuntime, RuntimeId } from '../../core/types.js';
 import { genbotKeysFor } from '../../integrations/genbot-keys.js';
 import { badRequest, conflict } from '../errors.js';
 import { body, found } from '../util.js';
 
-const RUNTIME = z.enum(RUNTIME_IDS as [string, ...string[]]);
+// legacy names pass validation so the refusal below can explain that they are no longer offered
+const RUNTIME = z.enum(KNOWN_RUNTIME_NAMES as [string, ...string[]]);
 
 const agentInput = z
   .object({
@@ -50,13 +51,13 @@ export function agentsRoutes(app: Hono, deps: AppDeps): void {
     costMonthUsd: deps.runs.monthCost(id),
     runsMonth: deps.runs.list({ agentId: id, since: monthStart(), limit: 500 }).length,
   });
-  const allowed = () => deps.config.allowedRuntimes ?? allowedRuntimes();
+  const allowed = () => allowedRuntimes();
   /**
    * runtimeAllowed: false for an agent left on a runtime that is no longer offered (the list shows "Chuyển sang GenBot").
    * genbotKey: "đã có khoá" + last four characters, never the key (pickers list only GenBot bots that have one).
    */
-  const extra = (a: { id: string; runtime: RuntimeId; runtimeOptions: Record<string, unknown> }) => {
-    const out: { runtimeAllowed: boolean; genbotKey?: { hasKey: boolean; last4: string } } = { runtimeAllowed: allowed().includes(a.runtime) };
+  const extra = (a: { id: string; runtime: AgentRuntime; runtimeOptions: Record<string, unknown> }) => {
+    const out: { runtimeAllowed: boolean; genbotKey?: { hasKey: boolean; last4: string } } = { runtimeAllowed: allowed().includes(a.runtime as RuntimeId) };
     if (a.runtime === 'genbot') {
       const s = genbotKeysFor(deps).status(a.id);
       const keyEnv = typeof a.runtimeOptions.key_env === 'string' ? a.runtimeOptions.key_env.trim() : '';
@@ -111,7 +112,9 @@ export function agentsRoutes(app: Hono, deps: AppDeps): void {
   app.get('/api/agents/:id/access', (c) => {
     const agent = found(deps.agents.get(c.req.param('id')), 'agent');
     const access = deps.access.snapshot(deps.access.resolve(agent));
-    const caps = deps.runtimes.get(agent.runtime).capabilities;
+    const rt = deps.runtimes.find(agent.runtime);
+    if (!rt) throw conflict(legacyRuntimeMessage(agent.name, agent.runtime));
+    const caps = rt.capabilities;
     return c.json({ access, enforcement: caps.enforces, runtime: agent.runtime, mcp: caps.mcp, readsFiles: caps.readsFiles });
   });
 }

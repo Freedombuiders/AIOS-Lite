@@ -86,7 +86,7 @@ Trình cài **không** tạo bot hay cấp khoá Bot API thay bạn được. B�
 2. Trong GenBot, bấm **Bot mới** ba lần để tạo **Bot CSKH**, **Bot Nội dung**, **Bot Trợ lý**. Chọn AI chạy được ở chế độ nhốt (Claude, Codex hoặc AI dùng khoá API).
 3. Mở một bot, bấm bánh răng **Cài đặt › Nâng cao › Quyền truy cập › Bot API**, bật **Cho ứng dụng trò chuyện với bot này**.
 4. Thẻ Bot API hiện một lệnh mẫu có khoá. Bấm **Sao chép** ngay: khoá chỉ hiện một lần (mất thì bấm **Khóa mới**). Mã bot là phần nằm giữa `/hooks/api/bots/` và `/messages`.
-5. Trong Open AgenticOS (trình cài tự mở), vào **Đội AI · Bot**, bấm **Thêm bot GenBot**, chọn mẫu, điền **Mã bot GenBot**, dán khoá, bấm **Kiểm tra rồi lưu**. Bot đã có thẻ thì bấm **Sửa** và **Đổi khoá**.
+5. Trong Open AgenticOS (trình cài tự mở), vào **Đội AI · Bot**. Repo có sẵn thẻ của ba bot (**Bot CSKH**, **Bot Nội dung**, **Bot Trợ lý**, quyền trên brain mẫu `cong-ty-b`): trên thẻ bot tương ứng bấm **Sửa** để điền mã bot, **Đổi khoá** để dán khoá, rồi **Kiểm tra**. Bot chưa có thẻ thì bấm **Thêm bot GenBot**, chọn mẫu, điền **Mã bot GenBot**, dán khoá, bấm **Kiểm tra rồi lưu**.
 6. Lặp lại bước 3 đến 5 cho hai bot còn lại.
 
 Khoá chỉ dán vào Open AgenticOS. App lưu khoá mã hoá trong `data/aios.db` và chỉ hiện 4 ký tự cuối. Đừng dán khoá vào `.env` hay `agent.yaml`. Chi tiết và bảng lỗi: [docs/huong-dan-noi-genbot.md](docs/huong-dan-noi-genbot.md).

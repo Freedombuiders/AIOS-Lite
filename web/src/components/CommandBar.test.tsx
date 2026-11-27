@@ -10,10 +10,11 @@ const pushToast = vi.hoisted(() => vi.fn());
 vi.mock('@/lib/api', () => ({ apiPost, errorText: (e: unknown) => (e instanceof Error ? e.message : String(e)) }));
 vi.mock('@/lib/chat-conversations', () => ({ createConversation }));
 vi.mock('@/lib/toasts', () => ({ pushToast }));
+const agentList = vi.hoisted(() => ({ override: null as null | unknown[] }));
 vi.mock('@/lib/agents', () => ({
   useAgents: () => ({
-    agents: [
-      { id: 'main', name: 'Trợ lý chính', enabled: true, runtime: 'genbot', genbotKey: { hasKey: true, last4: 'abcd' } },
+    agents: agentList.override ?? [
+      { id: 'bot-tro-ly', name: 'Trợ lý chính', enabled: true, runtime: 'genbot', genbotKey: { hasKey: true, last4: 'abcd' } },
       { id: 'cskh', name: 'Bot CSKH', enabled: true, runtime: 'genbot', genbotKey: { hasKey: true, last4: 'efgh' } },
       { id: 'old', name: 'Bot cũ', enabled: false, runtime: 'genbot', genbotKey: { hasKey: true, last4: 'ijkl' } },
       // GenBot only: an agent left on claude and a bot without a key are never offered
@@ -51,7 +52,23 @@ const send = (el: HTMLElement) => act(async () => {
 
 describe('CommandBar', () => {
   beforeEach(() => { vi.stubGlobal('localStorage', memoryStorage); apiPost.mockClear(); createConversation.mockClear(); pushToast.mockClear(); store.clear(); });
-  afterEach(() => { document.body.innerHTML = ''; vi.unstubAllGlobals(); });
+  afterEach(() => { document.body.innerHTML = ''; vi.unstubAllGlobals(); agentList.override = null; });
+
+  it('with no bot that has a key, points at Đội AI · Bot instead of failing on send', async () => {
+    agentList.override = [{ id: 'nokey', name: 'Bot chưa nối', enabled: true, runtime: 'genbot', genbotKey: { hasKey: false, last4: '' } }];
+    const el = await mount();
+    const link = el.querySelector('[data-testid="cmdbar-no-bot"]') as HTMLAnchorElement;
+    expect(link.getAttribute('href')).toBe('/bots');
+    expect(link.title).toMatch(/Đội AI · Bot/);
+    expect((el.querySelector('input[type="text"]') as HTMLInputElement).placeholder).toMatch(/Đội AI · Bot/);
+    type(el, 'xin chào');
+    expect((el.querySelector('button[aria-label="Gửi"]') as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it('shows no how-to when a bot has a key', async () => {
+    const el = await mount();
+    expect(el.querySelector('[data-testid="cmdbar-no-bot"]')).toBeNull();
+  });
 
   it('offers only enabled GenBot bots that have a key, with the mic disabled and explained', async () => {
     const el = await mount();

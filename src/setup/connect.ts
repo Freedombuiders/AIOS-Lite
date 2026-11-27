@@ -28,7 +28,7 @@ export function connectSteps(webUrl: string): string[] {
     `Trong app GenBot, bấm "Bot mới" ba lần để tạo ${names}. Với mỗi bot, chọn AI chạy được ở chế độ nhốt (Claude, Codex hoặc AI dùng khoá API).`,
     'Mở một bot, bấm bánh răng "Cài đặt" › "Nâng cao" › "Quyền truy cập" › "Bot API", bật "Cho ứng dụng trò chuyện với bot này".',
     'Thẻ Bot API hiện một lệnh mẫu có khoá. Bấm "Sao chép" ngay: khoá chỉ hiện một lần (mất thì bấm "Khóa mới"). Mã bot là phần nằm giữa /hooks/api/bots/ và /messages trong lệnh đó.',
-    `Mở Open AgenticOS ở ${webUrl} (trình cài sẽ tự mở màn "Đội AI · Bot"). Bấm "Thêm bot GenBot", chọn mẫu (${DEFAULT_BOTS.map((b) => b.template).join(', ')}), điền "Mã bot GenBot", dán khoá, bấm "Kiểm tra rồi lưu". Bot đã có thẻ (cài từ gói Đội AgenticOS mặc định) thì bấm "Sửa" để điền mã bot và "Đổi khoá" để dán khoá.`,
+    `Mở Open AgenticOS ở ${webUrl} (trình cài sẽ tự mở màn "Đội AI · Bot"). Repo có sẵn thẻ ${names}: trên thẻ bot tương ứng bấm "Sửa" để điền mã bot, "Đổi khoá" để dán khoá, rồi "Kiểm tra". Bot chưa có thẻ thì bấm "Thêm bot GenBot", chọn mẫu (${DEFAULT_BOTS.map((b) => b.template).join(', ')}), điền "Mã bot GenBot", dán khoá, bấm "Kiểm tra rồi lưu".`,
     'Lặp lại bước 2 đến 4 cho hai bot còn lại.',
     'Khoá chỉ dán vào Open AgenticOS: app lưu mã hoá, chỉ hiện 4 ký tự cuối. Đừng dán khoá vào .env, agent.yaml hay gửi cho ai.',
   ];

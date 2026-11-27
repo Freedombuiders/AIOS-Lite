@@ -1,13 +1,14 @@
 import type { RuntimeId, TaskStatus } from '@core/types';
 
 export const RUNTIME_LABEL: Record<RuntimeId, string> = {
-  claude: 'Claude',
-  codex: 'Codex',
-  grok: 'Grok',
-  hermes: 'Hermes',
   genbot: 'GenBot',
   mock: 'Mock',
 };
+
+/** Label of any runtime name an agent may carry; an engine of an earlier version reads "engine cũ" (it no longer runs). */
+export function runtimeLabel(runtime: string): string {
+  return (RUNTIME_LABEL as Record<string, string>)[runtime] ?? `${runtime} (engine cũ)`;
+}
 
 export type Tone = 'neutral' | 'accent' | 'success' | 'error' | 'warn' | 'info' | 'running' | 'queued' | 'done' | 'failed' | 'cancelled' | 'waiting' | 'review' | 'good' | 'bad' | 'high' | 'medium' | 'low';
 

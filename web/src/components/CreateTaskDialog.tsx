@@ -6,6 +6,7 @@ import { Field } from '@/components/ui';
 import { apiPost, errorText } from '@/lib/api';
 import type { AgentSummary } from '@/lib/api-types';
 import { pushToast } from '@/lib/toasts';
+import { DEFAULT_BOT_ID } from '@/lib/bots';
 
 export function CreateTaskDialog({ open, agents, onClose }: { open: boolean; agents: AgentSummary[]; onClose: () => void }) {
   const [, nav] = useLocation();
@@ -16,7 +17,7 @@ export function CreateTaskDialog({ open, agents, onClose }: { open: boolean; age
   const [priority, setPriority] = useState(5);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const chosen = agentId || enabled.find((a) => a.id === 'main')?.id || enabled[0]?.id || '';
+  const chosen = agentId || enabled.find((a) => a.id === DEFAULT_BOT_ID)?.id || enabled[0]?.id || '';
 
   async function submit() {
     if (!prompt.trim()) return setErr('Hãy mô tả việc cần làm.');

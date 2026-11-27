@@ -1,10 +1,6 @@
-// Shared doctor probe: a tiny single-turn "hello" run in a throwaway directory.
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import path from 'node:path';
+// A minimal single-turn run request (no tools, throwaway agent "doctor"): GenBot's "ping" check and the tests build on it.
 import type { RuntimeId } from '../core/types.js';
-import type { DoctorCheck, RunRequest, RunResult } from './contracts.js';
-import { clip } from './jsonl.js';
+import type { RunRequest } from './contracts.js';
 
 export function probeRequest(cwd: string, runtime: RuntimeId = 'mock'): RunRequest {
   return {
@@ -33,15 +29,4 @@ export function probeRequest(cwd: string, runtime: RuntimeId = 'mock'): RunReque
     timeoutMs: 90_000,
     onEvent() {},
   };
-}
-
-export async function probeCheck(id: RuntimeId, run: (req: RunRequest) => Promise<RunResult>): Promise<DoctorCheck> {
-  const cwd = await mkdtemp(path.join(tmpdir(), `aios-probe-${id}-`));
-  try {
-    const res = await run(probeRequest(cwd, id));
-    if (res.ok && res.output.trim()) return { code: `${id}.probe`, level: 'info', message: `Thử "hello" thành công: ${clip(res.output.trim(), 60)}` };
-    return { code: `${id}.probe`, level: 'error', message: `Thử "hello" thất bại: ${res.error?.message ?? 'không có kết quả'}`, hint: res.error?.family === 'auth' ? 'Đăng nhập lại CLI.' : undefined };
-  } finally {
-    await rm(cwd, { recursive: true, force: true }).catch(() => undefined);
-  }
 }

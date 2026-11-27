@@ -16,9 +16,10 @@ import { chatStreamConnected, isChatScopeProcessing, resetUnread, runningChatTas
 import { sendErrorText } from '@/lib/chat-v2';
 import type { Attachment } from '@/lib/chat-v2';
 import type { ScreenContextPayload } from '@/lib/page-context';
+import { DEFAULT_BOT_ID } from '@/lib/bots';
 
-/** Replies without an agent id belong to the workspace's main agent. */
-const MAIN_AGENT = 'main';
+/** Replies without an agent id belong to the workspace's default bot (Trợ lý). */
+const MAIN_AGENT = DEFAULT_BOT_ID;
 
 export interface Turn {
   id?: number;

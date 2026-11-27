@@ -10,7 +10,8 @@ import { StatusPill } from '@/components/TaskBits';
 import { Field } from '@/components/ui';
 import { errorText } from '@/lib/api';
 import { useAgents } from '@/lib/agents';
-import { usableBots } from '@/lib/bots';
+import { defaultBotId, usableBots } from '@/lib/bots';
+import { NoBotHint } from '@/components/NoBotHint';
 import { activeConversation, conversations, createConversation, deleteConversation, refreshConversations, renameConversation, selectConversation } from '@/lib/chat-conversations';
 import type { Conversation } from '@/lib/chat-conversations';
 import { formatRelativeTime, resolveAgentName } from '@/lib/format';
@@ -101,7 +102,8 @@ function Thread({ conversation, agents }: { conversation: Conversation; agents: 
 
 export default function ChatPage({ conversationId }: { conversationId?: number }) {
   const [, nav] = useLocation();
-  const { agents } = useAgents();
+  const { agents, data: agentsData } = useAgents();
+  const loadedAgents = !!agentsData;
   const [creating, setCreating] = useState(false);
   const [agentId, setAgentId] = useState('');
   const [renaming, setRenaming] = useState<Conversation | null>(null);
@@ -127,7 +129,9 @@ export default function ChatPage({ conversationId }: { conversationId?: number }
 
   async function create() {
     try {
-      const c = await createConversation(agentId || enabled[0]?.id || 'main');
+      const to = agentId || defaultBotId(enabled);
+      if (!to) return;
+      const c = await createConversation(to);
       setCreating(false);
       nav(`/chat/${c.id}`);
     } catch (e) {
@@ -162,7 +166,7 @@ export default function ChatPage({ conversationId }: { conversationId?: number }
         <div class="conversation-sidebar-top">
           <span class="conversation-sidebar-label"><span>Trò chuyện</span></span>
         </div>
-        <button type="button" class="conversation-new" disabled={!enabled.length} onClick={() => { setAgentId(enabled[0]?.id ?? ''); setCreating(true); }}>
+        <button type="button" class="conversation-new" disabled={!enabled.length} onClick={() => { setAgentId(defaultBotId(enabled)); setCreating(true); }}>
           <MessageSquarePlus size={15} /> <span class="conversation-new-label">Cuộc trò chuyện mới</span>
         </button>
         <div class="conversation-list">
@@ -185,7 +189,10 @@ export default function ChatPage({ conversationId }: { conversationId?: number }
       </aside>
       {shown ? <Thread key={shown.id} conversation={shown} agents={agents} /> : (
         <div class="chat-surface flex h-full min-w-0 flex-1 items-center justify-center">
-          <ChatEmptyState name="các agent" onPrompt={() => { setAgentId(enabled[0]?.id ?? ''); setCreating(true); }} disabled={!enabled.length} />
+          <div class="flex flex-col items-center gap-3">
+            <ChatEmptyState name="các agent" onPrompt={() => { setAgentId(defaultBotId(enabled)); setCreating(true); }} disabled={!enabled.length} />
+            {loadedAgents && !enabled.length && <NoBotHint />}
+          </div>
         </div>
       )}
 

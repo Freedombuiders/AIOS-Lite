@@ -41,7 +41,7 @@ export function seriesPrompt(idea: string, count: number, targetSec: number, lea
 
 export async function planSeries(idea: string, count: number, targetSec: number, lead: PersonaDto, runner: AgentRunner = runKolAgent): Promise<SeriesPlan> {
   const { system, prompt } = seriesPrompt(idea, count, targetSec, lead);
-  const r = await runner({ agentId: lead.brainAgent || 'main', usageKey: `video:series:${lead.id}`, system, prompt });
+  const r = await runner({ agentId: lead.brainAgent || '', usageKey: `video:series:${lead.id}`, system, prompt });
   if (r.error) throw new Error(`Bộ não của ${lead.name} không lên được series: ${r.error}`);
   for (const o of jsonObjectsOf(r.text)) {
     const parsed = seriesSchema.safeParse(o);

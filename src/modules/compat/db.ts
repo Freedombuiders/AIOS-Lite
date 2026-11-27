@@ -1,3 +1,4 @@
+import { DEFAULT_AGENT_ID } from '../../agents/default-agent.js';
 import { createCipher } from '../../core/crypto.js';
 import { loadConfig } from '../../core/config.js';
 import { migrateCore, openDb, type DB } from '../../core/db.js';
@@ -43,7 +44,7 @@ export interface TokenTelemetry {
 
 export function saveTokenUsage(
   chatId: string, sessionId: string | undefined, inputTokens: number, outputTokens: number, cacheRead: number,
-  contextTokens: number, costUsd: number, didCompact: boolean, agentId = 'main', contextWindow: number | null = null,
+  contextTokens: number, costUsd: number, didCompact: boolean, agentId = DEFAULT_AGENT_ID, contextWindow: number | null = null,
   cacheCreation = 0, telemetry: TokenTelemetry = {},
 ): void {
   totals.inputTokens += inputTokens;

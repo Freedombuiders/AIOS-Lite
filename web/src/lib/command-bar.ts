@@ -1,5 +1,6 @@
 // Logic of the bottom command bar (components/CommandBar.tsx): which pages hide it, and how a typed line plus
 // attached files becomes one chat message. The chat API takes text only, so a file is sent as text inside the message.
+import { DEFAULT_BOT_ID } from './bots';
 import { matchRoute } from 'wouter-preact';
 import type { useRouter } from 'wouter-preact';
 
@@ -61,8 +62,8 @@ export function composeMessage(text: string, files: readonly Attachment[]): stri
   return parts.join('\n\n').slice(0, MAX_MESSAGE_CHARS);
 }
 
-/** Enabled agents only; keeps the remembered one when it is still on, else the first. */
+/** Enabled agents only; keeps the remembered one when it is still on, else the Trợ lý bot, else the first. */
 export function pickAgent(agents: readonly { id: string; enabled: boolean }[], remembered: string | null): string {
   const on = agents.filter((a) => a.enabled);
-  return on.find((a) => a.id === remembered)?.id ?? on.find((a) => a.id === 'main')?.id ?? on[0]?.id ?? '';
+  return on.find((a) => a.id === remembered)?.id ?? on.find((a) => a.id === DEFAULT_BOT_ID)?.id ?? on[0]?.id ?? '';
 }

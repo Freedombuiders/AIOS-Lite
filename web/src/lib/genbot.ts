@@ -51,7 +51,8 @@ export interface GenbotOverview {
   baseUrl: string;
   defaultBaseUrl: string;
   bots: GenbotBot[];
-  legacy: { id: string; name: string; runtime: string; enabled: boolean }[];
+  /** agents on an engine of an earlier version; runtimeLabel is its display name (from the server) */
+  legacy: { id: string; name: string; runtime: string; runtimeLabel?: string; enabled: boolean }[];
   templates: GenbotTemplate[];
   brainFolders: { id: string; name: string }[];
 }

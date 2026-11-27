@@ -27,3 +27,15 @@ export function agentRows<T>(body: { items?: T[]; agents?: T[] } | null | undefi
 export function pickerBots<T extends BotLike>(body: { items?: T[]; agents?: T[] } | null | undefined): T[] {
   return usableBots(agentRows(body));
 }
+
+/** The Trợ lý bot of the default team (teams/agenticos-doi-mac-dinh). It replaced the old sample agent 'main' (G3). */
+export const DEFAULT_BOT_ID = 'bot-tro-ly';
+
+/** Who takes a message or a task when the owner picked nobody: the Trợ lý bot when it has a key, else the first bot with a key; '' when none has one. */
+export function defaultBotId<T extends BotLike>(list: readonly T[] | null | undefined): string {
+  const on = usableBots(list).filter((a) => a.enabled !== false);
+  return on.find((a) => a.id === DEFAULT_BOT_ID)?.id ?? on[0]?.id ?? '';
+}
+
+/** Shown where a bot is needed and none has a key: the how-to is on Đội AI · Bot. */
+export const NO_BOT_HINT = 'Chưa có bot GenBot nào có khoá. Mở Đội AI · Bot, thêm bot (hoặc cài Đội AgenticOS mặc định ở Gói Team), dán mã bot và khoá Bot API, rồi bấm Kiểm tra.';

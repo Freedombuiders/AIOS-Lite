@@ -163,6 +163,7 @@ export default defineModule({
     registerZaloRoutes(app, {
       supervisor: rt.supervisor,
       agentIds: () => ctx.agents.list().map((a) => a.id),
+      defaultAgentId: () => ctx.agents.defaultId?.() ?? null,
       // Template variants are marketing: with the switch off this never reaches the model.
       runLean: (input) => {
         if (!marketingOn(ctx)) throw new Error('Marketing Zalo đang tắt');

@@ -279,7 +279,7 @@ export async function writeCaptionVariants(
   const fromTargets = [...new Set(post.targets.filter((t) => t.status !== 'skipped').map((t) => t.platform))];
   const platforms = (req.platforms?.length ? req.platforms : fromTargets.length ? fromTargets : PLATFORMS).filter((p) => PLATFORMS.includes(p));
   const { system, prompt } = captionPrompt(post, persona, platforms, (req.instructions ?? '').trim().slice(0, 2000));
-  const res = await runner({ agentId: persona.brainAgent || 'main', usageKey: `kol:captions:${persona.id}`, system, prompt });
+  const res = await runner({ agentId: persona.brainAgent || '', usageKey: `kol:captions:${persona.id}`, system, prompt });
   if (res.error && !res.text) throw new KolError(502, `Agent không viết được chú thích: ${res.error.slice(0, 200)}`);
 
   for (const obj of jsonObjectsOf(res.text)) {

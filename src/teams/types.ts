@@ -1,5 +1,5 @@
 // Team package format: TEAM.md + schedules.yaml + agents/<id>/{agent.yaml.template, persona.md, skills/, knowledge/}.
-import type { RuntimeId } from '../core/types.js';
+import type { AgentRuntime } from '../core/types.js';
 
 export const TEAM_SCHEMAS = ['aios-team/v1', 'claudeclaw-team/v1'] as const;
 export const TEAM_SCHEMA = 'aios-team/v1';
@@ -24,7 +24,7 @@ export interface TeamAgentDecl {
   id: string;
   name: string;
   description: string;
-  runtime: RuntimeId | null;
+  runtime: AgentRuntime | null;
   model: string | null;
   skills: string[];
   fileCount: number;

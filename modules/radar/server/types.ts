@@ -1,6 +1,6 @@
 /**
  * Radar — daily market-research scans of communities (Facebook groups and
- * pages, Meta Ad Library, X via the grok CLI, Reddit, Hacker News, YouTube,
+ * pages, Meta Ad Library, X (reader switched off: it needed Grok's live X search, and agents run on GenBot only), Reddit, Hacker News, YouTube,
  * TikTok, Threads, news) turned into "only what is new" reports.
  *
  * Shared contract between the four parts of the module:
@@ -63,7 +63,7 @@ export interface LayerConfig {
   instagram: string[];
   /** Meta Ad Library: active ads in `country` for each query and each page URL. */
   adLibrary: { enabled: boolean; country: string; queries: string[]; pageUrls: string[] };
-  /** X through the grok CLI: recent posts of these accounts and searches. */
+  /** X: recent posts of these accounts and searches. The reader is off (it needed Grok's live X search; collectors/x-grok.ts). */
   x: { enabled: boolean; accounts: string[]; queries: string[]; /** world: also ask what Vietnamese X already discusses. */ vnCheck: boolean };
   reddit: { enabled: boolean; subreddits: string[] };
   hackerNews: { enabled: boolean; minPoints: number };
@@ -101,7 +101,7 @@ export interface RadarConfig {
     /** One paragraph about what the owner sells and to whom; given to the analyst. */
     about: string;
   };
-  /** Agent whose provider/model runs the analysis turns ('main' by default). */
+  /** Agent that runs the analysis turns (the radar-analyst bot by default). */
   analysisAgentId: string;
   aiKeywords: string[];
   /** Comment keywords → buy-signal type. */
@@ -206,7 +206,7 @@ export interface CollectResult {
   costUsd: number;
 }
 
-/** What Vietnamese X already talks about (world layer, grok CLI). */
+/** What Vietnamese X already talks about (world layer; off with the X reader). */
 export interface VnChatter {
   topics: { topic: string; posts: number; examples: string[] }[];
   note?: string;

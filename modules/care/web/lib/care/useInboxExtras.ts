@@ -44,7 +44,7 @@ function loadAgents(): Promise<AgentLite[]> {
   agentsInflight = agentsInflight ?? apiGet<{ items?: RawAgent[]; agents?: RawAgent[] }>('/api/agents')
     .then((r) => {
       // GET /api/agents answers `{ items }` (older builds of this screen read `agents`, which was always empty)
-      agentsCache = (r.items ?? r.agents ?? []).filter((a) => a && typeof a.id === 'string' && a.id !== 'main').map(toAgentLite);
+      agentsCache = (r.items ?? r.agents ?? []).filter((a) => a && typeof a.id === 'string').map(toAgentLite);
       return agentsCache;
     })
     .catch(() => [] as AgentLite[])

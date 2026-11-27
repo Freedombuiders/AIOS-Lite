@@ -1,14 +1,27 @@
 import { expect, test, type Page } from '@playwright/test';
 
-// Core flows on the real app with the `mock` runtime (agent `demo`). No CLI or API key needed.
+// Core flows on the real app with the `mock` runtime (AIOS_MOCK=1; agent `e2e-demo`, created below). No GenBot needed.
 
-const CORE_PAGES = ['/', '/agents', '/tasks', '/schedules', '/chat', '/brain', '/memory', '/skills', '/modules', '/connections', '/audit', '/settings', '/usage', '/budgets', '/teams', '/agent-market', '/recos'];
+const CORE_PAGES = ['/', '/bots', '/tasks', '/schedules', '/chat', '/brain', '/memory', '/skills', '/modules', '/connections', '/audit', '/settings', '/usage', '/budgets', '/teams', '/recos'];
 
 function trackErrors(page: Page): string[] {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   return errors;
 }
+
+// The shipped agents are GenBot bots with no key; tasks here run on a throw-away mock agent (the agents dir is a temp copy).
+test.beforeAll(async ({ request }) => {
+  const res = await request.post('/api/agents', { data: { id: 'e2e-demo', name: 'Agent e2e', runtime: 'mock', description: 'Agent mock cho e2e', canDelegate: true } });
+  expect([201, 409]).toContain(res.status());
+});
+
+test('/agents and the old /agent-market lead to Đội AI · Bot', async ({ page }) => {
+  for (const path of ['/agents', '/agent-market']) {
+    await page.goto(path);
+    await expect(page).toHaveURL(/\/bots$/);
+  }
+});
 
 test('every core page renders without script errors', async ({ page }) => {
   const errors = trackErrors(page);
@@ -20,8 +33,8 @@ test('every core page renders without script errors', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test('a task given to the demo agent runs to "done" and shows its result', async ({ page, request }) => {
-  const res = await request.post('/api/tasks', { data: { agentId: 'demo', title: 'E2E: kiểm tra', prompt: 'Viết một câu chào đội.' } });
+test('a task given to the e2e-demo agent runs to "done" and shows its result', async ({ page, request }) => {
+  const res = await request.post('/api/tasks', { data: { agentId: 'e2e-demo', title: 'E2E: kiểm tra', prompt: 'Viết một câu chào đội.' } });
   expect(res.ok()).toBeTruthy();
   const task = await res.json();
   await expect
@@ -31,11 +44,10 @@ test('a task given to the demo agent runs to "done" and shows its result', async
   await expect(page.getByText('Đã xử lý').first()).toBeVisible();
 });
 
-test('delegation: demo hands work to another mock agent and summarises when it is done', async ({ request }) => {
-  // The sample `main` runs on Claude, so create a throw-away mock helper (the e2e agents dir is a temp copy).
+test('delegation: e2e-demo hands work to another mock agent and summarises when it is done', async ({ request }) => {
   const created = await request.post('/api/agents', { data: { id: 'e2e-helper', name: 'Trợ lý e2e', runtime: 'mock', description: 'Agent mock cho e2e' } });
   expect(created.status()).toBe(201);
-  const res = await request.post('/api/tasks', { data: { agentId: 'demo', prompt: 'Chia việc. #delegate:e2e-helper' } });
+  const res = await request.post('/api/tasks', { data: { agentId: 'e2e-demo', prompt: 'Chia việc. #delegate:e2e-helper' } });
   const task = await res.json();
   await expect
     .poll(async () => (await (await request.get(`/api/tasks/${task.id}`)).json()).task.status, { timeout: 30_000 })
@@ -65,7 +77,7 @@ test('modules: add care from the UI, its menu appears, remove hides it and keeps
 });
 
 test('agent detail shows the access tab with enforcement badges', async ({ page }) => {
-  await page.goto('/agents/main');
+  await page.goto('/agents/e2e-demo');
   await page.getByRole('button', { name: /Quyền/ }).or(page.getByRole('tab', { name: /Quyền/ })).first().click();
   await expect(page.getByText(/Chặn cứng|Chỉ dặn trong prompt/).first()).toBeVisible();
 });

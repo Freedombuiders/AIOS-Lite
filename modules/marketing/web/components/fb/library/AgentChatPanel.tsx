@@ -10,7 +10,7 @@ import { activeConversation, conversations, createConversation, refreshConversat
 import { FormatChip, StatusPill } from '@modules/marketing/web/components/fb/common';
 import { composeAgentMessage } from '@modules/marketing/web/lib/agent-message';
 import type { FbContentDto } from '@modules/marketing/web/lib/fbstudio';
-import { pickerBots, type BotLike } from '@/lib/bots';
+import { DEFAULT_BOT_ID, defaultBotId, pickerBots, type BotLike } from '@/lib/bots';
 
 interface AgentOption { id: string; name: string }
 
@@ -36,10 +36,10 @@ export function AgentChatPanel({ initialDraft = '', selected, onDeselect, onClea
   // only GenBot bots that have a key (Open AgenticOS runs every agent on GenBot)
   const agentList = pickerBots(agents.data);
   const [agentId, setAgentId] = useState('');
-  // Default writer: the module's template agent when it exists, else main.
+  // Default writer: the module's template agent when it exists, else the default bot (Trợ lý, else the first with a key).
   useEffect(() => {
     if (agentId || agentList.length === 0) return;
-    setAgentId(agentList.some((a) => a.id === 'content-fb') ? 'content-fb' : agentList.some((a) => a.id === 'main') ? 'main' : agentList[0].id);
+    setAgentId(agentList.some((a) => a.id === 'content-fb') ? 'content-fb' : defaultBotId(agentList));
   }, [agentList.length]);
 
   // One conversation per writer agent: reuse the latest, create it on first use.
@@ -57,7 +57,7 @@ export function AgentChatPanel({ initialDraft = '', selected, onDeselect, onClea
     return () => { cancelled = true; };
   }, [agentId]);
 
-  const { turns, loading, processing, progressLabel, live, error, streamConnected, sending, send, abort } = useChatSession(agentId || 'main', onReply);
+  const { turns, loading, processing, progressLabel, live, error, streamConnected, sending, send, abort } = useChatSession(agentId || DEFAULT_BOT_ID, onReply);
   const { ref: messagesRef, atBottom, scrollToBottom } = useStickToBottom([turns.length, processing, live], agentId);
 
   const [draft, setDraft] = useState(initialDraft);

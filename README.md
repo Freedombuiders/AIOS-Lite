@@ -6,7 +6,7 @@ AIOS-Lite là một **hệ điều hành cho đội agent**, viết nhỏ gọn 
 
 Lõi đủ nhỏ để đọc hiểu trong một buổi. Nghiệp vụ nằm trong **module**: cần cái nào thì Add cái đó, không cần thì thôi.
 
-> **GenBot là động cơ duy nhất.** Từ 27/11, mọi agent của Open AgenticOS là một bot GenBot, nối qua Bot API ở màn **Đội AI · Bot**. Claude Code, Codex, Grok và Hermes không còn được chọn (code adapter vẫn còn nhưng tạo hoặc đổi agent sang chúng bị từ chối, agent cũ dùng chúng không chạy cho tới khi bạn bấm "Chuyển sang GenBot"). Hướng dẫn: [docs/huong-dan-noi-genbot.md](docs/huong-dan-noi-genbot.md).
+> **GenBot là động cơ duy nhất.** Từ 27/11, mọi agent của Open AgenticOS là một bot GenBot, nối qua Bot API ở màn **Đội AI · Bot**. Các động cơ cũ (Claude Code, Codex, Grok, Hermes) và Chợ Agent cũ đã bị xoá khỏi code (G3, 27/11). Một `agent.yaml` cũ còn ghi tên động cơ cũ vẫn được nạp nhưng không chạy, và hiện mục "Agent X đang dùng …, hãy chuyển sang GenBot" với nút **Chuyển sang GenBot**; AIOS không tự sửa hay xoá file của bạn. Hướng dẫn: [docs/huong-dan-noi-genbot.md](docs/huong-dan-noi-genbot.md).
 
 - Tài liệu thiết kế: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), danh mục module: [docs/MODULES.md](docs/MODULES.md).
 - Học từng bước: [docs/lessons/](docs/lessons/README.md) (8 bài, tiếng Việt).
@@ -17,7 +17,7 @@ Lõi đủ nhỏ để đọc hiểu trong một buổi. Nghiệp vụ nằm tro
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ TẦNG APP      web/       giao diện Preact: Tổng quan, Agents,  │
+│ TẦNG APP      web/       giao diện Preact: Hôm nay, Đội AI·Bot,│
 │                          Công việc, Lịch, Trò chuyện, Brain…   │
 ├──────────────────────────────────────────────────────────────┤
 │ MODULE        modules/   care · zalo · gmail · marketing ·     │
@@ -53,7 +53,7 @@ Sáu nguyên tắc giữ cho hệ thống dễ hiểu (chi tiết ở [ARCHITECT
 
 Mọi agent chạy bằng GenBot: mỗi lượt là một tin gửi tới Bot API của một bot GenBot (`POST {base_url}/hooks/api/bots/{bot_id}/messages`). Không cần cài CLI nào. Các bước nối: [docs/huong-dan-noi-genbot.md](docs/huong-dan-noi-genbot.md).
 
-Mọi agent mẫu đi kèm repo (`agents/`, `modules/*/agents/`, `teams/`) là bot GenBot với mã bot để trống, nên hiện "Chưa nối GenBot" cho tới khi bạn điền mã bot và khoá. Agent `assistant` đang **tắt** (`enabled: false`): nối với một bot GenBot rồi bật ở Đội AI · Bot hoặc trang Agents.
+Mọi agent mẫu đi kèm repo (`agents/`, `modules/*/agents/`, `teams/`) là bot GenBot với mã bot để trống, nên hiện "Chưa nối GenBot" cho tới khi bạn điền mã bot và khoá. Thư mục `agents/` có sẵn ba bot của **Đội AgenticOS mặc định** (`teams/agenticos-doi-mac-dinh`), cấp quyền trên brain mẫu `cong-ty-b` (Trà Sen Việt): **Bot CSKH** (`bot-cskh`), **Bot Nội dung** (`bot-noi-dung`) và **Bot Trợ lý** (`bot-tro-ly`). Việc, cuộc trò chuyện hay lượt của module không chỉ định agent sẽ về Bot Trợ lý nếu nó đã có khoá, không thì về bot GenBot đầu tiên có khoá; khi chưa bot nào có khoá, thanh lệnh và trang Trò chuyện chỉ đường sang **Đội AI · Bot** thay vì báo lỗi.
 
 Runtime `mock` (giả lập, không gọi gì ra ngoài) chỉ được dùng trong test (`NODE_ENV=test`) hoặc chế độ thử `AIOS_MOCK=1`.
 
@@ -108,15 +108,15 @@ Khoá bí mật (khoá API, token) chỉ nằm trong `.env` (đã có trong `.gi
 ## Bước đầu tiên
 
 1. **Mở Tổng quan.** Vào http://127.0.0.1:5173. Mục **Cần bạn** ở đầu trang gom mọi thứ cần bạn xử lý: việc chờ duyệt, việc thất bại, nháp trả lời khách của module. Bên dưới là số liệu kinh doanh của các module đã thêm (doanh thu và chi phí, hiệu quả nội dung, bán hàng qua Zalo) theo kỳ 7/30/90 ngày.
-2. **Nối một bot rồi giao việc.** Mở **Đội AI · Bot**, bấm **Thêm bot GenBot** (hoặc **Sửa** và **Đổi khoá** trên thẻ `demo`), điền mã bot và dán khoá, bấm **Kiểm tra**. Vào **Công việc**, bấm **Tạo việc**, chọn bot đó, gõ một yêu cầu. Trạng thái đi từ `queued` sang `running` rồi `done`; xem lượt chạy ở trang chi tiết.
+2. **Nối một bot rồi giao việc.** Mở **Đội AI · Bot**, bấm **Sửa** và **Đổi khoá** trên thẻ **Bot Trợ lý** (hoặc **Thêm bot GenBot**), điền mã bot và dán khoá, bấm **Kiểm tra**. Nút **Lượt chạy, quyền** trên thẻ mở lượt chạy, cuộc trò chuyện và quyền brain/module của bot. Vào **Công việc**, bấm **Tạo việc**, chọn bot đó, gõ một yêu cầu. Trạng thái đi từ `queued` sang `running` rồi `done`; xem lượt chạy ở trang chi tiết.
 
    Cùng việc đó bằng dòng lệnh (khi API đang chạy):
 
    ```bash
-   npm run aios -- task "Tóm tắt mục tiêu quý này" --agent demo --wait
+   npm run aios -- task "Tóm tắt mục tiêu quý này" --agent bot-tro-ly --wait
    ```
 
-   Khi dạy học không có GenBot: chạy với `AIOS_MOCK=1` và đổi `runtime: mock` cho `demo` trong `agent.yaml`. Runtime `mock` hiểu vài từ khoá để bạn xem hệ thống phản ứng: thêm `#memory:điều cần nhớ` để agent ghi bộ nhớ, `#review` để việc dừng ở trạng thái chờ duyệt, `#delegate:<id-agent>` để giao việc con, `#fail` để thử lỗi.
+   Khi dạy học không có GenBot: chạy với `AIOS_MOCK=1` và tạo một agent `runtime: mock` (ví dụ thư mục `agents/thu-mock/` với `name: Thử` và `runtime: mock` trong `agent.yaml`). Runtime `mock` hiểu vài từ khoá để bạn xem hệ thống phản ứng: thêm `#memory:điều cần nhớ` để agent ghi bộ nhớ, `#review` để việc dừng ở trạng thái chờ duyệt, `#delegate:<id-agent>` để giao việc con, `#fail` để thử lỗi.
 3. **Thêm một module.** Vào **Module**, bấm **Thêm** ở `care` (hộp thư chăm sóc khách), giữ ô "cài agent mẫu". Menu **Sales** hiện ra ngay, không cần khởi động lại. Cùng việc đó bằng dòng lệnh:
 
    ```bash
@@ -145,7 +145,7 @@ AIOS-Lite/
 │   ├── core/           cấu hình, DB, sự kiện, kiểu dữ liệu, che khoá bí mật
 │   ├── agents/         schema agent.yaml (zod) và registry
 │   ├── access/         policy (tính quyền), connections, audit
-│   ├── runtimes/       genbot (động cơ duy nhất) · mock (test); adapter claude/codex/grok/hermes còn trong code nhưng không được chọn
+│   ├── runtimes/       genbot (động cơ duy nhất) · mock (test và AIOS_MOCK=1)
 │   ├── shared/         brain · memory · skills · board · context builder
 │   ├── work/           tasks · runs · engine · dispatcher · directives · team · scheduler · chat
 │   ├── modules/        Module SDK, loader, manager (Add/Remove/Purge)
@@ -154,7 +154,7 @@ AIOS-Lite/
 │   └── main.ts         lắp ráp mọi dịch vụ và khởi động
 ├── web/src/            giao diện Preact (trang lõi + chỗ cắm cho module)
 ├── scripts/            công cụ phụ (kiểm tra nguồn gốc mã)
-├── test-fixtures/      CLI giả dùng trong test runtime
+├── test-fixtures/      GenBot giả dùng trong test runtime
 └── docs/               tài liệu thiết kế và bài học
 ```
 
@@ -205,11 +205,11 @@ Lưu ý: `npm test` đọc thư mục `agents/` thật để kiểm tra các age
 
 Khoá Composio nhập ở trang **Kết nối**; xem [docs/MODULES.md](docs/MODULES.md) để biết chi tiết từng module.
 
-Ngoài module, lõi còn có **Chi phí AI** (`/usage`, `/budgets`: chi phí theo agent và hạn mức tháng), **Chợ Agent** (`/agent-market`), **Gói Team** (`/teams`: cài cả nhóm agent dựng sẵn, lịch để tắt) và **Đề xuất cải tiến** (`/recos`).
+Ngoài module, lõi còn có **Chi phí AI** (`/usage`, `/budgets`: chi phí theo agent và hạn mức tháng), **Gói Team** (`/teams`: cài cả nhóm bot dựng sẵn, lịch để tắt) và **Đề xuất cải tiến** (`/recos`), gom trong mục **Nâng cao** của thanh bên. Trang Agents chung và Chợ Agent cũ đã bỏ: `/agents` và `/agent-market` chuyển về **Đội AI · Bot** (`/bots`).
 
 ## Integrations (Pancake, Botcake, Composio…)
 
-Vào **Kết nối → Integrations**, nhập key, bấm **Lưu & kiểm tra**. Sau đó vào **Agents → <agent> → Quyền → Integration** để chọn mức quyền: Tắt, Chỉ đọc, Hỏi trước, hoặc Đọc & ghi. Agent gọi lệnh qua tool MCP `aios-integrations` (cần runtime có MCP: Claude, Codex, Hermes; Grok chặn mềm). Lệnh chờ duyệt nằm ở tab **Chờ duyệt** và ở mục **Cần bạn**. Chi tiết: `docs/ARCHITECTURE.md` §5.3b.
+Vào **Kết nối → Integrations**, nhập key, bấm **Lưu & kiểm tra**. Sau đó vào **Đội AI · Bot → thẻ bot → Lượt chạy, quyền → Quyền → Integration** để chọn mức quyền: Tắt, Chỉ đọc, Hỏi trước, hoặc Đọc & ghi. Agent gọi lệnh qua tool MCP `aios-integrations`, mà bot GenBot không có (luồng Bot API bị nhốt, không MCP): hiện chỉ code của module (đồng bộ, bảng số liệu) dùng được integration. Lệnh chờ duyệt nằm ở tab **Chờ duyệt** và ở mục **Cần bạn**. Chi tiết: `docs/ARCHITECTURE.md` §5.3b.
 
 ## Giấy phép
 

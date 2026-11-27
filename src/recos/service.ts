@@ -82,7 +82,7 @@ export function createRecosService(deps: RecosDeps) {
   async function run(c: RecoCandidate): Promise<string> {
     const a = c.action;
     if (a.kind === 'task') {
-      if (!deps.agents.get(a.agentId)) throw new RecoError(`Không có agent "${a.agentId}" để giao việc. Tạo agent main trước.`, 422);
+      if (!deps.agents.get(a.agentId)) throw new RecoError(`Không có agent "${a.agentId}" để giao việc. Thêm Bot Trợ lý ở Đội AI · Bot (hoặc cài Đội AgenticOS mặc định ở Gói Team) trước.`, 422);
       const t = deps.tasks.create({ agentId: a.agentId, title: a.title, prompt: a.prompt, source: 'api', priority: 5 });
       return `Đã giao việc #${t.id} cho ${a.agentId}.`;
     }

@@ -20,6 +20,7 @@ import { latestMetric } from './metrics.js';
 import { loadChannelDashboard, pillarsOf } from './service.js';
 import { localParts, safeTimezone } from './time.js';
 
+/** 'main' = the workspace's default bot (agent-run.ts resolveAgentAlias). */
 export const ANALYST_AGENT = 'main';
 export const ANALYST_PERIOD_DAYS = 28;
 /** Fewer posts than this in the period: nothing meaningful to say yet. */

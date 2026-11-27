@@ -2,10 +2,10 @@
 // conversation with that bot, sends the line and moves to /chat/<id>. Pages with their own composer hide it (see AppMain).
 import { ArrowRight, ChevronDown, Mic, Paperclip, X } from 'lucide-preact';
 import { useRef, useState } from 'preact/hooks';
-import { useLocation } from 'wouter-preact';
+import { Link, useLocation } from 'wouter-preact';
 import { apiPost, errorText } from '@/lib/api';
 import { useAgents } from '@/lib/agents';
-import { usableBots } from '@/lib/bots';
+import { NO_BOT_HINT, usableBots } from '@/lib/bots';
 import { createConversation } from '@/lib/chat-conversations';
 import { COMMAND_AGENT_KEY, composeMessage, pickAgent, readAttachment } from '@/lib/command-bar';
 import type { Attachment } from '@/lib/command-bar';
@@ -32,6 +32,8 @@ export function CommandBar() {
   const enabled = bots.filter((a) => a.enabled);
   const agentId = pickAgent(bots, choice);
   const canSend = !sending && agentId !== '' && (text.trim() !== '' || files.length > 0);
+  // no bot has a key yet: point at the how-to on Đội AI · Bot instead of failing on send
+  const noBot = !loading && enabled.length === 0;
 
   function pick(id: string) {
     setChoice(id);
@@ -83,6 +85,7 @@ export function CommandBar() {
         </select>
         <ChevronDown size={14} aria-hidden="true" />
       </label>
+      {noBot && <Link href="/bots" class="cmdbar-howto" data-testid="cmdbar-no-bot" title={NO_BOT_HINT}>Nối bot</Link>}
       <button type="button" class="cmdbar-round" disabled title="Nói thay vì gõ: sắp có" aria-label="Nói thay vì gõ (sắp có)">
         <Mic size={20} />
       </button>
@@ -105,7 +108,7 @@ export function CommandBar() {
           type="text"
           class="cmdbar-input"
           aria-label="Bạn muốn đội AI làm gì"
-          placeholder="Bạn muốn đội AI làm gì?"
+          placeholder={noBot ? 'Chưa có bot GenBot có khoá: nối bot ở Đội AI · Bot' : 'Bạn muốn đội AI làm gì?'}
           value={text}
           disabled={sending}
           onInput={(e) => setText((e.target as HTMLInputElement).value)}

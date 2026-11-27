@@ -11,9 +11,8 @@ import { log } from '../core/log.js';
 import { protectValue, redactString } from '../core/redact.js';
 import { protectEnvName } from '../core/secret-env.js';
 import type { DoctorCheck, DoctorReport, Runtime, RuntimeCapabilities, RunError, RunRequest, RunResult } from './contracts.js';
-import { clip } from './jsonl.js';
 import { probeRequest } from './probe.js';
-import { emitSafe, failed, makeReport } from './shared.js';
+import { clip, emitSafe, failed, makeReport } from './shared.js';
 
 /** Where GenBot desktop listens by default. */
 export const GENBOT_DEFAULT_BASE_URL = 'http://127.0.0.1:8800';

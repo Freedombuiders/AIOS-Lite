@@ -46,7 +46,7 @@ Chủ dự án nhắc "treg" ba lần như một công cụ lấy số liệu, n
 | # | Câu hỏi | Đề xuất của tài liệu này | Ảnh hưởng tới |
 |---|---|---|---|
 | Q1 | Sửa tại chỗ trong AIOS-Lite hay tách repo mới? | Sửa tại chỗ, theo nhánh | Mọi giai đoạn |
-| Q2 | GenBot là runtime duy nhất hay mặc định? | **Đã quyết 27/11 (chủ): duy nhất.** "Chỉ dùng genbot agent, không dùng bot dạng khác." Adapter claude/codex/grok/hermes giữ trong code nhưng không được chọn (G1, `src/core/runtime-policy.ts`). Đề xuất cũ: mặc định, giữ `claude`, `codex` làm dự phòng | P1 |
+| Q2 | GenBot là runtime duy nhất hay mặc định? | **Đã quyết 27/11 (chủ): duy nhất.** "Chỉ dùng genbot agent, không dùng bot dạng khác." G1 ẩn các adapter cũ; G3 (27/11, "XOÁ CÁC LOẠI AGENT CŨ, CHỢ AGENT CŨ ĐI") xoá hẳn adapter claude/codex/grok/hermes, Chợ Agent và trang Agents chung. Chỉ còn `genbot` và `mock` (test, `AIOS_MOCK=1`); tên động cơ cũ chỉ còn trong `src/core/runtime-policy.ts` để nạp `agent.yaml` cũ và hiện mục "hãy chuyển sang GenBot". Đề xuất cũ: mặc định, giữ `claude`, `codex` làm dự phòng | P1 |
 | Q3 | Ghi chú khách hàng là dữ liệu gốc hay bản chiếu từ SQLite? | Bản đầu: hai chiều có kiểm xung đột; file thắng với các trường kinh doanh | P3 |
 | Q4 | Chấp nhận tên, số điện thoại khách nằm dạng chữ thường trong file? | Có, vì đó là cái giá của Obsidian. Hiện `care` mã hoá mọi cột `*_enc` | P3 |
 | Q5 | Zalo AGPL: gói kèm hay cài riêng? | Lõi MIT; Zalo là module cài riêng lúc thiết lập, người dùng bấm đồng ý AGPL | P2, P9 |
@@ -86,8 +86,8 @@ Trình duyệt (Preact)  ──HTTP + SSE──►  Lõi AIOS (Hono, SQLite)
         ┌─────────────────────────────────┼──────────────────────────────┐
         │                                 │                              │
    Module (care, zalo, marketing,    Runtime registry               brain/ (markdown)
-   ads, radar, crm, learn, dream)    claude · codex · grok ·        chỉ mục: brain_docs + FTS5
-        │                            hermes · genbot (MỚI)               ▲
+   ads, radar, crm, learn, dream)    genbot (duy nhất)              chỉ mục: brain_docs + FTS5
+        │                            · mock (test)                       ▲
         │                                 │                              │
    Zalo daemon :4381                 HTTP ► GenBot Bot API :8800    mọi module đọc, ghi qua
    Composio / Graph API              (luồng bị nhốt, chỉ chữ)        dịch vụ ghi chú (MỚI)
@@ -316,7 +316,7 @@ Bài học `docs/lessons/04-them-runtime-moi.md` chỉ liệt kê hai chỗ ở 
 | `modules/video/server/edit/turn.ts` | 9-10 | `RUNTIME_PROVIDER`, `RUNTIME_LABEL` |
 | `src/runtimes/index.test.ts` | 9, 59-60 | Danh sách mong đợi |
 
-Các chỗ dùng `RUNTIME_IDS` (`src/agents/schema.ts:36`, `src/api/routes/agents.ts:10`, `teams.ts:13`, `agent-market/service.ts:76`, `teams/install.ts:138`, `teams/package.ts:209`) tự cập nhật.
+Các chỗ dùng `RUNTIME_IDS` (`src/agents/schema.ts:36`, `src/api/routes/agents.ts:10`, `teams.ts:13`, `teams/install.ts:138`, `teams/package.ts:209`) tự cập nhật. (Ghi chú G3: Chợ Agent `src/agent-market/` đã bị xoá; nay các chỗ này dùng `KNOWN_RUNTIME_NAMES` của `src/core/runtime-policy.ts`.)
 
 #### 5.1.3 Bộ chuyển
 
@@ -564,7 +564,7 @@ Giữ nguyên bộ khung Preact, wouter, Tailwind 4. Chủ đề tối đã là 
 | 3 | Thanh ra lệnh cố định dưới đáy | thành phần mới trong khung, gửi tới API trò chuyện đang có (`docs/dev/API.md`) |
 | 4 | Màn Hôm nay | sửa `web/src/pages/HomeDashboard.tsx`; phần "AI đã tự làm" đọc từ `runs` |
 | 5 | Màn Đồ thị | trang mới, đọc `brain_docs` và `brain_links` (P0) |
-| 6 | Ẩn các mục lõi không dùng ở bản gọn | Chợ Agent, Gói Team, Skills vào một mục "Nâng cao" |
+| 6 | Ẩn các mục lõi không dùng ở bản gọn | Gói Team, Skills vào một mục "Nâng cao" (G3 đã xoá Chợ Agent và trang Agents chung: `/agent-market`, `/agents` chuyển về `/bots`) |
 
 Mỗi module tự đăng ký trang qua `defineWebModule` như hiện nay. Khung không biết tên module nào.
 

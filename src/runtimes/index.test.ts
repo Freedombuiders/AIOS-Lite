@@ -1,73 +1,37 @@
 import { describe, expect, it } from 'vitest';
 import type { Runtime } from './contracts.js';
 import { createRuntimeRegistry } from './index.js';
-import { fixture } from './test-util.js';
 
 describe('createRuntimeRegistry', () => {
-  it('has the six adapters and honest capability tables', () => {
+  it('has only GenBot and the mock, with honest capability tables', () => {
     const reg = createRuntimeRegistry();
-    expect(reg.list().map((r) => r.id).sort()).toEqual(['claude', 'codex', 'genbot', 'grok', 'hermes', 'mock']);
+    expect(reg.list().map((r) => r.id).sort()).toEqual(['genbot', 'mock']);
     for (const r of reg.list()) {
       expect(r.capabilities.enforces.context).toBe('hard');
       expect(r.capabilities.noTools).toBe(true);
+      expect(r.capabilities.enforces.note ?? '').toMatch(/[ạăâêôơưđ]/);
     }
-    expect(reg.get('codex').capabilities.enforces.fileRead).toBe('none');
-    expect(reg.get('claude').capabilities.enforces.fileRead).toBe('hard');
-    expect(reg.get('codex').capabilities.reportsCost).toBe(false);
-    expect(reg.get('codex').capabilities.images).toBe(true);
-    expect(reg.get('claude').capabilities.systemPrompt).toBe('native');
-    expect(reg.get('codex').capabilities.systemPrompt).toBe('inline');
     expect(reg.get('genbot').capabilities).toMatchObject({ resume: false, systemPrompt: 'inline', reportsCost: false, noTools: true, mcp: false, readsFiles: false, maxPromptChars: 20_000 });
-    for (const id of ['claude', 'codex', 'grok', 'hermes', 'mock'] as const) expect(reg.get(id).capabilities).toMatchObject({ mcp: true, readsFiles: true });
     expect(reg.get('genbot').capabilities.enforces.mcp).toBe('hard');
-    for (const r of reg.list()) expect(r.capabilities.enforces.note ?? '').toMatch(/[ạăâêôơưđ]|Runtime|Codex|Chế/);
+    expect(reg.get('mock').capabilities).toMatchObject({ mcp: true, readsFiles: true });
   });
 
-  it('get throws for unknown ids and register replaces an adapter', async () => {
+  it('an old engine named by a legacy agent.yaml has no adapter: get throws, find returns undefined', () => {
     const reg = createRuntimeRegistry();
-    expect(() => reg.get('nope' as never)).toThrow();
+    expect(() => reg.get('claude')).toThrow(/Runtime không tồn tại: Claude Code/);
+    expect(reg.find('codex')).toBeUndefined();
+    expect(reg.find('genbot')?.id).toBe('genbot');
+  });
+
+  it('register replaces an adapter', () => {
+    const reg = createRuntimeRegistry();
     const fake = { ...reg.get('mock'), label: 'Fake' } satisfies Runtime;
     reg.register(fake);
     expect(reg.get('mock').label).toBe('Fake');
   });
-
-  it('commands/env options reach the adapters', async () => {
-    const reg = createRuntimeRegistry({ commands: { claude: fixture('fake-claude.mjs') }, env: { FAKE_SCENARIO: 'ok' } });
-    const report = await reg.get('claude').doctor();
-    expect(report.command).toBe(fixture('fake-claude.mjs'));
-    expect(report.version).toBe('fake-cli 1.2.3');
-    expect(report.status).toBe('pass');
-    expect(report.checks.find((c) => c.code === 'claude.auth')?.message).toContain('Đã đăng nhập');
-  });
-
-  it('claude doctor flags a logged-out CLI; probe runs a real turn through the adapter', async () => {
-    const out = createRuntimeRegistry({ commands: { claude: fixture('fake-claude.mjs') }, env: { FAKE_SCENARIO: 'loggedout' } });
-    const r = await out.get('claude').doctor();
-    expect(r.status).toBe('fail');
-    const ok = createRuntimeRegistry({ commands: { claude: fixture('fake-claude.mjs') }, env: { FAKE_SCENARIO: 'ok' } });
-    const probed = await ok.get('claude').doctor({ probe: true });
-    expect(probed.checks.find((c) => c.code === 'claude.probe')?.level).toBe('info');
-  });
-
-  it('hermes doctor runs acp --check', async () => {
-    const good = await createRuntimeRegistry({ commands: { hermes: fixture('fake-hermes.mjs') } }).get('hermes').doctor();
-    expect(good.checks.find((c) => c.code === 'hermes.acp')?.level).toBe('info');
-    const bad = await createRuntimeRegistry({ commands: { hermes: fixture('fake-hermes.mjs') }, env: { FAKE_SCENARIO: 'acpbad' } }).get('hermes').doctor();
-    expect(bad.status).toBe('fail');
-  });
 });
 
 describe('doctor', () => {
-  it('reports a missing binary for every CLI runtime', async () => {
-    const reg = createRuntimeRegistry({ commands: { claude: '/nope/claude', codex: '/nope/codex', grok: '/nope/grok', hermes: '/nope/hermes' } });
-    for (const id of ['claude', 'codex', 'grok', 'hermes'] as const) {
-      const r = await reg.get(id).doctor();
-      expect(r.status).toBe('fail');
-      expect(r.checks[0]).toMatchObject({ level: 'error' });
-      expect(r.checks[0]!.message).toContain('Không tìm thấy');
-    }
-  });
-
   it('genbot doctor needs no binary and stays generic (agents are checked one by one elsewhere)', async () => {
     const r = await createRuntimeRegistry().get('genbot').doctor();
     expect(r.status).toBe('pass');

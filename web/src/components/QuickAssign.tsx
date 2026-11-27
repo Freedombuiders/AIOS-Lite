@@ -5,6 +5,8 @@ import type { Task } from '@core/types';
 import type { AgentSummary } from '@/lib/api-types';
 import { apiPost, errorText } from '@/lib/api';
 import { pushToast } from '@/lib/toasts';
+import { DEFAULT_BOT_ID } from '@/lib/bots';
+import { NoBotHint } from '@/components/NoBotHint';
 
 /** Agent picker + prompt → POST /api/tasks. */
 export function QuickAssign({ agents, defaultAgentId }: { agents: AgentSummary[]; defaultAgentId?: string }) {
@@ -13,7 +15,7 @@ export function QuickAssign({ agents, defaultAgentId }: { agents: AgentSummary[]
   const [agentId, setAgentId] = useState(defaultAgentId ?? '');
   const [prompt, setPrompt] = useState('');
   const [busy, setBusy] = useState(false);
-  const chosen = agentId || enabled.find((a) => a.id === 'main')?.id || enabled[0]?.id || '';
+  const chosen = agentId || enabled.find((a) => a.id === DEFAULT_BOT_ID)?.id || enabled[0]?.id || '';
 
   async function submit() {
     if (!prompt.trim() || !chosen) return;
@@ -30,7 +32,7 @@ export function QuickAssign({ agents, defaultAgentId }: { agents: AgentSummary[]
     }
   }
 
-  if (!enabled.length) return <div class="hint">Chưa có agent nào đang bật. Tạo agent ở trang Agents trước.</div>;
+  if (!enabled.length) return <NoBotHint compact />;
   return (
     <div class="flex flex-col gap-2">
       <textarea

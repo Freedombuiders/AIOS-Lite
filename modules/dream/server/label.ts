@@ -99,11 +99,12 @@ export function buildPrompt(input: { durationS: number; stats: CutStats; subtitl
   ].join('\n');
 }
 
-/** The agent to label with: the setting, else main, else the first agent; null when there is none. */
+/** The agent to label with: the setting, else the default bot (Trợ lý, else the first with a key), else the first agent; null when there is none. */
 export function pickAgent(ctx: Pick<ModuleContext, 'agents' | 'settings'>): string | null {
   const wanted = String(ctx.settings.get<string>('analyst_agent', '') ?? '').trim();
   if (wanted && ctx.agents.get(wanted)) return wanted;
-  if (ctx.agents.get('main')) return 'main';
+  const fallback = ctx.agents.defaultId?.();
+  if (fallback) return fallback;
   return ctx.agents.list()[0]?.id ?? null;
 }
 

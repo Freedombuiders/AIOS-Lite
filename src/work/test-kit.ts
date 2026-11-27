@@ -37,7 +37,7 @@ export interface Kit {
   memories: Memory[];
   board: BoardEntry[];
   script: { current: Script };
-  calls: { linked: string[]; contexts: Parameters<AppDeps['context']['build']>[0][] };
+  calls: { contexts: Parameters<AppDeps['context']['build']>[0][] };
   settle(timeoutMs?: number): Promise<void>;
 }
 
@@ -63,12 +63,12 @@ export function makeKit(agents: AgentConfig[], opts: { config?: Partial<AppConfi
     async doctor() { return { runtime: 'mock', status: 'pass', checks: [], testedAt: nowIso() }; },
     async run(req) { requests.push(req); return script.current(req, ++callNo); },
   };
-  const runtimes = { get: () => runtime, list: () => [runtime], register() {} } as AppDeps['runtimes'];
+  const runtimes = { get: () => runtime, find: () => runtime, list: () => [runtime], register() {} } as AppDeps['runtimes'];
 
   const memories: Memory[] = [];
   const boardEntries: BoardEntry[] = [];
   const prompts: string[] = [];
-  const calls: Kit['calls'] = { linked: [], contexts: [] };
+  const calls: Kit['calls'] = { contexts: [] };
 
   const tasks = createTaskService({ db, bus, agents: agentsReg, abort: (id) => deps.dispatcher.abort(id) });
   const runs = createRunService({ db, bus });
@@ -86,7 +86,7 @@ export function makeKit(agents: AgentConfig[], opts: { config?: Partial<AppConfi
     },
     audit: { log: (e: object) => ({ id: 1, ts: nowIso(), ...e }), list: () => [] },
     memory: { add: (i: Partial<Memory>) => { const m = { id: memories.length + 1, pinned: false, useCount: 0, lastUsedAt: null, createdAt: nowIso(), source: 'user', sourceTaskId: null, sourceRunId: null, ...i } as Memory; memories.push(m); return m; } },
-    skills: { linkIntoWorkspace: (ws: string) => { calls.linked.push(ws); } },
+    skills: {},
     board: { add: (e: { agentId: string | null; taskId?: number | null; kind?: string; text: string }) => { const b = { id: boardEntries.length + 1, taskId: null, kind: 'note', createdAt: nowIso(), ...e } as BoardEntry; boardEntries.push(b); return b; }, recent: () => boardEntries },
     context: {
       build: (input: Kit['calls']['contexts'][number]) => {

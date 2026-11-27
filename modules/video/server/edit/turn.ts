@@ -6,14 +6,15 @@
 import { moduleCtx } from '../host.js';
 import type { VideoEditAgent } from './types.js';
 
-const RUNTIME_PROVIDER: Record<string, string> = { claude: 'claude', codex: 'openai', grok: 'grok', hermes: 'hermes', genbot: 'genbot', mock: 'mock' };
-const RUNTIME_LABEL: Record<string, string> = { claude: 'Claude', codex: 'Codex', grok: 'Grok', hermes: 'Hermes', genbot: 'GenBot', mock: 'Mock' };
+// Provider names the studio shows per runtime; a legacy codex agent reads as "openai" so old projects keep their provider.
+const RUNTIME_PROVIDER: Record<string, string> = { codex: 'openai' };
+const PROVIDER_LABEL: Record<string, string> = { genbot: 'GenBot', mock: 'Mock' };
 
 /** Shown when "tạo video bằng trò chuyện" is asked for: it needs a file-reading agent, which GenBot is not. */
 export const VIDEO_CREATE_OFF = 'Tạo video bằng trò chuyện đang tắt: việc này cần agent đọc được file và chạy công cụ (Claude, Codex), mà Open AgenticOS chỉ chạy agent bằng GenBot (chỉ trả lời bằng chữ). Dựng video quay sẵn vẫn dùng được.';
 
-// Legacy agents (claude, codex…) still show here so a project keeps its director's name; the engine refuses to run
-// them (GenBot only), and creating from chat is switched off on GenBot (VIDEO_CREATE_OFF).
+// Legacy agents (an engine of an earlier version) still show here so a project keeps its director's name; the engine
+// refuses to run them (GenBot only), and creating from chat is switched off on GenBot (VIDEO_CREATE_OFF).
 const agentsOf = () => moduleCtx()?.agents.list().filter((a) => a.enabled) ?? [];
 
 export function resolveDefaultAgentId(): string {
@@ -24,11 +25,11 @@ export function resolveDefaultAgentId(): string {
   // An agent that may act on the studio (create/produce turns answer with module actions).
   const ctx = moduleCtx();
   const capable = ctx ? agentsOf().find((a) => { try { return ctx.access.can(a.id, 'studio.write'); } catch { return false; } }) : undefined;
-  return capable?.id ?? 'main';
+  return capable?.id ?? ctx?.agents.defaultId?.() ?? '';
 }
 
 export function engineLabelFor(type: string): string {
-  return RUNTIME_LABEL[Object.keys(RUNTIME_PROVIDER).find((k) => RUNTIME_PROVIDER[k] === type) ?? ''] ?? type;
+  return PROVIDER_LABEL[type] ?? 'Engine cũ (hãy chuyển sang GenBot)';
 }
 
 export function defaultAgentProvider(): { agentId: string; provider: string; engineLabel: string } | null {

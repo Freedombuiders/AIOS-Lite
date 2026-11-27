@@ -1,4 +1,6 @@
-# API: Gói Team, Chợ Agent, Đề xuất cải tiến
+# API: Gói Team, Đề xuất cải tiến
+
+> Chợ Agent (`/api/agent-market`) đã bị xoá ở G3 (27/11): mẫu bot nay thêm ở Đội AI · Bot (`/api/genbot`), gói đội ở Gói Team.
 
 Mọi route nằm dưới `/api`, lỗi theo `docs/dev/API.md` (`{ error: { code, message } }`, message tiếng Việt). Mã nguồn: `src/api/routes/teams.ts`.
 
@@ -17,14 +19,6 @@ Mọi route nằm dưới `/api`, lỗi theo `docs/dev/API.md` (`{ error: { code
 | `POST /api/teams/export` | `{ name, agentIds, slug?, description?, manager? }` → `{ filename, base64, files, redactions, inputs }`; khoá/token/đường dẫn/email được gỡ thành ô `{{input.KEY}}` |
 
 Quy tắc cài: agent tạo qua `AgentRegistry` (permission `safe`, `access` rỗng; skill của gói được cấp cho agent đó). `agent.yaml.template` nhận thêm `context`, `runtime_options` (chỉ giá trị chữ, số, đúng/sai; không chứa khoá) và `access` (`brain: { "<mã brain>": { read, write } }`, `memory`, `modules`). `access` chỉ được áp cho gói có sẵn trong `teams/` của repo; gói nhập từ zip không tự cấp quyền (bỏ qua kèm cảnh báo), trùng id thì đổi tên `-2`… hoặc bỏ qua; skill đã có trong thư viện thì giữ bản cũ; lịch tạo ở trạng thái **tắt**; input kiểu `secret` không bao giờ được điền vào file.
-
-## Chợ Agent (`/api/agent-market`)
-
-| Route | Việc |
-|---|---|
-| `GET /api/agent-market` | `{ templates, teams }` |
-| `POST /api/agent-market/:id/preview` | body `{ name?, id?, runtime?, model?, fields? }` → `{ agentId, files[], newSkills, missingRequired, warnings }` |
-| `POST /api/agent-market/:id/install` | cùng body → 201 `{ agent, createdSkills, files }`; 422 nếu thiếu ô bắt buộc |
 
 ## Đề xuất cải tiến (`/api/recos`)
 

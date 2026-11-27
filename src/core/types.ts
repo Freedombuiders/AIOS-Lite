@@ -1,7 +1,12 @@
 // Domain types shared by every layer. Contracts in src/*/contracts.ts build on these.
 
-export type RuntimeId = 'claude' | 'codex' | 'grok' | 'hermes' | 'genbot' | 'mock';
-export const RUNTIME_IDS: readonly RuntimeId[] = ['claude', 'codex', 'grok', 'hermes', 'genbot', 'mock'];
+import type { LegacyRuntimeId } from './runtime-policy.js';
+
+/** Engines that run agents: GenBot, and mock for tests / AIOS_MOCK=1 (src/core/runtime-policy.ts). */
+export type RuntimeId = 'genbot' | 'mock';
+export const RUNTIME_IDS: readonly RuntimeId[] = ['genbot', 'mock'];
+/** What an agent.yaml or a stored run may name: a runtime, or an engine of an earlier version that no longer runs. */
+export type AgentRuntime = RuntimeId | LegacyRuntimeId;
 
 export type Permission = 'safe' | 'full';
 export type ContextProfile = 'standard' | 'lean';
@@ -36,7 +41,7 @@ export interface AgentConfig {
   id: string;
   name: string;
   description: string;
-  runtime: RuntimeId;
+  runtime: AgentRuntime;
   model?: string;
   runtimeOptions: Record<string, string | number | boolean>;
   permission: Permission;
@@ -122,7 +127,7 @@ export interface Run {
   id: number;
   taskId: number;
   agentId: string;
-  runtime: RuntimeId;
+  runtime: AgentRuntime;
   model: string | null;
   status: RunStatus;
   trigger: TaskTrigger;
@@ -186,7 +191,7 @@ export interface Conversation {
   agentId: string;
   title: string;
   sessionId: string | null;
-  sessionRuntime: RuntimeId | null;
+  sessionRuntime: AgentRuntime | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -226,30 +226,4 @@ describe('skills', () => {
     expect(lib.get('only-b')).toBeUndefined();
   });
 
-  it('links into a workspace and prunes only AIOS-made links', () => {
-    const root = tmpDir();
-    for (const id of ['s1', 's2', 's3']) writeFile(path.join(root, 'lib', id, 'SKILL.md'), `---\nname: ${id}\ndescription: d\n---\n`);
-    const lib = createSkillLibrary({ dirs: [path.join(root, 'lib')], log: testLog });
-    const ws = path.join(root, 'ws');
-    const base = path.join(ws, '.claude', 'skills');
-    fs.mkdirSync(base, { recursive: true });
-    writeFile(path.join(base, 's3', 'mine.txt'), 'user file'); // user's own dir with a library id
-    fs.symlinkSync(root, path.join(base, 'user-link'), 'dir');
-
-    lib.linkIntoWorkspace(ws, lib.resolve(['s1', 's2', 's3']));
-    expect(fs.readlinkSync(path.join(base, 's1'))).toBe(path.join(root, 'lib', 's1'));
-    expect(fs.lstatSync(path.join(base, 's3')).isDirectory()).toBe(true); // untouched
-    expect(JSON.parse(fs.readFileSync(path.join(base, '.aios-managed.json'), 'utf8')).links).toEqual(['s1', 's2']);
-
-    lib.linkIntoWorkspace(ws, lib.resolve(['s2']));
-    expect(fs.existsSync(path.join(base, 's1'))).toBe(false);
-    expect(fs.lstatSync(path.join(base, 's2')).isSymbolicLink()).toBe(true);
-    expect(fs.existsSync(path.join(base, 's3', 'mine.txt'))).toBe(true);
-    expect(fs.lstatSync(path.join(base, 'user-link')).isSymbolicLink()).toBe(true);
-
-    lib.linkIntoWorkspace(ws, []);
-    expect(fs.existsSync(path.join(base, 's2'))).toBe(false);
-    expect(fs.existsSync(path.join(base, 'user-link'))).toBe(true);
-    expect(fs.existsSync(path.join(base, 's3', 'mine.txt'))).toBe(true);
-  });
 });

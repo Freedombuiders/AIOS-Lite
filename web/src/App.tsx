@@ -1,5 +1,5 @@
 import { useEffect } from 'preact/hooks';
-import { Link, Router } from 'wouter-preact';
+import { Link, Redirect, Router } from 'wouter-preact';
 import { Menu, Moon, Sun } from 'lucide-preact';
 import { useState } from 'preact/hooks';
 import { useLocation } from 'wouter-preact';
@@ -18,7 +18,6 @@ import { AppMain } from '@/components/AppMain';
 import type { AppRoute } from '@/components/AppMain';
 import { GraphPlaceholder, VoicePlaceholder } from '@/pages/ComingSoon';
 import Dashboard from '@/pages/HomeDashboard';
-import AgentsPage from '@/pages/agents/AgentsPage';
 import BotsPage from '@/pages/bots/BotsPage';
 import AgentDetail from '@/pages/agents/AgentDetail';
 import TasksPage from '@/pages/tasks/TasksPage';
@@ -37,7 +36,6 @@ import SettingsPage from '@/pages/Settings';
 import UsagePage from '@/pages/Usage';
 import BudgetsPage from '@/pages/Budgets';
 import TeamsPage from '@/pages/Teams';
-import AgentMarketPage from '@/pages/AgentMarket';
 import RecosPage from '@/pages/Recos';
 import PacksPage from '@/pages/packs/PacksPage';
 
@@ -84,6 +82,10 @@ function ChatById({ id }: { id: string }) {
   return <ChatPage conversationId={Number(id)} />;
 }
 
+function ToBots() {
+  return <Redirect to="/bots" replace />;
+}
+
 function AgentById({ id }: { id: string }) {
   return <AgentDetail id={id} />;
 }
@@ -93,7 +95,8 @@ const CORE_ROUTES: AppRoute[] = [
   { path: '/', component: Dashboard },
   { path: '/voice', component: VoicePlaceholder },
   { path: '/bots', component: BotsPage },
-  { path: '/agents', component: AgentsPage },
+  // the generic Agents list and the old agent market are gone: both lead to Đội AI · Bot
+  { path: '/agents', component: ToBots },
   { path: '/agents/:id', component: AgentById },
   { path: '/tasks', component: TasksPage },
   { path: '/tasks/:id', component: TaskDetail },
@@ -115,7 +118,7 @@ const CORE_ROUTES: AppRoute[] = [
   { path: '/usage', component: UsagePage },
   { path: '/budgets', component: BudgetsPage },
   { path: '/teams', component: TeamsPage },
-  { path: '/agent-market', component: AgentMarketPage },
+  { path: '/agent-market', component: ToBots },
   { path: '/recos', component: RecosPage },
 ];
 

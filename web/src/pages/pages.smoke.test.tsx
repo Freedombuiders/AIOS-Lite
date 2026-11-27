@@ -8,7 +8,6 @@ vi.hoisted(() => {
   window.matchMedia ??= ((q: string) => ({ matches: false, media: q, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, onchange: null, dispatchEvent: () => false })) as typeof window.matchMedia;
 });
 import { startSse } from '@/lib/sse';
-import AgentsPage from './agents/AgentsPage';
 import AgentDetail from './agents/AgentDetail';
 import AuditPage from './Audit';
 import BrainSearch from './Brain';
@@ -44,8 +43,8 @@ describe('pages with the mock api', () => {
     ['/', 'dashboard: Đội AI', () => <HomeDashboard />, /Đội AI[\s\S]*Trợ lý chính/],
     ['/voice', 'voice placeholder', () => <VoicePlaceholder />, /Gọi trợ lý[\s\S]*Chưa làm/],
     ['/brain/graph', 'graph placeholder', () => <GraphPlaceholder />, /Đồ thị[\s\S]*Chưa làm/],
-    ['/agents', 'agents', () => <AgentsPage />, /Trợ lý chính/],
-    ['/agents/main', 'agent detail', () => <AgentDetail id="main" />, /Persona/],
+    ['/agents/main', 'bot activity (runs, conversations, access)', () => <AgentDetail id="main" />, /Đội AI · Bot[\s\S]*Lượt chạy[\s\S]*Trò chuyện[\s\S]*Quyền/],
+    ['/agents/research', 'legacy agent activity', () => <AgentDetail id="research" />, /đang dùng Claude Code \(engine cũ\)|hãy chuyển sang GenBot/],
     ['/tasks', 'tasks', () => <TasksPage />, /Chờ duyệt/],
     ['/tasks/3', 'task detail', () => <MissionTaskDetail />, /Caption|caption/],
     ['/schedules', 'schedules', () => <SchedulesPage />, /Báo cáo sáng/],

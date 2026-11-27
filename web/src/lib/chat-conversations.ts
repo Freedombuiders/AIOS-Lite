@@ -62,7 +62,7 @@ export async function refreshConversations(): Promise<Conversation[]> {
   return list;
 }
 
-export async function createConversation(agentId = 'main'): Promise<Conversation> {
+export async function createConversation(agentId: string): Promise<Conversation> {
   const made = fromApi(await apiPost<ApiConversation>('/conversations', { agentId }));
   selectConversation(made);
   await refreshConversations();

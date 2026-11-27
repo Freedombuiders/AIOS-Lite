@@ -2,7 +2,8 @@
 import path from 'node:path';
 import { z } from 'zod';
 import { expandHome } from '../core/config.js';
-import { RUNTIME_IDS, type AgentConfig, type AgentAccessConfig } from '../core/types.js';
+import { KNOWN_RUNTIME_NAMES } from '../core/runtime-policy.js';
+import type { AgentConfig, AgentAccessConfig } from '../core/types.js';
 
 export const AGENT_ID_RE = /^[a-z0-9][a-z0-9-]{1,40}$/;
 
@@ -33,7 +34,8 @@ const accessSchema = z
 const agentYamlSchema = z.strictObject({
   name: z.string().min(1).max(80),
   description: z.string().default(''),
-  runtime: z.enum(RUNTIME_IDS as [string, ...string[]]),
+  // a legacy engine name still loads (the agent is flagged and never runs: core/runtime-policy.ts)
+  runtime: z.enum(KNOWN_RUNTIME_NAMES as [string, ...string[]]),
   model: z.string().min(1).optional(),
   runtime_options: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).default({}),
   permission: z.enum(['safe', 'full']).default('safe'),

@@ -51,17 +51,17 @@ describe('agent schema', () => {
 });
 
 describe('agent registry', () => {
-  it('loads the five sample agents', () => {
+  it('loads the three sample bots of the default team', () => {
     const reg = createAgentRegistry({ agentsDir: path.join(REPO_ROOT, 'agents'), workspacesDir: path.join(REPO_ROOT, 'workspaces') });
     expect(reg.errors()).toEqual([]);
     // samples must exist; learners may add their own agents next to them
-    expect(reg.list().map((a) => a.id)).toEqual(expect.arrayContaining(['assistant', 'coder', 'demo', 'main', 'researcher']));
-    const main = reg.require('main');
-    expect(main).toMatchObject({ runtime: 'genbot', canDelegate: true, access: { skills: 'all', memory: { team: true, private: true } } });
-    expect(Object.keys(main.access.brain)).toEqual(['ca-nhan', 'cong-ty-a', 'cong-ty-b']);
-    expect(main.persona).toContain('Trợ lý chính');
-    expect(reg.require('assistant').runtimeOptions).toEqual({ base_url: 'http://127.0.0.1:8800', bot_id: '' });
-    expect(reg.require('coder').access.skills).toEqual(['review-code']);
+    expect(reg.list().map((a) => a.id)).toEqual(expect.arrayContaining(['bot-cskh', 'bot-noi-dung', 'bot-tro-ly']));
+    const lead = reg.require('bot-tro-ly');
+    expect(lead).toMatchObject({ runtime: 'genbot', canDelegate: true, access: { memory: { team: true, private: true } } });
+    expect(lead.access.brain).toEqual({ 'cong-ty-b': { read: ['**'], write: ['nho/**'] } });
+    expect(lead.persona).toContain('Bot Trợ lý');
+    expect(reg.require('bot-cskh')).toMatchObject({ context: 'lean', reportsTo: 'bot-tro-ly', runtimeOptions: { base_url: 'http://127.0.0.1:8800', bot_id: '', max_runs_day: 500 } });
+    expect(reg.require('bot-cskh').access.modules).toEqual({ care: ['reply.draft', 'reply.send'] });
   });
 
   it('keeps invalid agents in errors() and skips _ and dot folders', () => {

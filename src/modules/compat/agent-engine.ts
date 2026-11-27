@@ -3,6 +3,7 @@ import type { Usage } from '../../core/types.js';
 import { moduleCompat, getDeps } from './state.js';
 import type { LeanRunResult } from '../sdk.js';
 import type { ProviderConfig } from './provider.js';
+import { defaultAgentId } from './agent-config.js';
 
 export interface AgentEngineUsage {
   inputTokens?: number;
@@ -81,7 +82,7 @@ const toUsage = (u?: Usage): AgentEngineUsage | null =>
 /** Each turn is a lean Task through the Engine (so access, runs and cost still apply). */
 class LeanEngine implements AgentEngine {
   async *invoke(input: AgentTurnInput): AsyncGenerator<AgentEngineEvent> {
-    const agentId = input.agentId ?? input.skillAgentId ?? 'main';
+    const agentId = input.agentId ?? input.skillAgentId ?? defaultAgentId();
     const run = (): Promise<LeanRunResult> => {
       const arg = {
         agentId,

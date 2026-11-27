@@ -1,13 +1,9 @@
-// GenBot keys pasted in the app: encrypted at rest, masked everywhere, never in a child environment.
-import { readFile } from 'node:fs/promises';
+// GenBot keys pasted in the app: encrypted at rest, masked everywhere.
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { createCipher } from '../core/crypto.js';
 import { migrateCore, openDb } from '../core/db.js';
 import { redactString } from '../core/redact.js';
-import { createClaudeRuntime } from '../runtimes/claude.js';
-import { buildChildEnv } from '../runtimes/shared.js';
-import { fixture, makeReq, tmpCwd } from '../runtimes/test-util.js';
 import { tmpDir } from '../shared/test-kit.js';
 import { createGenbotKeyStore, validateGenbotKey } from './genbot-keys.js';
 
@@ -66,24 +62,5 @@ describe('genbot key store', () => {
     const again = createGenbotKeyStore({ db, cipher: createCipher('boot-secret') });
     expect(again.protectAll()).toBe(1);
     expect(redactString(`GenBot 401 với khoá ${key}`)).toBe('GenBot 401 với khoá [redacted]');
-  });
-
-  it('is never put in a child environment: not in a granted variable, an override, nor a fake CLI child', async () => {
-    const { store } = freshStore();
-    const key = 'gbk_child_env_test_value_ABCD1234';
-    store.set('bot-x', key);
-    const env = buildChildEnv({ base: { PATH: '/bin', SOME_VAR: key }, extra: { COPY: `Bearer ${key}` }, envVars: { GRANTED: key, OK: 'v' } });
-    expect(Object.keys(env).sort()).toEqual(['OK', 'PATH']);
-
-    const cwd = await tmpCwd();
-    const rec = path.join(cwd, 'rec.jsonl');
-    const rt = createClaudeRuntime(fixture('fake-claude.mjs'), { FAKE_SCENARIO: 'ok', FAKE_RECORD: rec, SNEAKY: key });
-    const res = await rt.run(makeReq(cwd, { access: { envVars: { GRANTED_KEY: key, GRANTED_OK: 'v' } } }));
-    expect(res.ok).toBe(true);
-    const r = JSON.parse((await readFile(rec, 'utf8')).trim()) as { env: Record<string, string> };
-    expect(r.env.GRANTED_OK).toBe('v');
-    expect(r.env.SNEAKY).toBeUndefined();
-    expect(r.env.GRANTED_KEY).toBeUndefined();
-    expect(JSON.stringify(r)).not.toContain(key);
   });
 });

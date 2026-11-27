@@ -10,7 +10,7 @@ import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
 import { AGENT_ID_RE } from '../../agents/schema.js';
 import type { AppDeps } from '../../core/deps.js';
-import { allowedRuntimes } from '../../core/runtime-policy.js';
+import { allowedRuntimes, runtimeLabel } from '../../core/runtime-policy.js';
 import type { AgentConfig } from '../../core/types.js';
 import { GenbotKeyError, genbotKeysFor, validateGenbotKey } from '../../integrations/genbot-keys.js';
 import { GENBOT_DEFAULT_BASE_URL, checkGenbotAgent, createGenbotRuntime, readGenbotConfig } from '../../runtimes/genbot.js';
@@ -128,7 +128,7 @@ const genbotOptions = z.object({
 
 export function genbotRoutes(app: Hono, deps: AppDeps): void {
   const keys = () => genbotKeysFor(deps);
-  const allowed = () => deps.config.allowedRuntimes ?? allowedRuntimes();
+  const allowed = () => allowedRuntimes();
   const kvGet = (k: string): string | undefined => (deps.db.prepare('SELECT value FROM kv WHERE key = ?').get(k) as { value: string } | undefined)?.value;
   const kvSet = (k: string, v: string) => deps.db.prepare('INSERT INTO kv (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(k, v);
   const kvDel = (k: string) => deps.db.prepare('DELETE FROM kv WHERE key = ?').run(k);
@@ -251,7 +251,7 @@ export function genbotRoutes(app: Hono, deps: AppDeps): void {
       defaultBaseUrl: GENBOT_DEFAULT_BASE_URL,
       bots: all.filter((a) => a.runtime === 'genbot').map(card),
       // agents left on a runtime that is no longer offered: shown with "Chuyển sang GenBot"
-      legacy: all.filter((a) => a.runtime !== 'genbot' && !allowed().includes(a.runtime)).map((a) => ({ id: a.id, name: a.name, runtime: a.runtime, enabled: a.enabled })),
+      legacy: all.filter((a) => a.runtime !== 'genbot' && !(allowed() as string[]).includes(a.runtime)).map((a) => ({ id: a.id, name: a.name, runtime: a.runtime, runtimeLabel: runtimeLabel(a.runtime), enabled: a.enabled })),
       templates: templates(),
       brainFolders: deps.brain.folders().map((f) => ({ id: f.id, name: f.name })),
     };

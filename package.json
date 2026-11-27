@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "AIOS-Lite: template hệ điều hành agent — Claude Code, Codex, Grok và Hermes cùng làm việc, chung bộ nhớ, tri thức và skill.",
+  "description": "AIOS-Lite (Open AgenticOS): template hệ điều hành agent — mọi agent là một bot GenBot, chung bộ nhớ, tri thức và skill.",
   "engines": {
     "node": ">=22"
   },

@@ -1,0 +1,24 @@
+# Bot Trợ lý của Đội AgenticOS mặc định (teams/agenticos-doi-mac-dinh), cài sẵn cho brain mẫu cong-ty-b (Trà Sen Việt).
+# Nhận việc không ai được giao (trò chuyện, thanh lệnh, việc của module không chọn agent).
+# Nối với một bot GenBot: mở Đội AI · Bot, bấm Sửa để điền mã bot, Đổi khoá để dán khoá Bot API, rồi Kiểm tra.
+name: "Bot Trợ lý"
+description: "Trợ lý của chủ Trà Sen Việt: trả lời từ brain, ghi nhớ, tạo việc và nhắc lịch."
+runtime: genbot
+context: standard
+runtime_options:
+  base_url: "http://127.0.0.1:8800"
+  bot_id: ""
+  max_runs_day: 500
+permission: safe
+can_delegate: true
+max_concurrent: 1
+enabled: true
+access:
+  brain:
+    cong-ty-b:
+      read: ["**"]
+      write: ["nho/**"]
+  memory: { team: true, private: true }
+  skills: []
+  connections: {}
+  modules: {}

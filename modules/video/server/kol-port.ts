@@ -128,7 +128,10 @@ export const CHATGPT_BRAIN = '@chatgpt';
 export const runKolAgent: AgentRunner = async (input) => {
   const leanCtx = moduleCtx();
   if (!leanCtx) return { text: '', model: '', costUsd: 0, error: 'Module video chưa chạy.' };
-  const agentId = !input.agentId || input.agentId === CHATGPT_BRAIN ? 'main' : input.agentId;
+  // no brain set (or the switched-off @chatgpt, or a stored id that no longer exists such as the old 'main'): the default bot
+  const wanted = input.agentId && input.agentId !== CHATGPT_BRAIN && leanCtx.agents.get(input.agentId) ? input.agentId : null;
+  const agentId = wanted ?? leanCtx.agents.defaultId?.() ?? null;
+  if (!agentId) return { text: '', model: '', costUsd: 0, error: 'Chưa có bot GenBot nào: thêm bot ở Đội AI · Bot.' };
   const r = await leanCtx.agents.runLean({
     agentId,
     title: input.usageKey.slice(0, 80),

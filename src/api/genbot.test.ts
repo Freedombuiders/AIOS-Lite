@@ -94,7 +94,7 @@ describe('Đội AI · Bot API', () => {
     expect(r.body.templates.map((t: { id: string; label: string }) => t.label)).toEqual(['CSKH Zalo', 'Nội dung', 'Trợ lý']);
     const cskh = r.body.templates[0];
     expect(cskh).toMatchObject({ context: 'lean', brain: { read: ['san-pham/**', 'chinh-sach/**', 'giong-noi.md'], write: [] }, modules: { care: ['reply.draft', 'reply.send'] } });
-    expect(r.body.legacy).toEqual([{ id: 'old-claude', name: 'Trợ lý cũ', runtime: 'claude', enabled: true }]);
+    expect(r.body.legacy).toEqual([{ id: 'old-claude', name: 'Trợ lý cũ', runtime: 'claude', runtimeLabel: 'Claude Code', enabled: true }]);
   });
 
   it('probe before saving, add a bot with its key, the adapter uses it, rotate, delete: the key never leaves the server', async () => {

@@ -30,7 +30,7 @@ function wire(token?: string) {
     run: async () => ({ ok: true, output: '' }),
   };
   Object.assign(deps, {
-    runtimes: { get: () => runtime, list: () => [runtime], register() {} },
+    runtimes: { get: () => runtime, find: () => runtime, list: () => [runtime], register() {} },
     stats: { overview: () => ({ agents: { total: 1, enabled: 1, running: 0 }, tasks: deps.tasks.counts(), runsToday: 0, costMonthUsd: 0, costByAgent: [], recentRuns: [] }) },
     access: {
       ...deps.access,
@@ -149,9 +149,9 @@ describe('conventions', () => {
 
 describe('system', () => {
   it('runtimes lists genbot with its generic doctor; POST /api/runtimes/genbot/check checks one agent configuration', async () => {
-    deps.runtimes = createRuntimeRegistry({ commands: { claude: '/nope/claude', codex: '/nope/codex', grok: '/nope/grok', hermes: '/nope/hermes' }, genbot: { env: {} } });
+    deps.runtimes = createRuntimeRegistry({ genbot: { env: {} } });
     const items = (await call('GET', '/api/runtimes')).body.items as { runtime: string; status: string; checks: { code: string }[] }[];
-    // GenBot only: claude, codex, grok, hermes stay registered but are not offered; mock is never listed for the UI
+    // GenBot only: the old engines are gone; mock is never listed for the UI
     expect(items.map((i) => i.runtime)).toEqual(['genbot']);
     const gb = items.find((i) => i.runtime === 'genbot');
     expect(gb).toMatchObject({ runtime: 'genbot', label: 'GenBot', status: 'pass', capabilities: { noTools: true, mcp: false, reportsCost: false } });

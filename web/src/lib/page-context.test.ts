@@ -34,7 +34,8 @@ describe('screen context payload', () => {
   });
 
   it('titles core screens by section and label', () => {
-    expect(screenTitle('/agents/main')).toBe('Agents');
+    expect(screenTitle('/agents/bot-tro-ly')).toBe('Đội AI · Bot');
+    expect(screenTitle('/bots')).toBe('Đội AI · Bot');
     expect(screenTitle('/tasks/12')).toBe('Công việc');
     expect(screenTitle('/nowhere')).toBeUndefined();
   });

@@ -118,7 +118,7 @@ export function BotPanelView({ conversationId, panel, runs, agents, nickLabel, b
           </select>
         </label>
         {bots.length === 0 && (
-          <p class="care-faint" data-testid="care-bot-noagents">{ct('bot.pick.noAgents')} <Link href="/agents">{ct('bot.pick.manage')}</Link></p>
+          <p class="care-faint" data-testid="care-bot-noagents">{ct('bot.pick.noAgents')} <Link href="/bots">{ct('bot.pick.manage')}</Link></p>
         )}
 
         <div class="care-seg3 is-two" role="group" aria-label={ct('bot.scope.label')}>
