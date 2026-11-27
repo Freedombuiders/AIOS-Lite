@@ -76,6 +76,8 @@ function SetupBar({ overview }: { overview: FetchState<Overview> }) {
         <label class="flex flex-wrap items-center gap-2">
           <span class="text-[var(--color-text-muted)]">Agent gắn nhãn</span>
           <select class={SELECT} value={o.agent?.id ?? ''} disabled={saving} onChange={(e) => void save({ analystAgent: (e.target as HTMLSelectElement).value })}>
+            {/* only GenBot bots that have a key are listed; the current one stays visible when it is not usable */}
+            {o.agent && !o.agents.some((a) => a.id === o.agent!.id) && <option value={o.agent.id}>{o.agent.name} (chưa dùng được)</option>}
             {o.agents.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
           </select>
         </label>

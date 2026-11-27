@@ -1,8 +1,10 @@
 # Nối AIOS với GenBot
 
-Hướng dẫn này nối một agent AIOS với một bot trong GenBot qua Bot API. Sau khi nối, mọi lượt chạy của agent (trả lời ở `/chat`, soạn trả lời khách Zalo, viết bài…) đi qua bot GenBot đó.
+**GenBot là động cơ duy nhất của Open AgenticOS.** Mọi agent là một bot GenBot (quyết định của chủ ngày 27/11: "chỉ dùng genbot agent, không dùng bot dạng khác"). Claude Code, Codex, Grok và Hermes không còn được chọn: tạo hoặc đổi agent sang các runtime đó bị từ chối, và agent cũ còn dùng chúng sẽ không chạy cho tới khi bạn bấm **Chuyển sang GenBot** (AIOS không tự sửa `agent.yaml` của bạn).
 
-Gói đội **Đội AgenticOS mặc định** (`teams/agenticos-doi-mac-dinh/`) dựng sẵn ba agent GenBot: Bot CSKH, Bot Nội dung, Bot Trợ lý. Cài gói ở trang Đội, rồi làm các bước dưới đây cho từng bot.
+Hướng dẫn này nối một bot AIOS với một bot trong GenBot qua Bot API. Sau khi nối, mọi lượt chạy của bot (trả lời ở `/chat`, soạn trả lời khách Zalo, viết bài…) đi qua bot GenBot đó. Mọi việc làm ở màn **Đội AI · Bot** (thanh bên, mục ĐỘI AI VÀ HỆ THỐNG).
+
+Gói đội **Đội AgenticOS mặc định** (`teams/agenticos-doi-mac-dinh/`) dựng sẵn ba bot: Bot CSKH, Bot Nội dung, Bot Trợ lý. Có thể cài gói ở trang Gói Team, hoặc thêm từng bot ở Đội AI · Bot bằng mẫu CSKH Zalo, Nội dung, Trợ lý (quyền brain và quyền module điền sẵn theo gói). Mọi agent đi kèm repo (`agents/`, `modules/*/agents/`, `teams/`) đều là bot GenBot với mã bot để trống, nên hiện "Chưa nối GenBot" cho tới khi bạn điền.
 
 ## Trước khi bắt đầu: bot GenBot biết những gì
 
@@ -26,42 +28,32 @@ Nguồn 2 và 3 **nằm ngoài** quyền brain của AIOS. AIOS không lọc đ�
 
 GenBot Cloud gói Starter không có Bot API.
 
-## Bước 2. Chép khoá vào `.env`
+## Bước 2. Thêm bot ở màn Đội AI · Bot
 
-Mở file `.env` ở thư mục gốc AIOS, thêm một dòng cho mỗi bot. Tên biến phải bắt đầu bằng `GENBOT_KEY_`:
+1. Mở **Đội AI · Bot**. Ở ô **Kết nối GenBot**, kiểm địa chỉ GenBot (mặc định `http://127.0.0.1:8800`) rồi bấm **Kiểm tra**: AIOS kết nối thử tới GenBot (không tạo hay đổi gì trong GenBot).
+2. Bấm **Thêm bot GenBot**. Chọn mẫu (CSKH Zalo, Nội dung, Trợ lý), đặt tên, vai trò, chọn thư mục brain, điền **mã bot** và **dán khoá** chép ở bước 1.
+3. Bấm **Kiểm tra rồi lưu**. AIOS gửi một tin "ping" thật tới bot và hiện câu trả lời; được thì lưu. Chưa được thì xem lỗi (bảng cuối trang), sửa rồi thử lại, hoặc bấm **Vẫn lưu**.
 
-```
-GENBOT_KEY_CSKH=khoá-của-bot-cskh
-GENBOT_KEY_NOI_DUNG=khoá-của-bot-nội-dung
-GENBOT_KEY_TRO_LY=khoá-của-bot-trợ-lý
-```
+Chưa có mã bot hoặc khoá thì vẫn lưu được: bot hiện "Chưa nối GenBot", điền sau bằng **Sửa** và **Đổi khoá** trên thẻ của bot.
 
-Khởi động lại AIOS để nạp khoá.
+**Khoá được giữ thế nào.** Khoá lưu mã hoá trong AIOS (bằng khoá `AIOS_ENCRYPTION_KEY`, cùng chỗ với khoá integration), theo từng bot. Không API nào trả khoá về: màn hình chỉ hiện "Đã có khoá" và 4 ký tự cuối. Khoá không được ghi vào `agent.yaml`, `.env`, nhật ký hay sự kiện (bị che thành `[redacted]`), và không bao giờ vào môi trường của tiến trình con. **Đổi khoá** thay khoá cũ; **Xoá** bot xoá luôn khoá. Đặt hay đổi khoá, địa chỉ GenBot, mã bot đều cần quyền chủ (phiên chủ đã ghép hoặc `AIOS_TOKEN`).
 
-Không dán khoá vào `agent.yaml` hay vào form agent. AIOS chỉ lưu **tên biến** (`key_env`). Khoá được giữ kín: không agent CLI nào (Claude, Codex, Grok, Hermes) thấy được các biến `GENBOT_KEY_*`, và khoá bị che trong nhật ký và thông báo lỗi.
+Mỗi thẻ bot cho thấy: mã bot, trạng thái khoá, lần kiểm tra gần nhất, số lượt hôm nay so với trần `max_runs_day`, module nào đang dùng bot (phân công chăm khách, cài đặt learn/dream, Fanpage marketing), thư mục brain được đọc và ghi, và quyền module. Nút: **Kiểm tra**, **Sửa**, **Đổi khoá**, **Tạm dừng**, **Xoá** (hỏi lại trước khi xoá).
 
-## Bước 3. Điền thông tin vào agent
+**Thiết lập cũ dùng `.env`.** Agent đã có `runtime_options.key_env: GENBOT_KEY_…` và khoá trong `.env` vẫn chạy (thẻ hiện "Khoá trong .env"). Khoá dán trong app được ưu tiên hơn. Nên chuyển: bấm **Đổi khoá**, dán khoá, rồi xoá dòng `GENBOT_KEY_…` khỏi `.env`.
 
-Mở agent ở trang Agents. Với runtime **GenBot**, form có ba ô:
-
-| Ô | Ví dụ | Ghi chú |
-|---|---|---|
-| Địa chỉ GenBot (`base_url`) | `http://127.0.0.1:8800` | Cổng nhận webhook của GenBot. `http://` chỉ dùng khi GenBot chạy trên cùng máy; GenBot ở máy khác phải là `https://` |
-| Mã bot (`bot_id`) | `bot_abc123` | Lấy ở bước 1 |
-| Biến chứa khoá (`key_env`) | `GENBOT_KEY_CSKH` | Tên biến ở bước 2, không phải khoá |
-
-Bấm **Kiểm tra**. AIOS kiểm đủ ba ô, có khoá trong `.env`, kết nối được tới GenBot, rồi gửi một tin "ping" thật. Cả bốn dòng phải là "Được". Lưu agent.
-
-Sửa trực tiếp `agents/<id>/agent.yaml` cũng được:
+## Bước 3. Sửa trực tiếp agent.yaml (không bắt buộc)
 
 ```yaml
 runtime: genbot
+context: lean            # hoặc standard
 runtime_options:
   base_url: http://127.0.0.1:8800
   bot_id: bot_abc123
-  key_env: GENBOT_KEY_CSKH
   max_runs_day: 500
 ```
+
+Không có khoá trong file này. `http://` chỉ dùng khi GenBot chạy trên cùng máy; GenBot ở máy khác phải là `https://`.
 
 ## Bước 4. Thử
 
@@ -75,17 +67,26 @@ runtime_options:
 | 10 lượt gọi mỗi phút cho một bot | AIOS tự xếp hàng; chờ quá thời gian cho phép thì lượt đó báo "hết hạn mức" |
 | 20.000 ký tự mỗi tin | AIOS tự rút gọn ngữ cảnh (bỏ bớt skill, bộ nhớ, brain, lịch sử cũ). Dữ liệu module không bị cắt; quá dài thì việc báo lỗi cấu hình để bạn chia nhỏ |
 | GenBot không báo chi phí | Ngân sách tiền không chặn được. Mỗi agent có trần `max_runs_day` (mặc định 500 lượt mỗi ngày) |
-| Không gửi ảnh, PDF | Tin chỉ có ảnh sẽ không được bot xem. Việc cần nhìn ảnh nên giao cho agent chạy runtime khác |
+| Không gửi ảnh, PDF | Tin chỉ có ảnh sẽ không được bot xem; care chuyển tin đó cho chủ |
 | Bot hỏi xin duyệt | Lượt đó dừng, mục "Cần bạn" hiện mã luồng; mở app GenBot để trả lời trong luồng đó |
 
 ## Khi có lỗi
 
 | Thông báo | Cách xử lý |
 |---|---|
-| Biến môi trường `GENBOT_KEY_…` chưa có khoá | Thêm khoá vào `.env`, khởi động lại AIOS |
-| GenBot 401 | Khoá sai hoặc đã bị thay bằng New key: chép khoá mới vào `.env` |
+| Chưa có khoá Bot API cho bot này | Đội AI · Bot › thẻ bot › **Đổi khoá**, dán khoá |
+| GenBot 401 | Khoá sai hoặc đã bị thay bằng New key: bấm **Đổi khoá**, dán khoá mới |
 | GenBot 403 | Bot API đang tắt, sai `bot_id`, gói Cloud Starter, hoặc AI của bot không chạy nhốt được |
 | Không kết nối được GenBot | Mở app GenBot; kiểm địa chỉ và cổng ở `base_url` |
 | `base_url` dùng http:// chỉ được trỏ về máy này | Dùng `https://` cho GenBot ở máy khác |
 | GenBot trả chuyển hướng | Sửa `base_url` thành địa chỉ cuối (AIOS không theo chuyển hướng để khoá không đi sang máy khác) |
 | Đã chạm trần … lượt chạy mỗi ngày | Chờ sang ngày mới, hoặc tăng `max_runs_day` |
+| Agent X đang dùng claude (codex, grok, hermes), hãy chuyển sang GenBot | Open AgenticOS chỉ chạy bằng GenBot: bấm **Chuyển sang GenBot** ở Đội AI · Bot hoặc trang Agents, rồi điền mã bot và khoá |
+
+## Tính năng đã tắt vì chỉ dùng GenBot
+
+Bot GenBot chỉ trả lời bằng chữ, không đọc file, không tìm trên mạng. Các chỗ trước đây cần runtime khác đã tự tắt và báo rõ:
+
+- **Radar: nguồn X** (cần Grok tìm trực tiếp trên X). Báo cáo ghi "Nguồn X đang tắt"; các nguồn khác vẫn chạy.
+- **KOL Studio: "ChatGPT (Codex)" làm agent viết nội dung.** Chọn một bot GenBot thay thế. (Tạo ảnh bằng ChatGPT qua Codex là nhà cung cấp ảnh, không phải agent, nên vẫn giữ.)
+- **Video Studio: tạo video bằng trò chuyện** (cần agent đọc file và chạy công cụ). Dựng video quay sẵn vẫn dùng được.

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ModuleContext } from '../../../src/modules/sdk.js';
 import { runRadarAgent } from './agent-turn.js';
-import { collectX, defaultExecGrok } from './collectors/x-grok.js';
+import { X_OFF_NOTE, collectVnChatter, collectX, defaultExecGrok, xReaderAvailable } from './collectors/x-grok.js';
 import { bindTestContext } from './context.js';
 import { saveReport } from './store.js';
 import { summaryForAgent, latestSummary } from './summary.js';
@@ -48,21 +48,19 @@ describe('radar agent turns go through runLean', () => {
     expect(res.error).toContain('hết hạn mức');
   });
 
-  it('the X reader asks the analyst agent for JSON and fails clearly when the agent is missing', async () => {
+  it('GenBot only: the default X reader is switched off with a clear message and never calls an agent', async () => {
     const runLean = vi.fn(async () => ({ ok: true, output: '{"posts":[]}', taskId: 1, runId: 1 }));
     bindTestContext(ctxWith({ runLean, get: () => ({ id: 'radar-analyst' }) as never }));
-    const out = await defaultExecGrok(['-p', 'tìm bài', '--output-format', 'json', '--json-schema', '{"type":"object"}'], { timeoutMs: 1000 });
-    expect(out).toBe('{"posts":[]}');
-    expect(runLean).toHaveBeenCalledWith(expect.objectContaining({ agentId: 'radar-analyst', prompt: expect.stringContaining('tìm bài') }));
-
-    bindTestContext(ctxWith({ runLean, get: () => undefined }));
-    await expect(defaultExecGrok(['-p', 'x', '--json-schema', '{}'], { timeoutMs: 1000 })).rejects.toThrow(/radar-analyst/);
+    await expect(defaultExecGrok(['-p', 'tìm bài', '--json-schema', '{"type":"object"}'], { timeoutMs: 1000 })).rejects.toThrow(X_OFF_NOTE);
+    expect(runLean).not.toHaveBeenCalled();
+    expect(xReaderAvailable({ deps: {} } as never)).toBe(false);
+    expect(await collectVnChatter({ layer: 'world', sinceIso: '2026-10-01T00:00:00Z', log: () => {}, deps: {} } as never, 7)).toBeNull();
   });
 
-  it('collectX maps posts read by the default reader', async () => {
+  it('collectX still maps posts from an injected reader', async () => {
     const posts = { posts: [{ author: 'abc', text: 'AI mới', url: 'https://x.com/abc/status/123', posted_at: '2026-10-17T10:00:00Z', likes: 3 }] };
-    bindTestContext(ctxWith({ runLean: vi.fn(async () => ({ ok: true, output: JSON.stringify(posts), taskId: 1, runId: 1 })), get: () => ({ id: 'radar-analyst' }) as never }));
-    const r = await collectX({ layer: 'world', sinceIso: '2026-10-01T00:00:00Z', log: () => {}, deps: {} } as never, ['abc'], []);
+    const execGrok = vi.fn(async () => JSON.stringify(posts));
+    const r = await collectX({ layer: 'world', sinceIso: '2026-10-01T00:00:00Z', log: () => {}, deps: { execGrok } } as never, ['abc'], []);
     expect(r.items).toHaveLength(1);
     expect(r.items[0]).toMatchObject({ kind: 'x', via: 'grok' });
   });

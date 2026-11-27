@@ -9,6 +9,11 @@ import type { VideoEditAgent } from './types.js';
 const RUNTIME_PROVIDER: Record<string, string> = { claude: 'claude', codex: 'openai', grok: 'grok', hermes: 'hermes', genbot: 'genbot', mock: 'mock' };
 const RUNTIME_LABEL: Record<string, string> = { claude: 'Claude', codex: 'Codex', grok: 'Grok', hermes: 'Hermes', genbot: 'GenBot', mock: 'Mock' };
 
+/** Shown when "tạo video bằng trò chuyện" is asked for: it needs a file-reading agent, which GenBot is not. */
+export const VIDEO_CREATE_OFF = 'Tạo video bằng trò chuyện đang tắt: việc này cần agent đọc được file và chạy công cụ (Claude, Codex), mà Open AgenticOS chỉ chạy agent bằng GenBot (chỉ trả lời bằng chữ). Dựng video quay sẵn vẫn dùng được.';
+
+// Legacy agents (claude, codex…) still show here so a project keeps its director's name; the engine refuses to run
+// them (GenBot only), and creating from chat is switched off on GenBot (VIDEO_CREATE_OFF).
 const agentsOf = () => moduleCtx()?.agents.list().filter((a) => a.enabled) ?? [];
 
 export function resolveDefaultAgentId(): string {

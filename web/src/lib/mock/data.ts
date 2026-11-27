@@ -13,35 +13,35 @@ const emptyAccess = { brain: {}, memory: { team: true, private: true }, skills: 
 
 export const agents: AgentDetail[] = [
   {
-    id: 'main', name: 'Trợ lý chính', description: 'Điều phối công việc, giao việc cho cả đội.', runtime: 'claude', model: 'claude-sonnet-5-5',
-    runtimeOptions: {}, permission: 'safe', context: 'standard', canDelegate: true, maxConcurrent: 2, budgetUsdMonth: 30, enabled: true,
+    id: 'main', name: 'Trợ lý chính', description: 'Điều phối công việc, giao việc cho cả đội.', runtime: 'genbot', genbotKey: { hasKey: true, last4: 'a1F9' }, runtimeAllowed: true,
+    runtimeOptions: { base_url: 'http://127.0.0.1:8800', bot_id: 'bot_tro_ly', max_runs_day: 500 }, permission: 'safe', context: 'standard', canDelegate: true, maxConcurrent: 2, budgetUsdMonth: 30, enabled: true,
     access: { brain: { 'tri-thuc': { read: ['**'], write: ['Ghi-chu/**'] } }, memory: { team: true, private: true }, skills: 'all', connections: { composio: true }, modules: { care: ['inbox.read', 'reply.draft'] } },
     persona: '# Trợ lý chính\n\nBạn là trợ lý điều phối của đội. Chia việc rõ ràng, giao cho đúng agent, tóm tắt kết quả bằng tiếng Việt ngắn gọn.\n\n## Quy tắc\n- Không tự gửi tin cho khách.\n- Việc nào cần duyệt thì đưa vào hàng chờ duyệt.',
     dir: '/agents/main', workspace: '/workspaces/main', stats: { running: 1, queued: 1, lastRunAt: mins(4), costMonthUsd: 6.42, runsMonth: 58 },
   },
   {
-    id: 'sales-a', name: 'Sales A', description: 'Trả lời khách, soạn báo giá và nhắc lịch hẹn.', runtime: 'codex', model: 'gpt-5.4',
-    runtimeOptions: {}, permission: 'safe', context: 'lean', reportsTo: 'main', canDelegate: false, maxConcurrent: 1, budgetUsdMonth: 15, enabled: true,
+    id: 'sales-a', name: 'Sales A', description: 'Trả lời khách, soạn báo giá và nhắc lịch hẹn.', runtime: 'genbot', genbotKey: { hasKey: true, last4: 'Q7k2' }, runtimeAllowed: true,
+    runtimeOptions: { base_url: 'http://127.0.0.1:8800', bot_id: 'bot_cskh', max_runs_day: 500 }, permission: 'safe', context: 'lean', reportsTo: 'main', canDelegate: false, maxConcurrent: 1, budgetUsdMonth: 15, enabled: true,
     access: { brain: { 'ban-hang': { read: ['**'], write: [] } }, memory: { team: true, private: false }, skills: ['tra-loi-khach'], connections: {}, modules: { care: ['inbox.read', 'reply.draft', 'reply.send'] } },
     persona: '# Sales A\n\nBạn chăm sóc khách hàng. Trả lời lịch sự, ngắn, đúng giá trong bảng giá.', dir: '/agents/sales-a', workspace: '/workspaces/sales-a',
     stats: { running: 0, queued: 0, lastRunAt: mins(35), costMonthUsd: 2.1, runsMonth: 41 },
   },
   {
-    id: 'content', name: 'Biên tập nội dung', description: 'Viết bài, caption và kịch bản video ngắn.', runtime: 'grok', runtimeOptions: {}, permission: 'safe', context: 'standard',
+    id: 'content', name: 'Biên tập nội dung', description: 'Viết bài, caption và kịch bản video ngắn.', runtime: 'genbot', genbotKey: { hasKey: false, last4: '' }, runtimeAllowed: true, runtimeOptions: { base_url: 'http://127.0.0.1:8800', bot_id: '', max_runs_day: 500 }, permission: 'safe', context: 'standard',
     reportsTo: 'main', canDelegate: false, maxConcurrent: 1, enabled: true,
     access: { brain: { 'tri-thuc': { read: ['Thuong-hieu/**', 'Y-tuong/**'], write: ['Y-tuong/**'] } }, memory: { team: true, private: true }, skills: 'all', connections: {}, modules: {} },
     persona: '# Biên tập nội dung\n\nGiọng thương hiệu: gần gũi, rõ ràng, không phóng đại.', dir: '/agents/content', workspace: '/workspaces/content',
     stats: { running: 0, queued: 0, lastRunAt: mins(190), costMonthUsd: 0, runsMonth: 12 },
   },
   {
-    id: 'research', name: 'Nghiên cứu thị trường', description: 'Tìm tin, tóm tắt đối thủ và xu hướng.', runtime: 'hermes', runtimeOptions: {}, permission: 'full', context: 'standard',
+    id: 'research', name: 'Nghiên cứu thị trường', description: 'Tìm tin, tóm tắt đối thủ và xu hướng.', runtime: 'hermes', runtimeAllowed: false, runtimeOptions: {}, permission: 'full', context: 'standard',
     reportsTo: 'main', canDelegate: false, maxConcurrent: 1, budgetUsdMonth: 10, enabled: true,
     access: { ...emptyAccess, brain: { 'tri-thuc': { read: ['**'], write: ['Nghien-cuu/**'] } }, connections: { 'web-search': ['search_*'] } },
     persona: '# Nghiên cứu thị trường\n\nLuôn ghi nguồn. Tách rõ dữ kiện và nhận định.', dir: '/agents/research', workspace: '/workspaces/research',
     stats: { running: 0, queued: 0, lastRunAt: mins(900), costMonthUsd: 9.35, runsMonth: 17 },
   },
   {
-    id: 'demo', name: 'Agent thử', description: 'Agent giả lập để thử giao diện, không gọi CLI thật.', runtime: 'mock', runtimeOptions: {}, permission: 'safe', context: 'lean',
+    id: 'demo', name: 'Agent thử', description: 'Bot thử, chưa nối GenBot.', runtime: 'genbot', genbotKey: { hasKey: false, last4: '' }, runtimeAllowed: true, runtimeOptions: { base_url: 'http://127.0.0.1:8800', bot_id: '' }, permission: 'safe', context: 'lean',
     canDelegate: false, maxConcurrent: 1, enabled: true, access: emptyAccess, persona: 'Trả lời bằng câu cố định.', dir: '/agents/demo', workspace: '/workspaces/demo',
     stats: { running: 0, queued: 0, lastRunAt: null, costMonthUsd: 0, runsMonth: 0 },
   },
@@ -67,13 +67,13 @@ tasks.push(
 
 const runBase = { sessionId: null, output: null, errorFamily: null, error: null, accessJson: null, skillsJson: '["tra-loi-khach"]', finishedAt: null, durationMs: null, inputTokens: null, outputTokens: null, costUsd: null, model: null };
 export const runs: Run[] = [
-  { ...runBase, id: 1, taskId: 1, agentId: 'main', runtime: 'claude', model: 'claude-sonnet-5-5', status: 'running', trigger: 'assigned', startedAt: mins(10), accessJson: '1' },
-  { ...runBase, id: 2, taskId: 3, agentId: 'content', runtime: 'grok', status: 'done', trigger: 'assigned', startedAt: mins(90), finishedAt: mins(86), durationMs: 240_000, inputTokens: 5200, outputTokens: 880, costUsd: null, output: '**Caption 1:** …', accessJson: '1' },
+  { ...runBase, id: 1, taskId: 1, agentId: 'main', runtime: 'genbot', status: 'running', trigger: 'assigned', startedAt: mins(10), accessJson: '1' },
+  { ...runBase, id: 2, taskId: 3, agentId: 'content', runtime: 'genbot', status: 'done', trigger: 'assigned', startedAt: mins(90), finishedAt: mins(86), durationMs: 240_000, inputTokens: 5200, outputTokens: 880, costUsd: null, output: '**Caption 1:** …', accessJson: '1' },
   { ...runBase, id: 3, taskId: 4, agentId: 'research', runtime: 'hermes', status: 'done', trigger: 'assigned', startedAt: mins(296), finishedAt: mins(280), durationMs: 960_000, inputTokens: 21000, outputTokens: 3100, costUsd: 0.38, accessJson: '1' },
-  { ...runBase, id: 4, taskId: 5, agentId: 'main', runtime: 'claude', status: 'failed', trigger: 'assigned', startedAt: mins(239), finishedAt: mins(238), durationMs: 41_000, errorFamily: 'auth', error: 'Composio trả về 401.', accessJson: '1' },
+  { ...runBase, id: 4, taskId: 5, agentId: 'main', runtime: 'genbot', status: 'failed', trigger: 'assigned', startedAt: mins(239), finishedAt: mins(238), durationMs: 41_000, errorFamily: 'auth', error: 'Composio trả về 401.', accessJson: '1' },
   { ...runBase, id: 5, taskId: 8, agentId: 'research', runtime: 'hermes', status: 'done', trigger: 'assigned', startedAt: mins(18), finishedAt: mins(9), durationMs: 540_000, inputTokens: 9000, outputTokens: 1200, costUsd: 0.12, accessJson: '1' },
-  { ...runBase, id: 6, taskId: 7, agentId: 'sales-a', runtime: 'codex', status: 'running', trigger: 'assigned', startedAt: mins(18), accessJson: '1' },
-  { ...runBase, id: 7, taskId: 9, agentId: 'main', runtime: 'claude', status: 'done', trigger: 'schedule', startedAt: mins(1499), finishedAt: mins(1495), durationMs: 200_000, inputTokens: 8000, outputTokens: 700, costUsd: 0.09, accessJson: '1' },
+  { ...runBase, id: 6, taskId: 7, agentId: 'sales-a', runtime: 'genbot', status: 'running', trigger: 'assigned', startedAt: mins(18), accessJson: '1' },
+  { ...runBase, id: 7, taskId: 9, agentId: 'main', runtime: 'genbot', status: 'done', trigger: 'schedule', startedAt: mins(1499), finishedAt: mins(1495), durationMs: 200_000, inputTokens: 8000, outputTokens: 700, costUsd: 0.09, accessJson: '1' },
 ];
 
 export const accessSnapshot = (agentId: string) => {
@@ -203,21 +203,15 @@ export const modules: ModuleInfo[] = [
   },
 ];
 
-export const runtimes: RuntimeReport[] = (['claude', 'codex', 'grok', 'hermes', 'mock'] as const).map((r) => {
-  const enforces = {
-    claude: { context: 'hard', mcp: 'hard', fileRead: 'hard', fileWrite: 'hard', shell: 'hard', note: undefined },
-    codex: { context: 'hard', mcp: 'hard', fileRead: 'soft', fileWrite: 'hard', shell: 'soft', note: 'Codex không chặn được đọc file ngoài thư mục làm việc.' },
-    grok: { context: 'hard', mcp: 'soft', fileRead: 'soft', fileWrite: 'soft', shell: 'soft', note: 'Grok chỉ nhận lời dặn trong prompt cho phần file và shell.' },
-    hermes: { context: 'hard', mcp: 'hard', fileRead: 'soft', fileWrite: 'soft', shell: 'soft', note: 'Hermes chặn công cụ MCP nhưng không chặn file.' },
-    mock: { context: 'hard', mcp: 'hard', fileRead: 'hard', fileWrite: 'hard', shell: 'hard', note: undefined },
-  }[r] as RuntimeReport['capabilities']['enforces'];
-  return {
-    runtime: r, label: { claude: 'Claude', codex: 'Codex', grok: 'Grok', hermes: 'Hermes', mock: 'Mock' }[r], status: r === 'grok' ? ('warn' as const) : r === 'hermes' ? ('fail' as const) : ('pass' as const),
-    version: r === 'mock' ? '1.0' : '2.1.0', command: r === 'mock' ? undefined : `/usr/local/bin/${r}`,
-    checks: r === 'grok' ? [{ code: 'grok.login', level: 'warn' as const, message: 'Chưa đăng nhập Grok.', hint: 'Chạy `grok login` trong terminal.' }] : r === 'hermes' ? [{ code: 'hermes.missing', level: 'error' as const, message: 'Không tìm thấy lệnh hermes.', hint: 'Cài Hermes rồi chạy lại “Kiểm tra”.' }] : [{ code: 'bin', level: 'info' as const, message: 'Tìm thấy lệnh và chạy được `--version`.' }],
-    testedAt: NOW(), capabilities: { resume: r !== 'grok', systemPrompt: r === 'claude' ? 'native' : 'inline', reportsCost: r === 'claude' || r === 'hermes', images: r === 'claude', noTools: r !== 'grok', enforces },
-  };
-});
+// GenBot is the only engine offered (GET /api/runtimes lists only genbot).
+export const runtimes: RuntimeReport[] = [{
+  runtime: 'genbot', label: 'GenBot', status: 'pass', testedAt: NOW(),
+  checks: [{ code: 'genbot.http', level: 'info', message: 'GenBot gọi qua Bot API (HTTP), không cần cài lệnh. Mỗi bot có địa chỉ GenBot, mã bot và khoá dán trong app.' }],
+  capabilities: {
+    resume: false, systemPrompt: 'inline', reportsCost: false, images: false, noTools: true,
+    enforces: { context: 'hard', mcp: 'hard', fileRead: 'hard', fileWrite: 'hard', shell: 'hard', note: 'Luồng Bot API của GenBot bị nhốt: không công cụ, không MCP, không đọc ghi file.' },
+  },
+} as RuntimeReport];
 
 export function nextId(list: { id: number }[]): number {
   return list.reduce((m, x) => Math.max(m, x.id), 0) + 1;

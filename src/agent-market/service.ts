@@ -4,7 +4,9 @@ import path from 'node:path';
 import type { AgentRegistry } from '../agents/contracts.js';
 import { AGENT_ID_RE } from '../agents/schema.js';
 import type { AppConfig } from '../core/config.js';
+import { allowedRuntimes, isRuntimeAllowed, runtimeRefusal } from '../core/runtime-policy.js';
 import { RUNTIME_IDS, type RuntimeId } from '../core/types.js';
+import { GENBOT_DEFAULT_BASE_URL } from '../runtimes/genbot.js';
 import type { AuditService } from '../access/contracts.js';
 import type { SkillLibrary } from '../shared/contracts.js';
 import { MARKET_TEMPLATES, type MarketTemplate } from './catalog.js';
@@ -46,9 +48,11 @@ export interface MarketServiceDeps {
   agents: AgentRegistry;
   skills?: SkillLibrary;
   audit?: AuditService;
+  /** runtimes an installed agent may use (default core/runtime-policy allowedRuntimes()) */
+  allowedRuntimes?: readonly string[];
 }
 
-const DEFAULT_RUNTIME: RuntimeId = 'claude';
+const DEFAULT_RUNTIME: RuntimeId = 'genbot';
 
 export function allTemplates(): MarketTemplate[] {
   return [...MARKET_TEMPLATES, ...EXTRA_TEMPLATES];
@@ -74,6 +78,7 @@ export function createMarketService(deps: MarketServiceDeps) {
     const t = tpl(templateId);
     const runtime = req.runtime ?? DEFAULT_RUNTIME;
     if (!(RUNTIME_IDS as readonly string[]).includes(runtime)) throw new MarketError('Runtime không hợp lệ.', 400);
+    if (!isRuntimeAllowed(runtime, deps.allowedRuntimes ?? allowedRuntimes())) throw new MarketError(runtimeRefusal(runtime), 400);
     const warnings: string[] = [];
     let agentId = req.id?.trim() || freeId(t.id);
     if (req.id) {
@@ -114,6 +119,8 @@ export function createMarketService(deps: MarketServiceDeps) {
         ...(req.model ? { model: req.model } : {}),
         persona,
         permission: 'safe',
+        // a GenBot agent starts "chưa nối GenBot": the owner fills bot id and key on the Đội AI · Bot screen
+        ...(p.runtime === 'genbot' ? { runtimeOptions: { base_url: GENBOT_DEFAULT_BASE_URL, bot_id: '' } } : {}),
         access: { brain: {}, memory: { team: false, private: true }, skills: (t.skills ?? []).map((s) => s.id), connections: {}, modules: {} },
       });
       const knowledge = p.files.find((f) => f.kind === 'knowledge');

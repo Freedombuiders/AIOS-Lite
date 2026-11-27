@@ -1,14 +1,15 @@
 name: Trợ lý hằng ngày
 description: "Việc vặt hằng ngày: soạn thư, ghi chú, nhắc việc, tóm tắt"
-runtime: hermes
+runtime: genbot
 runtime_options:
-  profile: default
+  base_url: "http://127.0.0.1:8800"
+  bot_id: ""
 permission: safe
 context: standard
 reports_to: main
 can_delegate: false
 max_concurrent: 1
-# Tắt sẵn: Hermes cần đăng nhập nhà cung cấp mô hình trước (chạy `hermes model`), rồi đổi thành true.
+# Tắt sẵn: nối với một bot GenBot (mã bot và khoá ở màn Đội AI · Bot) rồi bật.
 enabled: false
 access:
   brain:

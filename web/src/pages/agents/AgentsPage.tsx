@@ -22,7 +22,8 @@ export function RuntimeBadge({ runtime }: { runtime: AgentSummary['runtime'] }) 
 
 const TONE: Record<AgentSummary['runtime'], string> = { claude: 'coral', codex: 'blue', grok: 'slate', hermes: 'plum', genbot: 'cyan', mock: 'sand' };
 
-function AgentCard({ a }: { a: AgentSummary }) {
+function AgentCard({ a, onConvert }: { a: AgentSummary; onConvert: (a: AgentSummary) => void }) {
+  const legacy = a.runtimeAllowed === false;
   const budget = a.budgetUsdMonth;
   const over = budget !== undefined && a.stats.costMonthUsd >= budget;
   return (
@@ -38,6 +39,8 @@ function AgentCard({ a }: { a: AgentSummary }) {
           <span class="agent-primary-label">{a.stats.running ? `${a.stats.running} ĐANG CHẠY` : a.stats.queued ? `${a.stats.queued} ĐANG CHỜ` : 'RẢNH'}</span>
           {!a.enabled && <Pill>Tắt</Pill>}
           {a.canDelegate && <Pill tone="info">giao việc</Pill>}
+          {legacy && <Pill tone="warn">không chạy: runtime cũ</Pill>}
+          {a.runtime === 'genbot' && !a.genbotKey?.hasKey && <Pill tone="warn">chưa nối GenBot</Pill>}
         </div>
         <h2 class="agent-profile-name">{a.name}</h2>
       </div>
@@ -48,6 +51,7 @@ function AgentCard({ a }: { a: AgentSummary }) {
         <span>Gần nhất <strong>{a.stats.lastRunAt ? formatRelativeTime(a.stats.lastRunAt) : '—'}</strong></span>
       </div>
       <div class="agent-profile-actions">
+        {legacy && <button type="button" class="control-button control-accent" onClick={() => onConvert(a)}>Chuyển sang GenBot</button>}
         <Link href={`/agents/${a.id}`} class="control-button control-accent no-underline" style={{ flex: 1 }}>Mở agent</Link>
         <Link href="/chat" class="control-button no-underline">Trò chuyện</Link>
       </div>
@@ -63,6 +67,17 @@ export default function AgentsPage() {
   const [form, setForm] = useState<AgentFormValue>(EMPTY_AGENT);
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  /** Moves a legacy agent (claude, codex…) to GenBot: only on this explicit click, never silently. */
+  async function convert(a: AgentSummary) {
+    try {
+      await apiPost(`/genbot/bots/${encodeURIComponent(a.id)}/convert`, {});
+      pushToast({ tone: 'success', title: `${a.name} đã chuyển sang GenBot`, description: 'Điền mã bot và khoá ở màn Đội AI · Bot.' });
+      refresh();
+    } catch (e) {
+      pushToast({ tone: 'error', title: 'Không chuyển được', description: errorText(e) });
+    }
+  }
 
   async function create() {
     const err = validateAgent(form, true);
@@ -103,6 +118,7 @@ export default function AgentsPage() {
           </>
         }
       />
+      <p class="m-0 mb-2 text-[12.5px] text-[var(--color-text-muted)]">Trang nâng cao. Cách chính để thêm và nối bot là màn <Link href="/bots">Đội AI · Bot</Link>; Open AgenticOS chỉ chạy agent bằng GenBot.</p>
       <PageState loading={loading && !agents.length} error={error} empty={!loading && !error && agents.length === 0} emptyTitle="Chưa có agent nào" emptyDescription="Agent là thư mục agents/<mã> gồm agent.yaml và persona.md. Tạo agent đầu tiên để giao việc." />
       {loadErrors.length > 0 && (
         <div class="card card-pad mb-3 border-[var(--color-status-review)]/50">
@@ -119,7 +135,7 @@ export default function AgentsPage() {
       {view === 'cards' ? (
         <div class="agents-gallery">
           {agents.map((a) => (
-            <AgentCard key={a.id} a={a} />
+            <AgentCard key={a.id} a={a} onConvert={(x) => void convert(x)} />
           ))}
         </div>
       ) : (

@@ -102,8 +102,22 @@ describe('engine basics', () => {
     expect(k.deps.runs.list({ taskId: t.id })[0]!.status).toBe('cancelled');
   });
 
-  it('links skills only for claude/grok runtimes', async () => {
-    const k = start(makeKit([agent('c', { runtime: 'claude' }), agent('m')]));
+  it('GenBot only: an existing claude agent does not run; its task fails with a config error and raises attention', async () => {
+    const k = start(makeKit([agent('old', { name: 'Trợ lý cũ', runtime: 'claude' }), agent('m')]));
+    const t = await run(k, k.deps.tasks.create({ prompt: 'a', agentId: 'old' }));
+    expect(t.status).toBe('failed');
+    expect(t.meta.errorFamily).toBe('config');
+    expect(t.error).toMatch(/Agent Trợ lý cũ đang dùng Claude Code, hãy chuyển sang GenBot/);
+    expect(k.requests).toHaveLength(0); // the runtime is never called
+    const items = k.deps.attention.list();
+    const item = items.find((i) => i.key === 'legacy-runtime:old');
+    expect(item).toMatchObject({ title: 'Agent Trợ lý cũ đang dùng claude, hãy chuyển sang GenBot', link: '/bots' });
+    // the agent's definition is not rewritten
+    expect(k.deps.agents.require('old').runtime).toBe('claude');
+  });
+
+  it('links skills only for claude/grok runtimes (when a test config still allows them)', async () => {
+    const k = start(makeKit([agent('c', { runtime: 'claude' }), agent('m')], { config: { allowedRuntimes: ['genbot', 'mock', 'claude'] } }));
     await run(k, k.deps.tasks.create({ prompt: 'a', agentId: 'm' }));
     expect(k.calls.linked).toEqual([]);
     await run(k, k.deps.tasks.create({ prompt: 'a', agentId: 'c' }));

@@ -13,6 +13,7 @@ import {
   type PersonaDto, type PersonaInput, type PersonaStatus, type RealismPreset,
 } from '@modules/kol/web/lib/kol';
 import type { WorkspaceTabProps } from './workspace-types';
+import { pickerBots, type BotLike } from '@/lib/bots';
 
 type Draft = Omit<PersonaDto, 'id' | 'refs' | 'createdAt' | 'updatedAt'>;
 
@@ -45,7 +46,9 @@ export function KolProfileTab({ persona, status, refreshPersona }: WorkspaceTabP
   const [draft, setDraft] = useState<Draft>(() => toDraft(persona));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const agents = useFetch<{ agents: { id: string; name?: string }[] }>('/api/agents');
+  const agents = useFetch<{ items?: (BotLike & { name?: string })[]; agents?: (BotLike & { name?: string })[] }>('/api/agents');
+  // only GenBot bots that have a key (Open AgenticOS runs every agent on GenBot)
+  const bots = pickerBots(agents.data);
   const base = useMemo(() => JSON.stringify(toDraft(persona)), [persona]);
   const dirty = JSON.stringify(draft) !== base;
   const dirtyRef = useRef(dirty);
@@ -133,12 +136,12 @@ export function KolProfileTab({ persona, status, refreshPersona }: WorkspaceTabP
         <div id="kol-personality" class="scroll-mt-4">
           <FormSection title="Tính cách & giọng văn" hint="Dùng khi AI viết caption, trả lời bình luận và lập kế hoạch nội dung.">
             <PersonalityFields value={draft.personality} onChange={(personality) => set({ personality })} />
-            <Field label="Agent viết nội dung" hint="Viết caption, phân tích tuần và lập kế hoạch autopilot. “ChatGPT (Codex)” chạy bằng gói ChatGPT đã đăng nhập (`codex login`), không cần tạo agent riêng.">
+            <Field label="Agent viết nội dung" hint="Viết caption, phân tích tuần và lập kế hoạch autopilot. Chỉ bot GenBot đã có khoá; viết bằng ChatGPT (Codex) đã tắt vì Open AgenticOS chỉ chạy agent bằng GenBot.">
               <select class={`${INPUT} w-full sm:w-80`} value={draft.brainAgent} onChange={(e) => set({ brainAgent: (e.target as HTMLSelectElement).value })}>
                 <option value="">Mặc định (agent main)</option>
-                <option value="@chatgpt">ChatGPT (Codex) · gói ChatGPT</option>
-                {draft.brainAgent && draft.brainAgent !== '@chatgpt' && !(agents.data?.agents ?? []).some((a) => a.id === draft.brainAgent) && <option value={draft.brainAgent}>{draft.brainAgent}</option>}
-                {(agents.data?.agents ?? []).map((a) => <option key={a.id} value={a.id}>{a.name || a.id}</option>)}
+                {draft.brainAgent === '@chatgpt' && <option value="@chatgpt" disabled>ChatGPT (Codex) · đã tắt</option>}
+                {draft.brainAgent && draft.brainAgent !== '@chatgpt' && !bots.some((a) => a.id === draft.brainAgent) && <option value={draft.brainAgent}>{draft.brainAgent} (chưa dùng được)</option>}
+                {bots.map((a) => <option key={a.id} value={a.id}>{a.name || a.id}</option>)}
               </select>
             </Field>
           </FormSection>

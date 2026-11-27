@@ -10,6 +10,7 @@ import { StatusPill } from '@/components/TaskBits';
 import { Field } from '@/components/ui';
 import { errorText } from '@/lib/api';
 import { useAgents } from '@/lib/agents';
+import { usableBots } from '@/lib/bots';
 import { activeConversation, conversations, createConversation, deleteConversation, refreshConversations, renameConversation, selectConversation } from '@/lib/chat-conversations';
 import type { Conversation } from '@/lib/chat-conversations';
 import { formatRelativeTime, resolveAgentName } from '@/lib/format';
@@ -108,7 +109,8 @@ export default function ChatPage({ conversationId }: { conversationId?: number }
   const [deleting, setDeleting] = useState<Conversation | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
-  const enabled = agents.filter((a) => a.enabled);
+  // only GenBot bots that have a key can answer (Open AgenticOS runs every agent on GenBot)
+  const enabled = usableBots(agents).filter((a) => a.enabled);
   const list = conversations.value;
   const active = activeConversation.value;
 

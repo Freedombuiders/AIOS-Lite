@@ -28,21 +28,31 @@ describe('agent market', () => {
   it('previews exactly the files it later writes, with the chosen runtime', () => {
     const { svc, agents } = mk();
     const fields = { businessName: 'Trung tâm A', courses: 'Khóa 1', registration: 'link' };
-    const p = svc.preview('education-advisor', { runtime: 'codex', fields });
-    expect(p.runtime).toBe('codex');
+    const p = svc.preview('education-advisor', { fields });
+    expect(p.runtime).toBe('genbot');
     expect(p.missingRequired).toEqual([]);
     expect(p.newSkills.length).toBe(4);
-    const res = svc.install('education-advisor', { runtime: 'codex', fields });
+    const res = svc.install('education-advisor', { fields });
     expect(res.files.sort()).toEqual(p.files.map((f) => f.path).sort());
     const fresh = createAgentRegistry({ agentsDir: path.join(root, 'agents'), workspacesDir: path.join(root, 'ws2') });
     expect(fresh.errors()).toEqual([]);
     const a = fresh.require(res.agent.id);
-    expect(a.runtime).toBe('codex');
+    expect(a.runtime).toBe('genbot');
+    expect(a.runtimeOptions).toEqual({ base_url: 'http://127.0.0.1:8800', bot_id: '' });
     expect(a.permission).toBe('safe');
     expect(a.access.connections).toEqual({});
     expect(fs.readFileSync(path.join(a.dir, 'knowledge', 'customer-care.md'), 'utf8')).toContain('Khóa 1');
     expect(fs.existsSync(path.join(root, 'skills', 'course-advising', 'SKILL.md'))).toBe(true);
     expect(agents.get(res.agent.id)).toBeTruthy();
+  });
+
+  it('refuses a runtime other than GenBot, with a Vietnamese error, and writes nothing', () => {
+    const { svc, agents } = mk();
+    const fields = { businessName: 'Trung tâm A', courses: 'Khóa 1', registration: 'link' };
+    expect(() => svc.preview('education-advisor', { runtime: 'claude', fields })).toThrow(/Claude Code.*không còn được dùng/);
+    expect(() => svc.install('education-advisor', { runtime: 'codex', fields })).toThrow(MarketError);
+    expect(agents.list()).toEqual([]);
+    expect(fs.existsSync(path.join(root, 'skills'))).toBe(false);
   });
 
   it('refuses missing required fields and an id that is taken', () => {

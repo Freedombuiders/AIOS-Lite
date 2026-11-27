@@ -65,8 +65,12 @@ describe('genbot capabilities, config and message', () => {
   it('readGenbotConfig names every missing value', () => {
     const r = readGenbotConfig({});
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.problems.join(' ')).toMatch(/base_url[\s\S]*bot_id[\s\S]*key_env/);
+    if (!r.ok) expect(r.problems.join(' ')).toMatch(/base_url[\s\S]*bot_id/);
+    // key_env is optional now (the key is pasted in the app); when given it must still be a GENBOT_KEY_* name
+    if (!r.ok) expect(r.problems.join(' ')).not.toMatch(/key_env/);
     expect(readGenbotConfig({ base_url: 'http://127.0.0.1:8800/', bot_id: 'b', key_env: 'GENBOT_KEY_A' })).toEqual({ ok: true, config: { baseUrl: 'http://127.0.0.1:8800', botId: 'b', keyEnv: 'GENBOT_KEY_A' } });
+    expect(readGenbotConfig({ base_url: 'http://127.0.0.1:8800/', bot_id: 'b' })).toEqual({ ok: true, config: { baseUrl: 'http://127.0.0.1:8800', botId: 'b' } });
+    expect(readGenbotConfig({ base_url: 'http://127.0.0.1:8800/', bot_id: 'b', key_env: 'OPENAI_API_KEY' }).ok).toBe(false);
   });
 
   it.each([

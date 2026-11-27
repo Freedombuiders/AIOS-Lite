@@ -3,6 +3,8 @@ import path from 'node:path';
 import type { Hono } from 'hono';
 import { z } from 'zod';
 import type { AppDeps } from '../../core/deps.js';
+import { allowedRuntimes } from '../../core/runtime-policy.js';
+import { genbotKeysFor } from '../../integrations/genbot-keys.js';
 import { checkGenbotAgent } from '../../runtimes/genbot.js';
 import { notFound } from '../errors.js';
 import { body } from '../util.js';
@@ -25,10 +27,12 @@ export function systemRoutes(app: Hono, deps: AppDeps): void {
 
   app.get('/api/health', (c) => c.json({ ok: true, version, uptimeSec: Math.round((Date.now() - started) / 1000) }));
 
+  // Only the runtimes an agent may use (GenBot; 'mock' is never offered to the UI, even under tests or mock mode).
   app.get('/api/runtimes', async (c) => {
     const probe = c.req.query('probe') === '1';
+    const allowed = deps.config.allowedRuntimes ?? allowedRuntimes();
     const items = await Promise.all(
-      deps.runtimes.list().map(async (r) => ({ ...(await r.doctor({ probe })), label: r.label, capabilities: r.capabilities })),
+      deps.runtimes.list().filter((r) => allowed.includes(r.id) && r.id !== 'mock').map(async (r) => ({ ...(await r.doctor({ probe })), label: r.label, capabilities: r.capabilities })),
     );
     return c.json({ items });
   });
@@ -42,7 +46,8 @@ export function systemRoutes(app: Hono, deps: AppDeps): void {
     const saved = input.agentId ? deps.agents.get(input.agentId) : undefined;
     if (input.agentId && !saved) throw notFound(`Không tìm thấy agent "${input.agentId}".`);
     const runtimeOptions = { ...saved?.runtimeOptions, ...input.runtimeOptions };
-    return c.json(await checkGenbotAgent(deps.runtimes.get('genbot'), { runtimeOptions }, { probe: input.probe }));
+    const keys = genbotKeysFor(deps);
+    return c.json(await checkGenbotAgent(deps.runtimes.get('genbot'), { ...(saved ? { id: saved.id } : {}), runtimeOptions }, { probe: input.probe, keyFor: (id) => keys.get(id) }));
   });
 
   app.get('/api/stats', (c) => c.json(deps.stats.overview()));

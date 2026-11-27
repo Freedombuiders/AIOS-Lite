@@ -17,8 +17,15 @@ describe('core menu', () => {
   it('folds the rarely used pages into "Nâng cao" and keeps them off the top level', () => {
     const top = NAV_SECTIONS.flatMap((s) => s.items.map((i) => i.path));
     const advanced = ADVANCED_GROUP.items.map((i) => i.path);
-    expect(advanced).toEqual(expect.arrayContaining(['/agent-market', '/teams', '/skills', '/memory', '/recos', '/usage', '/budgets', '/audit', '/modules']));
+    expect(advanced).toEqual(expect.arrayContaining(['/agents', '/agent-market', '/teams', '/skills', '/memory', '/recos', '/usage', '/budgets', '/audit', '/modules']));
     for (const p of advanced) expect(top).not.toContain(p);
+  });
+
+  it('opens the team section with the GenBot screen (Đội AI · Bot), the main way to the agents', () => {
+    const team = NAV_SECTIONS.find((s) => s.id === 'system')!;
+    expect(team.items[0]).toMatchObject({ label: 'Đội AI · Bot', path: '/bots' });
+    expect(team.items.map((i) => i.path)).not.toContain('/agents');
+    expect(reachableCorePaths()).toContain('/bots');
   });
 
   it('has the five sections in order, the first without a caption', () => {

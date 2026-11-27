@@ -3,7 +3,9 @@ import type { Hono } from 'hono';
 import { z } from 'zod';
 import type { AgentInput } from '../../agents/contracts.js';
 import type { AppDeps } from '../../core/deps.js';
-import { RUNTIME_IDS } from '../../core/types.js';
+import { allowedRuntimes, runtimeRefusal } from '../../core/runtime-policy.js';
+import { RUNTIME_IDS, type RuntimeId } from '../../core/types.js';
+import { genbotKeysFor } from '../../integrations/genbot-keys.js';
 import { badRequest, conflict } from '../errors.js';
 import { body, found } from '../util.js';
 
@@ -48,7 +50,21 @@ export function agentsRoutes(app: Hono, deps: AppDeps): void {
     costMonthUsd: deps.runs.monthCost(id),
     runsMonth: deps.runs.list({ agentId: id, since: monthStart(), limit: 500 }).length,
   });
-  const summaries = () => deps.agents.list().map(({ persona: _p, ...a }) => ({ ...a, stats: stats(a.id) }));
+  const allowed = () => deps.config.allowedRuntimes ?? allowedRuntimes();
+  /**
+   * runtimeAllowed: false for an agent left on a runtime that is no longer offered (the list shows "Chuyển sang GenBot").
+   * genbotKey: "đã có khoá" + last four characters, never the key (pickers list only GenBot bots that have one).
+   */
+  const extra = (a: { id: string; runtime: RuntimeId; runtimeOptions: Record<string, unknown> }) => {
+    const out: { runtimeAllowed: boolean; genbotKey?: { hasKey: boolean; last4: string } } = { runtimeAllowed: allowed().includes(a.runtime) };
+    if (a.runtime === 'genbot') {
+      const s = genbotKeysFor(deps).status(a.id);
+      const keyEnv = typeof a.runtimeOptions.key_env === 'string' ? a.runtimeOptions.key_env.trim() : '';
+      out.genbotKey = s.hasKey ? { hasKey: true, last4: s.last4 } : { hasKey: !!(keyEnv.startsWith('GENBOT_KEY_') && process.env[keyEnv]?.trim()), last4: '' };
+    }
+    return out;
+  };
+  const summaries = () => deps.agents.list().map(({ persona: _p, ...a }) => ({ ...a, ...extra(a), stats: stats(a.id) }));
   const listBody = () => ({ items: summaries(), errors: deps.agents.errors() });
   const wrap = <T>(fn: () => T): T => {
     try {
@@ -65,10 +81,11 @@ export function agentsRoutes(app: Hono, deps: AppDeps): void {
   });
   app.get('/api/agents/:id', (c) => {
     const a = found(deps.agents.get(c.req.param('id')), 'agent');
-    return c.json({ ...a, stats: stats(a.id) });
+    return c.json({ ...a, ...extra(a), stats: stats(a.id) });
   });
   app.post('/api/agents', async (c) => {
     const { id, ...input } = await body(c, createInput);
+    if (!allowed().includes(input.runtime as RuntimeId)) throw badRequest(runtimeRefusal(input.runtime));
     if (deps.agents.get(id)) throw conflict(`Agent "${id}" đã tồn tại.`);
     const created = wrap(() => deps.agents.create(id, input as AgentInput & { name: string; runtime: never }));
     deps.audit.log({ actor: 'user', action: 'agent.create', target: id });
@@ -76,8 +93,9 @@ export function agentsRoutes(app: Hono, deps: AppDeps): void {
   });
   app.put('/api/agents/:id', async (c) => {
     const id = c.req.param('id');
-    found(deps.agents.get(id), 'agent');
+    const cur = found(deps.agents.get(id), 'agent');
     const patch = await body(c, agentInput);
+    if (patch.runtime !== undefined && patch.runtime !== cur.runtime && !allowed().includes(patch.runtime as RuntimeId)) throw badRequest(runtimeRefusal(patch.runtime));
     const updated = wrap(() => deps.agents.update(id, patch as AgentInput));
     deps.audit.log({ actor: 'user', action: 'agent.update', target: id });
     return c.json(updated);
@@ -86,6 +104,7 @@ export function agentsRoutes(app: Hono, deps: AppDeps): void {
     const id = c.req.param('id');
     found(deps.agents.get(id), 'agent');
     deps.agents.archive(id);
+    genbotKeysFor(deps).remove(id); // the bot's Bot API key goes with it
     deps.audit.log({ actor: 'user', action: 'agent.archive', target: id });
     return c.json({ ok: true });
   });

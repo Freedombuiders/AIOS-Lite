@@ -1,8 +1,9 @@
 name: CSKH
 description: "Nhân viên chăm sóc khách: soạn nháp hoặc trả lời khách lịch sự, không bịa giá, chuyển người thật khi không chắc"
-runtime: claude
-model: haiku
-runtime_options: {}
+runtime: genbot
+runtime_options:
+  base_url: "http://127.0.0.1:8800"
+  bot_id: ""
 permission: safe
 context: lean
 reports_to: main

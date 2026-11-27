@@ -55,7 +55,9 @@ describe('Sidebar', () => {
   it('with no module on: the top three, Brain, and the team section; "Nâng cao" shut', async () => {
     const el = await mount();
     expect(captions(el)).toEqual(['BRAIN', 'ĐỘI AI VÀ HỆ THỐNG']);
-    expect(labels(el)).toEqual(expect.arrayContaining(['Hôm nay', 'Gọi trợ lý', 'Trò chuyện', 'Đồ thị', 'Second Brain', 'Agents', 'Công việc', 'Kết nối', 'Cài đặt', 'Nâng cao']));
+    expect(labels(el)).toEqual(expect.arrayContaining(['Hôm nay', 'Gọi trợ lý', 'Trò chuyện', 'Đồ thị', 'Second Brain', 'Đội AI · Bot', 'Công việc', 'Kết nối', 'Cài đặt', 'Nâng cao']));
+    // GenBot is the only engine: the bot screen replaces the generic Agents entry, which moved into "Nâng cao"
+    expect(labels(el)).not.toContain('Agents');
     expect(labels(el)).not.toContain('Skills');
     expect(labels(el)).not.toContain('Khác');
   });

@@ -1,8 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { parse, stringify } from 'yaml';
+import { RuntimeNotAllowedError, allowedRuntimes } from '../core/runtime-policy.js';
 import { protectAgentSecrets } from '../core/secret-env.js';
-import type { AgentConfig } from '../core/types.js';
+import { RUNTIME_IDS, type AgentConfig } from '../core/types.js';
 import type { AgentInput, AgentLoadError, AgentRegistry, AgentRegistryOptions } from './contracts.js';
 import { AGENT_ID_RE, AgentValidationError, agentToYamlObject, parseAgentConfig, validateAgentId } from './schema.js';
 
@@ -17,6 +18,12 @@ export function createAgentRegistry(opts: AgentRegistryOptions): AgentRegistryWi
   const agentsDir = path.resolve(opts.agentsDir);
   const workspacesDir = path.resolve(opts.workspacesDir);
   const repoRoot = path.dirname(agentsDir);
+  const allowed = opts.allowedRuntimes ?? allowedRuntimes();
+  /** Refuses a runtime that is not offered (never silently rewrites it). */
+  const requireAllowed = (runtime: string) => {
+    // an unknown name is left to the schema, which explains the valid values
+    if ((RUNTIME_IDS as readonly string[]).includes(runtime) && !allowed.includes(runtime)) throw new RuntimeNotAllowedError(runtime);
+  };
   const agents = new Map<string, AgentConfig>();
   let errors: AgentLoadError[] = [];
   /** Every loaded or written agent goes through here, so a `key_env` is protected before any run can start. */
@@ -108,6 +115,7 @@ export function createAgentRegistry(opts: AgentRegistryOptions): AgentRegistryWi
       validateAgentId(id);
       const dir = path.join(agentsDir, id);
       if (fs.existsSync(dir)) throw new Error(`Agent "${id}" đã tồn tại.`);
+      requireAllowed(input.runtime);
       const seed = parseAgentConfig({ name: input.name, runtime: input.runtime }, { id, dir, repoRoot, workspacesDir });
       const { persona, ...rest } = input;
       const cfg = validated({ ...merge(seed, rest), persona: persona ?? input.description ?? '' });
@@ -119,6 +127,8 @@ export function createAgentRegistry(opts: AgentRegistryOptions): AgentRegistryWi
 
     update(id, patch) {
       const cur = require_(id);
+      // a legacy agent may still be edited (renamed, paused) as long as it is not moved to another refused runtime
+      if (patch.runtime !== undefined && patch.runtime !== cur.runtime) requireAllowed(patch.runtime);
       const { persona, ...rest } = patch;
       const cfg = validated({ ...merge(cur, rest), persona: persona ?? cur.persona });
       write(cfg, persona !== undefined ? persona : undefined);
@@ -145,6 +155,7 @@ export function createAgentRegistry(opts: AgentRegistryOptions): AgentRegistryWi
       fs.cpSync(src, dest, { recursive: true });
       try {
         const cfg = loadOne(newId);
+        requireAllowed(cfg.runtime);
         put(newId, cfg);
         fs.mkdirSync(cfg.workspace, { recursive: true });
         return cfg;

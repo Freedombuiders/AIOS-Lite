@@ -101,7 +101,12 @@ describe('owner route list', () => {
       ['POST', '/api/m/dream/channels'], ['POST', '/api/m/dream/videos'], ['DELETE', '/api/m/dream/videos/x'], ['PUT', '/api/m/dream/settings'],
       ['PUT', '/api/m/care/conversations/:id/pause'], ['DELETE', '/api/m/care/conversations/:id/pause'],
       ['PUT', '/api/m/care/conversations/:id/ai'], ['PUT', '/api/m/care/conversations/:id/customer-care'], ['PUT', '/api/m/care/runtime/switches'],
+      // G1: GenBot key, base URL, bot id and every bot change; the per-agent check can send the stored key
+      ['POST', '/api/genbot/bots'], ['PUT', '/api/genbot/bots/:id'], ['PUT', '/api/genbot/bots/:id/key'], ['DELETE', '/api/genbot/bots/:id/key'],
+      ['POST', '/api/genbot/bots/:id/check'], ['POST', '/api/genbot/bots/:id/pause'], ['DELETE', '/api/genbot/bots/:id'], ['POST', '/api/genbot/bots/:id/convert'],
+      ['PUT', '/api/genbot/connection'], ['POST', '/api/genbot/connection/check'], ['POST', '/api/genbot/probe'], ['POST', '/api/runtimes/genbot/check'],
     ] as const) expect(isOwnerRoute(m, p), `${m} ${p}`).toBe(true);
+    expect(isOwnerRoute('GET', '/api/genbot')).toBe(false);
     // reads and the cloud OAuth callback stay open
     for (const p of ['/api/packs', '/api/packs/installed', '/api/packs/updates', '/api/cloud/status', '/api/cloud/callback', '/api/m/crm/customers', '/api/m/learn/content-lab']) {
       expect(isOwnerRoute('GET', p), p).toBe(false);

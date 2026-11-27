@@ -20,6 +20,7 @@ import { createBrainGit, createCommitQueue } from './shared/brain-git.js';
 import { createBrainWatch } from './shared/brain-watch.js';
 import { createBrainService } from './shared/brain.js';
 import { createContextBuilder } from './shared/context.js';
+import { createGenbotKeyStore } from './integrations/genbot-keys.js';
 import { integrationServiceFor } from './integrations/mount.js';
 import { INTEGRATIONS } from './integrations/registry.js';
 import { startCostWatcher } from './work/costs.js';
@@ -60,8 +61,11 @@ export function bootstrap(opts: BootstrapOptions = {}): AppDeps {
   const cipher = createCipher(config.encryptionKey);
   const hooks: AppDeps['hooks'] = { taskFinished: new Set(), moduleContext: new Map(), moduleActions: new Map(), agentContext: new Map() };
 
-  const agents = createAgentRegistry({ agentsDir: config.agentsDir, workspacesDir: config.workspacesDir });
-  const runtimes = createRuntimeRegistry();
+  const agents = createAgentRegistry({ agentsDir: config.agentsDir, workspacesDir: config.workspacesDir, ...(config.allowedRuntimes ? { allowedRuntimes: config.allowedRuntimes } : {}) });
+  // GenBot keys pasted in the app: registered with the redactor before anything can log, read only by the genbot runtime
+  const genbotKeys = createGenbotKeyStore({ db, cipher });
+  genbotKeys.protectAll();
+  const runtimes = createRuntimeRegistry({ genbot: { keyFor: (id) => genbotKeys.get(id) } });
   const connections = createConnectionsService({ file: config.connectionsFile, envFile: config.envFile, log });
   const audit = createAuditService({ db, bus });
   const brain = createBrainService({ db, configFile: config.brainConfigFile, rootDir: config.rootDir, log });
@@ -117,7 +121,7 @@ export function bootstrap(opts: BootstrapOptions = {}): AppDeps {
   const stats = createStatsService({ db, agents, runs, tasks });
 
   const deps = {
-    config, db, bus, log, cipher, hooks, agents, runtimes, connections, access, audit, brain, notes, memory, skills, board, context,
+    config, db, bus, log, cipher, hooks, agents, runtimes, genbotKeys, connections, access, audit, brain, notes, memory, skills, board, context,
     tasks, runs, comments, attention, team, scheduler, chat, stats,
   } as unknown as AppDeps;
   lazy.deps = deps;

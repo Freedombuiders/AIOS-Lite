@@ -31,12 +31,18 @@ const TURN_TIMEOUT_MS = 300_000;
 /** Brain id meaning "an agent on the Codex runtime (the owner's ChatGPT plan)". */
 export const CHATGPT_BRAIN = '@chatgpt';
 
-/** The agent a brain id runs on: an agent id, 'main' (the default agent) or '@chatgpt' (first Codex agent). */
+/**
+ * Open AgenticOS runs agents on GenBot only: the '@chatgpt' brain (captions written by a Codex agent on the owner's
+ * ChatGPT plan) is switched off. Image generation through Codex (providers/chatgpt.ts) is a media provider, not an agent.
+ */
+export const CHATGPT_BRAIN_OFF = 'Viết nội dung bằng ChatGPT (Codex) đã tắt: Open AgenticOS chỉ chạy agent bằng GenBot. Chọn một bot GenBot ở mục "Agent viết nội dung".';
+
+/** The agent a brain id runs on: an agent id or 'main' (the default agent); '@chatgpt' runs on nothing (switched off). */
 export function brainAgentId(brain: string): string | null {
   const ctx = moduleCompat('kol');
   if (!ctx) return null;
   const agents = ctx.agents.list().filter((a) => a.enabled);
-  if (brain === CHATGPT_BRAIN) return agents.find((a) => a.runtime === 'codex')?.id ?? null;
+  if (brain === CHATGPT_BRAIN) return null;
   if (brain && brain !== 'main' && ctx.agents.get(brain)) return brain;
   return ctx.agents.get('main') ? 'main' : (agents[0]?.id ?? null);
 }
@@ -46,7 +52,7 @@ export const runKolAgent: AgentRunner = async (input) => {
   const ctx = moduleCompat('kol');
   const agentId = brainAgentId(input.agentId || 'main');
   if (!ctx || !agentId) {
-    return { text: '', model: '', costUsd: 0, error: input.agentId === CHATGPT_BRAIN ? 'Chưa có agent nào chạy Codex để dùng gói ChatGPT.' : 'Không tìm thấy agent để viết nội dung.' };
+    return { text: '', model: '', costUsd: 0, error: input.agentId === CHATGPT_BRAIN ? CHATGPT_BRAIN_OFF : 'Không tìm thấy agent để viết nội dung.' };
   }
   const res = await ctx.agents.runLean({
     agentId,

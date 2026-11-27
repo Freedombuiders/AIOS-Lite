@@ -1,4 +1,10 @@
 name: "Trực Fanpage"
 description: "Trả lời bình luận Fanpage {{input.BRAND_NAME}} theo giọng thương hiệu và chuyển cho người thật khi cần."
+runtime: genbot
+context: lean
+runtime_options:
+  base_url: "http://127.0.0.1:8800"
+  bot_id: ""
+  max_runs_day: 500
 security:
   preset: low_trust

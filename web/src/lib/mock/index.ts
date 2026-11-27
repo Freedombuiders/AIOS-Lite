@@ -156,6 +156,86 @@ on('DELETE', '/agents/:id', ([id]) => {
 });
 on('POST', '/agents/reload', () => ({ items: d.agents.map(agentSummary), errors: [] }));
 
+// ---- Đội AI · Bot (GenBot only)
+const gbChecks = new Map<string, { ok: boolean; message: string; at: string }>();
+const gbBot = (a: (typeof d.agents)[number]) => ({
+  id: a.id, name: a.name, role: a.description, enabled: a.enabled,
+  botId: String(a.runtimeOptions.bot_id ?? ''), baseUrl: String(a.runtimeOptions.base_url ?? ''),
+  connected: !!a.runtimeOptions.bot_id && !!a.genbotKey?.hasKey,
+  key: { hasKey: !!a.genbotKey?.hasKey, last4: a.genbotKey?.last4 ?? '', source: a.genbotKey?.hasKey ? 'store' : null, updatedAt: null },
+  lastCheck: gbChecks.get(a.id) ?? null, runsToday: a.stats.runsMonth % 17, maxRunsDay: Number(a.runtimeOptions.max_runs_day ?? 500), context: a.context,
+  usedBy: a.id === 'sales-a' ? ['Chăm khách: 2 phân công'] : a.id === 'content' ? ['Marketing: 1 Fanpage', 'Dream 100: Agent viết'] : [],
+  brain: Object.entries(a.access.brain).map(([folder, g]) => ({ folder, read: g.read, write: g.write })), modules: a.access.modules,
+});
+const gbTemplates: { id: string; label: string; hint: string; context: string; brain: { read: string[]; write: string[] }; memory: { team: boolean; private: boolean }; modules: Record<string, string[]> }[] = [
+  { id: 'cskh', label: 'CSKH Zalo', hint: 'Soạn trả lời khách theo sản phẩm, chính sách và giọng cửa hàng.', context: 'lean', brain: { read: ['san-pham/**', 'chinh-sach/**', 'giong-noi.md'], write: [] }, memory: { team: false, private: false }, modules: { care: ['reply.draft', 'reply.send'] } },
+  { id: 'noi-dung', label: 'Nội dung', hint: 'Viết bài theo giọng cửa hàng, dựa trên sản phẩm và bài học.', context: 'standard', brain: { read: ['giong-noi.md', 'noi-dung/**', 'san-pham/**', 'bai-hoc/**', 'cong-thuc/**'], write: [] }, memory: { team: true, private: true }, modules: {} },
+  { id: 'tro-ly', label: 'Trợ lý', hint: 'Trả lời chủ từ brain, ghi nhớ, tạo việc và nhắc lịch.', context: 'standard', brain: { read: ['**'], write: ['nho/**'] }, memory: { team: true, private: true }, modules: {} },
+];
+let gbBase = 'http://127.0.0.1:8800';
+const gbOverview = () => ({
+  baseUrl: gbBase, defaultBaseUrl: 'http://127.0.0.1:8800',
+  bots: d.agents.filter((a) => a.runtime === 'genbot').map(gbBot),
+  legacy: d.agents.filter((a) => a.runtime !== 'genbot').map((a) => ({ id: a.id, name: a.name, runtime: a.runtime, enabled: a.enabled })),
+  templates: gbTemplates, brainFolders: d.brainFolders.map((f) => ({ id: f.id, name: f.name })),
+});
+const gbFind = (id?: string) => {
+  const a = d.agents.find((x) => x.id === id && x.runtime === 'genbot');
+  if (!a) throw new MockError(404, 'not_found', 'Không tìm thấy bot GenBot');
+  return a;
+};
+const gbProbe = (botId: string, hasKey: boolean) => {
+  const ok = !!botId && hasKey;
+  const summary = { ok, message: ok ? 'Gửi "ping" thành công: pong' : 'Chưa có mã bot hoặc khoá Bot API.', at: d.NOW() };
+  return { runtime: 'genbot', status: ok ? 'pass' : 'fail', checks: [{ code: 'genbot.probe', level: ok ? 'info' : 'error', message: summary.message }], testedAt: d.NOW(), summary };
+};
+on('GET', '/genbot', () => gbOverview());
+on('GET', '/genbot/guide', () => ({ markdown: '# Nối AIOS với GenBot\n\n(Bản xem thử) Mở app GenBot, bật Bot API cho bot, chép khoá và dán ở màn Đội AI · Bot.' }));
+on('PUT', '/genbot/connection', (_p, _q, b) => { gbBase = String(b.baseUrl).replace(/\/+$/, ''); return { ...gbOverview(), updated: b.applyToAll ? gbOverview().bots.length : 0 }; });
+on('POST', '/genbot/connection/check', () => ({ ok: true, baseUrl: gbBase, checks: [{ code: 'genbot.host', level: 'info', message: `GenBot trả lời ở ${gbBase} (xem thử).` }] }));
+on('POST', '/genbot/probe', (_p, _q, b) => gbProbe(String(b.botId ?? ''), !!String(b.key ?? '').trim() || !!b.agentId));
+on('POST', '/genbot/bots', (_p, _q, b) => {
+  const id = String(b.name).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'bot';
+  const t = gbTemplates.find((x) => x.id === b.template) ?? gbTemplates[0]!;
+  const key = String(b.key ?? '').trim();
+  const a = {
+    id, name: b.name, description: b.role ?? '', runtime: 'genbot' as const, genbotKey: { hasKey: !!key, last4: key.slice(-4) }, runtimeAllowed: true,
+    runtimeOptions: { base_url: gbBase, bot_id: b.botId ?? '', max_runs_day: 500 }, permission: 'safe' as const, context: t.context as 'lean' | 'standard', canDelegate: false, maxConcurrent: 1, enabled: true,
+    access: { brain: b.brainFolder ? { [b.brainFolder]: t.brain } : {}, memory: t.memory, skills: [], connections: {}, modules: t.modules }, persona: '', dir: `/agents/${id}`, workspace: `/workspaces/${id}`,
+    stats: { running: 0, queued: 0, lastRunAt: null, costMonthUsd: 0, runsMonth: 0 },
+  };
+  d.agents.push(a);
+  return gbBot(a);
+});
+on('PUT', '/genbot/bots/:id', ([id], _q, b) => {
+  const a = gbFind(id);
+  if (b.name !== undefined) a.name = b.name;
+  if (b.role !== undefined) a.description = b.role;
+  a.runtimeOptions = { ...a.runtimeOptions, ...(b.botId !== undefined ? { bot_id: b.botId } : {}), ...(b.baseUrl !== undefined ? { base_url: b.baseUrl } : {}), ...(b.maxRunsDay !== undefined ? { max_runs_day: b.maxRunsDay } : {}) };
+  return gbBot(a);
+});
+on('PUT', '/genbot/bots/:id/key', ([id], _q, b) => {
+  const a = gbFind(id);
+  const key = String(b.key ?? '').trim();
+  if (key.length < 8) throw new MockError(400, 'bad_request', 'Khoá Bot API không hợp lệ.');
+  a.genbotKey = { hasKey: true, last4: key.slice(-4) };
+  return gbBot(a);
+});
+on('POST', '/genbot/bots/:id/check', ([id]) => {
+  const a = gbFind(id);
+  const r = gbProbe(String(a.runtimeOptions.bot_id ?? ''), !!a.genbotKey?.hasKey);
+  gbChecks.set(a.id, r.summary);
+  return { ...r, bot: gbBot(a) };
+});
+on('POST', '/genbot/bots/:id/pause', ([id], _q, b) => { const a = gbFind(id); a.enabled = !b.paused; return gbBot(a); });
+on('DELETE', '/genbot/bots/:id', ([id]) => { const i = d.agents.findIndex((x) => x.id === id); if (i >= 0) d.agents.splice(i, 1); return { ok: true }; });
+on('POST', '/genbot/bots/:id/convert', ([id]) => {
+  const a = d.agents.find((x) => x.id === id);
+  if (!a) throw new MockError(404, 'not_found', 'Không tìm thấy agent');
+  Object.assign(a, { runtime: 'genbot', runtimeAllowed: true, genbotKey: { hasKey: false, last4: '' }, runtimeOptions: { base_url: gbBase, bot_id: '' } });
+  return gbBot(a);
+});
+
 on('GET', '/connections', () => ({ items: d.connections }));
 on('POST', '/connections/:id/test', ([id]) => (id === 'web-search' ? { ok: true, message: 'Kết nối được, 12 công cụ.' } : { ok: false, message: 'Thiếu khoá: hãy nhập khoá API.' }));
 on('PUT', '/connections/composio-key', () => {

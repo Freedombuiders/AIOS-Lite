@@ -12,6 +12,9 @@ import { cc } from '@modules/care/web/lib/care-channels/i18n';
 import { useFetch } from '@/lib/useFetch';
 import '@modules/care/web/styles/care.css';
 import '@modules/care/web/styles/care-channels.css';
+import { pickerBots, type BotLike } from '@/lib/bots';
+
+type BotRow = BotLike & { name?: string };
 
 /** Scrolls to `#rules`, `#advanced`, ... once the page has content (and again when the hash changes). */
 function useHashScroll(ready: boolean): void {
@@ -27,7 +30,7 @@ function useHashScroll(ready: boolean): void {
 }
 
 export function CareChannels() {
-  const agents = useFetch<{ agents: Array<{ id: string; name?: string }> }>('/api/agents', 60_000);
+  const agents = useFetch<{ items?: BotRow[]; agents?: BotRow[] }>('/api/agents', 60_000);
 
   const [careAccounts, setCareAccounts] = useState<CareAccountDto[]>([]);
   const [coreRules, setCoreRules] = useState<CareAssignmentDto[]>([]);
@@ -50,7 +53,8 @@ export function CareChannels() {
     return () => { live = false; };
   }, [reload]);
 
-  const agentOptions = (agents.data?.agents ?? []).map((a) => ({ id: a.id, name: a.name ?? a.id }));
+  // only GenBot bots that have a key (Open AgenticOS runs every agent on GenBot)
+  const agentOptions = pickerBots(agents.data).map((a) => ({ id: a.id, name: a.name ?? a.id }));
   useHashScroll(careLoaded);
 
   const changed = () => setReload((n) => n + 1);

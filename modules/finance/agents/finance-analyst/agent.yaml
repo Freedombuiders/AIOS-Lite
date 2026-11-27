@@ -1,7 +1,9 @@
 name: Phân tích tài chính
 description: "Đọc tóm tắt P&L tháng và sổ thu chi, giải thích số liệu và ghi khoản thu chi khi chủ yêu cầu"
-runtime: claude
-runtime_options: {}
+runtime: genbot
+runtime_options:
+  base_url: "http://127.0.0.1:8800"
+  bot_id: ""
 permission: safe
 context: lean
 reports_to: main

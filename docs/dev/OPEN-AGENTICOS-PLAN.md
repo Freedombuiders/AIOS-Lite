@@ -46,7 +46,7 @@ Chủ dự án nhắc "treg" ba lần như một công cụ lấy số liệu, n
 | # | Câu hỏi | Đề xuất của tài liệu này | Ảnh hưởng tới |
 |---|---|---|---|
 | Q1 | Sửa tại chỗ trong AIOS-Lite hay tách repo mới? | Sửa tại chỗ, theo nhánh | Mọi giai đoạn |
-| Q2 | GenBot là runtime duy nhất hay mặc định? | Mặc định; giữ `claude`, `codex` làm dự phòng để bản mở tự chạy được | P1 |
+| Q2 | GenBot là runtime duy nhất hay mặc định? | **Đã quyết 27/11 (chủ): duy nhất.** "Chỉ dùng genbot agent, không dùng bot dạng khác." Adapter claude/codex/grok/hermes giữ trong code nhưng không được chọn (G1, `src/core/runtime-policy.ts`). Đề xuất cũ: mặc định, giữ `claude`, `codex` làm dự phòng | P1 |
 | Q3 | Ghi chú khách hàng là dữ liệu gốc hay bản chiếu từ SQLite? | Bản đầu: hai chiều có kiểm xung đột; file thắng với các trường kinh doanh | P3 |
 | Q4 | Chấp nhận tên, số điện thoại khách nằm dạng chữ thường trong file? | Có, vì đó là cái giá của Obsidian. Hiện `care` mã hoá mọi cột `*_enc` | P3 |
 | Q5 | Zalo AGPL: gói kèm hay cài riêng? | Lõi MIT; Zalo là module cài riêng lúc thiết lập, người dùng bấm đồng ý AGPL | P2, P9 |

@@ -112,6 +112,11 @@ export interface ModuleContext {
      * runtime states none or the agent is unknown. Optional so test doubles need not implement it.
      */
     promptLimit?(agentId: string): number | null;
+    /**
+     * True when the agent can run: a GenBot bot (the only runtime offered) that has a Bot API key. Pickers in module
+     * screens list only these. Optional so test doubles need not implement it.
+     */
+    usable?(agentId: string): boolean;
   };
   access: {
     /** scope of THIS module, e.g. can('sales-a', 'reply.send') */

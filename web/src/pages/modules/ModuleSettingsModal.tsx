@@ -5,6 +5,24 @@ import { Toggle } from '@/components/Toggle';
 import { apiGet, apiPut, errorText } from '@/lib/api';
 import type { ModuleInfo, ModuleSettingSpec } from '@/lib/api-types';
 import { pushToast } from '@/lib/toasts';
+import { pickerBots, type BotLike } from '@/lib/bots';
+import { useFetch } from '@/lib/useFetch';
+
+/** A string setting that names an agent (learn `agent`, dream `analyst_agent` / `writer_agent`, video `director_agent`…). */
+export const isAgentSetting = (k: string, spec: ModuleSettingSpec) => spec.type === 'string' && /(^|_)agent$/.test(k);
+
+/** Picker for an agent setting: only GenBot bots that have a key; the current value stays visible when it is not one. */
+function AgentSelect({ id, value, onChange }: { id: string; value: string; onChange: (v: string) => void }) {
+  const agents = useFetch<{ items?: (BotLike & { name?: string })[] }>('/agents');
+  const bots = pickerBots(agents.data);
+  return (
+    <select id={id} class="field w-full" value={value} onChange={(e) => onChange((e.target as HTMLSelectElement).value)}>
+      <option value="">— Để trống —</option>
+      {value && !bots.some((b) => b.id === value) && <option value={value}>{value} (chưa dùng được: không phải bot GenBot có khoá)</option>}
+      {bots.map((b) => <option key={b.id} value={b.id}>{b.name ?? b.id}</option>)}
+    </select>
+  );
+}
 
 const MASK = '********';
 
@@ -32,6 +50,8 @@ function Field({ k, spec, value, onChange }: { k: string; spec: ModuleSettingSpe
         <select {...common} onChange={(e) => onChange((e.target as HTMLSelectElement).value)}>
           {(spec.options ?? []).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
+      ) : isAgentSetting(k, spec) ? (
+        <AgentSelect id={id} value={common.value} onChange={onChange} />
       ) : spec.type === 'number' ? (
         <input {...common} type="number" onInput={(e) => { const raw = (e.target as HTMLInputElement).value; onChange(raw === '' ? null : Number(raw)); }} />
       ) : spec.type === 'secret' ? (

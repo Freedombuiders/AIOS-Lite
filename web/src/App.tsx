@@ -19,6 +19,7 @@ import type { AppRoute } from '@/components/AppMain';
 import { GraphPlaceholder, VoicePlaceholder } from '@/pages/ComingSoon';
 import Dashboard from '@/pages/HomeDashboard';
 import AgentsPage from '@/pages/agents/AgentsPage';
+import BotsPage from '@/pages/bots/BotsPage';
 import AgentDetail from '@/pages/agents/AgentDetail';
 import TasksPage from '@/pages/tasks/TasksPage';
 import TaskDetail from '@/pages/MissionTaskDetail';
@@ -91,6 +92,7 @@ function AgentById({ id }: { id: string }) {
 const CORE_ROUTES: AppRoute[] = [
   { path: '/', component: Dashboard },
   { path: '/voice', component: VoicePlaceholder },
+  { path: '/bots', component: BotsPage },
   { path: '/agents', component: AgentsPage },
   { path: '/agents/:id', component: AgentById },
   { path: '/tasks', component: TasksPage },

@@ -25,8 +25,7 @@ inputs:
     default: "http://127.0.0.1:8800"
 prerequisites:
   - "Trong app GenBot, tạo ba bot riêng (CSKH, Nội dung, Trợ lý), mỗi bot bật Bot API (Cài đặt bot › Nâng cao › Truy cập › Bot API). Dùng bot riêng cho cửa hàng này: bot GenBot còn trả lời từ chỉ dẫn và bộ nhớ của chính nó, nằm ngoài quyền brain của AIOS."
-  - "Chép ba khoá vào file .env: GENBOT_KEY_CSKH=…, GENBOT_KEY_NOI_DUNG=…, GENBOT_KEY_TRO_LY=…, rồi khởi động lại AIOS. Không dán khoá vào agent.yaml."
-  - "Mở từng agent trong Agents, điền Mã bot (bot_id) lấy từ thẻ Bot API của bot tương ứng, bấm Kiểm tra."
+  - "Mở Đội AI › Bot: trên thẻ từng bot bấm Sửa để điền Mã bot (bot_id) lấy từ thẻ Bot API của bot tương ứng, bấm Đổi khoá để dán khoá (AIOS lưu mã hoá, không ghi vào .env hay agent.yaml), rồi bấm Kiểm tra."
   - "Ở Zalo › Agent chăm, gán Bot CSKH ở chế độ Nháp trước. Chỉ chuyển sang Tự động khi bạn đã đọc đủ nháp và yên tâm."
   - "Hướng dẫn đầy đủ: docs/huong-dan-noi-genbot.md."
 ---

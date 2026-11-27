@@ -14,6 +14,23 @@ export function protectEnvName(name: string, env: Record<string, string | undefi
   protectValue(env[n]);
 }
 
+/** Core-only secret VALUES (GenBot keys stored in the app): any env entry carrying one is dropped from a child env. */
+const coreValues = new Set<string>();
+
+/** Mark a value as core-only (never in a child env) and mask it everywhere. */
+export function protectCoreValue(value: string | undefined): void {
+  const v = value?.trim();
+  if (!v || v.length < 8) return;
+  coreValues.add(v);
+  protectValue(v);
+}
+
+/** True when `value` carries a core-only secret value. */
+export function carriesCoreValue(value: string): boolean {
+  for (const v of coreValues) if (value.includes(v)) return true;
+  return false;
+}
+
 export function isProtectedEnvName(name: string): boolean {
   return names.has(name) || SECRET_ENV_PATTERN.test(name);
 }

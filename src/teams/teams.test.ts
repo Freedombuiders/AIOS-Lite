@@ -82,7 +82,9 @@ describe('install', () => {
     const fresh = createAgentRegistry({ agentsDir, workspacesDir: path.join(root, 'ws') });
     expect(fresh.errors()).toEqual([]);
     const a = fresh.require('cskh-agent');
-    expect(a.runtime).toBe('mock');
+    // shipped templates name runtime genbot (defaultRuntime only fills a template that names none)
+    expect(a.runtime).toBe('genbot');
+    expect(a.runtimeOptions).toEqual({ base_url: 'http://127.0.0.1:8800', bot_id: '', max_runs_day: 500 });
     expect(a.permission).toBe('safe');
     expect(a.persona.length).toBeGreaterThan(50);
     expect(a.access.connections).toEqual({});
@@ -110,27 +112,45 @@ describe('install', () => {
     expect(fresh.errors()).toEqual([]);
     const cskh = fresh.require('bot-cskh');
     expect(cskh).toMatchObject({ runtime: 'genbot', context: 'lean', permission: 'safe' });
-    expect(cskh.runtimeOptions).toEqual({ base_url: 'http://127.0.0.1:8800', bot_id: '', key_env: 'GENBOT_KEY_CSKH', max_runs_day: 500 });
+    // no key_env: the key is pasted on the Đội AI · Bot screen and stored encrypted
+    expect(cskh.runtimeOptions).toEqual({ base_url: 'http://127.0.0.1:8800', bot_id: '', max_runs_day: 500 });
     expect(cskh.access.brain).toEqual({ 'tra-sen-viet': { read: ['san-pham/**', 'chinh-sach/**', 'giong-noi.md'], write: [] } });
     expect(cskh.access.modules).toEqual({ care: ['reply.draft', 'reply.send'] });
     expect(cskh.access.connections).toEqual({});
     const content = fresh.require('bot-noi-dung');
     expect(content.context).toBe('standard');
     expect(content.access.brain['tra-sen-viet']!.read).toEqual(['giong-noi.md', 'noi-dung/**', 'san-pham/**', 'bai-hoc/**', 'cong-thuc/**']);
-    expect(content.runtimeOptions.key_env).toBe('GENBOT_KEY_NOI_DUNG');
     const assistant = fresh.require('bot-tro-ly');
     expect(assistant.context).toBe('standard'); // lean turns only accept <aios-status>; the assistant needs task and memory directives
     expect(assistant.access.brain).toEqual({ 'tra-sen-viet': { read: ['**'], write: ['nho/**'] } });
     expect(assistant.canDelegate).toBe(true);
     expect(fresh.require('bot-cskh').reportsTo).toBe('bot-tro-ly');
-    // one GenBot bot (and key) per agent; no key in any file
-    expect(new Set(fresh.list().map((a) => a.runtimeOptions.key_env)).size).toBe(3);
+    // one GenBot bot (and key) per agent; no key and no key variable in any file
+    expect(fresh.list().every((a) => a.runtimeOptions.key_env === undefined && a.runtimeOptions.bot_id === '')).toBe(true);
     for (const a of fresh.list()) {
       expect(a.persona).toContain('Trà Sen Việt');
       expect(a.persona).not.toMatch(/"action"\s*:|json/i); // persona: role and tone only, no output schema
     }
     expect(scheduler.rows.map((r) => [r.agentId, r.enabled])).toEqual([['bot-tro-ly', false]]);
-    expect(res.nextSteps.join(' ')).toContain('GENBOT_KEY_CSKH');
+    expect(res.nextSteps.join(' ')).toContain('Đội AI › Bot');
+  });
+
+  it('GenBot only: a team cannot install an agent on claude (override or template), and nothing is written', () => {
+    const { svc, agents } = setup();
+    const ref = { kind: 'catalog', id: 'agenticos-doi-mac-dinh' } as const;
+    const inputs = { SHOP_NAME: 'Trà Sen Việt', BRAIN_FOLDER: 'tra-sen-viet' };
+    const plan = svc.preview(ref, { inputs, runtimes: { 'bot-cskh': 'claude' } });
+    expect(plan.canInstall).toBe(false);
+    expect(plan.blockers.join(' ')).toMatch(/bot-cskh: Runtime "Claude Code" không còn được dùng/);
+    expect(() => svc.install(ref, { inputs, runtimes: { 'bot-cskh': 'claude' } })).toThrow();
+    expect(agents.list()).toEqual([]);
+    const imp = new AdmZip();
+    imp.addFile('TEAM.md', Buffer.from('---\nschema: aios-team/v1\nname: X\nslug: x\ndescription: d\nmanager: a1\n---\n'));
+    imp.addFile('agents/a1/agent.yaml.template', Buffer.from('name: A\nruntime: codex\n'));
+    imp.addFile('agents/a1/persona.md', Buffer.from('p'));
+    const id = svc.importZip(imp.toBuffer()).id;
+    expect(svc.preview({ kind: 'import', id }, {}).blockers.join(' ')).toMatch(/Codex/);
+    expect(agents.list()).toEqual([]);
   });
 
   it('an imported package never grants itself access, but keeps context and runtime options', () => {

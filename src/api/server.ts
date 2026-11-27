@@ -8,6 +8,7 @@ import type { AppDeps } from '../core/deps.js';
 import { errorBody, handleError } from './errors.js';
 import { createOwnerAuth, ownerGate, ownerRoutes, type OwnerAuth } from './owner.js';
 import { agentsRoutes } from './routes/agents.js';
+import { genbotRoutes } from './routes/genbot.js';
 import { brainRoutes } from './routes/brain.js';
 import { chatRoutes } from './routes/chat.js';
 import { connectionsRoutes } from './routes/connections.js';
@@ -79,6 +80,7 @@ export function createApiServer(deps: AppDeps, opts: ApiServerOptions = {}): Api
   app.get('/api/events', sseHandler(deps, opts.pingMs ?? 25_000));
   systemRoutes(app, deps);
   agentsRoutes(app, deps);
+  genbotRoutes(app, deps);
   connectionsRoutes(app, deps);
   costsRoutes(app, deps);
   mountIntegrationRoutes(app, deps);

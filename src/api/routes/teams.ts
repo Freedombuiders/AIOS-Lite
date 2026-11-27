@@ -60,9 +60,9 @@ export function teamsRoutes(app: Hono, deps: AppDeps): void {
   let teams: ReturnType<typeof createTeamsService> | undefined;
   let market: ReturnType<typeof createMarketService> | undefined;
   let recos: ReturnType<typeof createRecosService> | undefined;
-  const cfg = () => ({ rootDir: deps.config.rootDir, skillsDirs: deps.config.skillsDirs, timezone: deps.config.timezone });
+  const cfg = () => ({ rootDir: deps.config.rootDir, skillsDirs: deps.config.skillsDirs, timezone: deps.config.timezone, ...(deps.config.allowedRuntimes ? { allowedRuntimes: deps.config.allowedRuntimes } : {}) });
   const T = () => (teams ??= createTeamsService({ config: cfg(), db: deps.db, agents: deps.agents, scheduler: deps.scheduler, skills: deps.skills, audit: deps.audit }));
-  const M = () => (market ??= createMarketService({ config: cfg(), agents: deps.agents, skills: deps.skills, audit: deps.audit }));
+  const M = () => (market ??= createMarketService({ config: cfg(), agents: deps.agents, skills: deps.skills, audit: deps.audit, ...(deps.config.allowedRuntimes ? { allowedRuntimes: deps.config.allowedRuntimes } : {}) }));
   const R = () => (recos ??= createRecosService({ db: deps.db, agents: deps.agents, tasks: deps.tasks, runs: deps.runs, skills: deps.skills, brain: deps.brain, modules: deps.modules, audit: deps.audit }));
   const ref = (s: { kind: 'catalog' | 'import'; id: string }): TeamSourceRef => s;
 

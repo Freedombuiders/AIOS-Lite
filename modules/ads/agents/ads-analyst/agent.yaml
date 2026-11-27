@@ -1,7 +1,9 @@
 name: Chuyên viên phân tích quảng cáo
 description: "Đánh giá số liệu quảng cáo đã tính sẵn và đề xuất thao tác thủ công"
-runtime: mock
-runtime_options: {}
+runtime: genbot
+runtime_options:
+  base_url: "http://127.0.0.1:8800"
+  bot_id: ""
 permission: safe
 context: lean
 reports_to: main

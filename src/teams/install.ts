@@ -4,6 +4,7 @@ import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import type { AgentRegistry } from '../agents/contracts.js';
 import { AGENT_ID_RE } from '../agents/schema.js';
+import { allowedRuntimes, isRuntimeAllowed, runtimeRefusal } from '../core/runtime-policy.js';
 import { RUNTIME_IDS, type RuntimeId } from '../core/types.js';
 import type { SkillLibrary } from '../shared/contracts.js';
 import type { SchedulerService } from '../work/contracts.js';
@@ -17,6 +18,8 @@ export interface InstallDeps {
   /** where new skills are written (first skills root) */
   skillsDir: string;
   timezone: string;
+  /** runtimes an installed agent may use (default core/runtime-policy allowedRuntimes()) */
+  allowedRuntimes?: readonly string[];
 }
 
 export interface InstallOptions {
@@ -134,8 +137,9 @@ export function planInstall(deps: InstallDeps, team: LoadedTeam, opts: InstallOp
     else if (clash) finalId = freeId(a.id, taken);
     if (action === 'create') taken.add(finalId);
     idMap.set(a.id, finalId);
-    const runtime = opts.runtimes?.[a.id] ?? a.runtime ?? opts.defaultRuntime ?? 'claude';
+    const runtime = opts.runtimes?.[a.id] ?? a.runtime ?? opts.defaultRuntime ?? 'genbot';
     if (!(RUNTIME_IDS as readonly string[]).includes(runtime)) blockers.push(`Runtime "${runtime}" của ${a.id} không hợp lệ.`);
+    else if (!isRuntimeAllowed(runtime, deps.allowedRuntimes ?? allowedRuntimes())) blockers.push(`${a.id}: ${runtimeRefusal(runtime)}`);
     const bundled = [...new Set([...team.files.keys()].map(skillRel).filter((s) => s?.agent === a.id).map((s) => s!.skill))];
     agents.push({
       pkgId: a.id,

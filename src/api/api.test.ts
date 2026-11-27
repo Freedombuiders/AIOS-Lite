@@ -151,6 +151,8 @@ describe('system', () => {
   it('runtimes lists genbot with its generic doctor; POST /api/runtimes/genbot/check checks one agent configuration', async () => {
     deps.runtimes = createRuntimeRegistry({ commands: { claude: '/nope/claude', codex: '/nope/codex', grok: '/nope/grok', hermes: '/nope/hermes' }, genbot: { env: {} } });
     const items = (await call('GET', '/api/runtimes')).body.items as { runtime: string; status: string; checks: { code: string }[] }[];
+    // GenBot only: claude, codex, grok, hermes stay registered but are not offered; mock is never listed for the UI
+    expect(items.map((i) => i.runtime)).toEqual(['genbot']);
     const gb = items.find((i) => i.runtime === 'genbot');
     expect(gb).toMatchObject({ runtime: 'genbot', label: 'GenBot', status: 'pass', capabilities: { noTools: true, mcp: false, reportsCost: false } });
     expect(gb!.checks.map((c) => c.code)).toEqual(['genbot.http']);
@@ -163,8 +165,8 @@ describe('system', () => {
 
   it('health, runtimes, stats, attention, settings', async () => {
     expect((await call('GET', '/api/health')).body).toMatchObject({ ok: true, version: expect.any(String), uptimeSec: expect.any(Number) });
-    const rt = (await call('GET', '/api/runtimes?probe=1')).body.items[0];
-    expect(rt).toMatchObject({ runtime: 'mock', label: 'Mock', status: 'pass', capabilities: { noTools: true } });
+    // the harness registry only has the mock runtime, which is never offered to the UI
+    expect((await call('GET', '/api/runtimes?probe=1')).body.items).toEqual([]);
     expect((await call('GET', '/api/stats')).body.agents.total).toBe(1);
 
     deps.attention.raise({ key: 'task:1', kind: 'review', title: 'x', severity: 'info' });
@@ -193,6 +195,14 @@ describe('agents', () => {
     expect(created.status).toBe(201);
     expect((await call('POST', '/api/agents', { id: 'writer', name: 'W', runtime: 'mock' })).status).toBe(409);
     expect((await call('POST', '/api/agents', { id: 'Bad Id', name: 'W', runtime: 'mock' })).status).toBe(400);
+    // GenBot only: a claude agent is refused with a Vietnamese error, and an agent cannot be moved to codex
+    const claude = await call('POST', '/api/agents', { id: 'old-style', name: 'Old', runtime: 'claude' });
+    expect(claude.status).toBe(400);
+    expect(claude.body.error.message).toMatch(/Claude Code.*không còn được dùng.*GenBot/);
+    expect((await call('GET', '/api/agents/old-style')).status).toBe(404);
+    const toCodex = await call('PUT', '/api/agents/writer', { runtime: 'codex' });
+    expect(toCodex.status).toBe(400);
+    expect(toCodex.body.error.message).toMatch(/Codex/);
     expect((await call('PUT', '/api/agents/writer', { description: 'd' })).body.description).toBe('d');
     expect((await call('PUT', '/api/agents/zzz', {})).status).toBe(404);
     expect((await call('POST', '/api/agents/reload')).body).toHaveProperty('items');

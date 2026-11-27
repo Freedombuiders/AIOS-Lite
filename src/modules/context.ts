@@ -8,6 +8,7 @@ import { integrationServiceFor } from '../integrations/mount.js';
 import { sanitizeOutbound } from './outbound.js';
 import type { LeanRunInput, LeanRunResult, ModuleContext, ModuleManifest } from './sdk.js';
 import type { SettingsStore } from './settings.js';
+import { genbotKeysFor } from '../integrations/genbot-keys.js';
 
 /** Things a module started through its context; the manager tears them down on Remove. */
 export interface ModuleResources {
@@ -130,6 +131,13 @@ export function createModuleContext(
         } catch {
           return null; // runtime not registered
         }
+      },
+      usable: (agentId) => {
+        const a = deps.agents.get(agentId);
+        if (!a || a.runtime !== 'genbot') return false;
+        if (genbotKeysFor(deps).has(agentId)) return true;
+        const keyEnv = typeof a.runtimeOptions.key_env === 'string' ? a.runtimeOptions.key_env.trim() : '';
+        return keyEnv.startsWith('GENBOT_KEY_') && !!process.env[keyEnv]?.trim();
       },
     },
     access: {

@@ -5,6 +5,7 @@ import { useRef, useState } from 'preact/hooks';
 import { useLocation } from 'wouter-preact';
 import { apiPost, errorText } from '@/lib/api';
 import { useAgents } from '@/lib/agents';
+import { usableBots } from '@/lib/bots';
 import { createConversation } from '@/lib/chat-conversations';
 import { COMMAND_AGENT_KEY, composeMessage, pickAgent, readAttachment } from '@/lib/command-bar';
 import type { Attachment } from '@/lib/command-bar';
@@ -26,8 +27,10 @@ export function CommandBar() {
   const [files, setFiles] = useState<Attachment[]>([]);
   const [sending, setSending] = useState(false);
   const picker = useRef<HTMLInputElement>(null);
-  const enabled = agents.filter((a) => a.enabled);
-  const agentId = pickAgent(agents, choice);
+  // only GenBot bots that have a key are offered (Open AgenticOS runs every agent on GenBot)
+  const bots = usableBots(agents);
+  const enabled = bots.filter((a) => a.enabled);
+  const agentId = pickAgent(bots, choice);
   const canSend = !sending && agentId !== '' && (text.trim() !== '' || files.length > 0);
 
   function pick(id: string) {

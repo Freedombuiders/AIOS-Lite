@@ -1,5 +1,11 @@
 name: "Tổng hợp khiếu nại"
 description: "Cuối ngày đọc hội thoại Zalo và email của {{input.SHOP_NAME}}, gom khiếu nại và khách chưa được trả lời thành báo cáo cho chủ."
+runtime: genbot
+context: standard
+runtime_options:
+  base_url: "http://127.0.0.1:8800"
+  bot_id: ""
+  max_runs_day: 500
 data_access:
   zalo: true
   email: true
