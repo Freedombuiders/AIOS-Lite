@@ -3,6 +3,7 @@
 import { parseArgs } from 'node:util';
 import { loadConfig } from '../core/config.js';
 import { scaffoldModule } from './scaffold.js';
+import { formatChecks, realDoctorEnv, runDoctor } from '../setup/doctor.js';
 
 export interface CliIO {
   out(text: string): void;
@@ -32,6 +33,8 @@ Dùng:
   aios module add <id> [--agents]              Thêm module (--agents: cài agent mẫu)
   aios module remove <id>                      Gỡ module (giữ dữ liệu)
   aios module new <id>                         Tạo module mới từ khuôn modules/_template
+  aios doctor [--probe]                        Kiểm tra máy: Node, cổng, GenBot, bot, yt-dlp/ffmpeg, git của brain
+                                               (--probe: gửi "ping" thật tới từng bot, cần AIOS_TOKEN)
   aios help                                    Hiện trợ giúp này
 
 Biến môi trường (hoặc trong .env): AIOS_HOST, AIOS_PORT, AIOS_TOKEN.`;
@@ -82,6 +85,7 @@ export async function runCli(argv: string[], opts: CliOptions = {}): Promise<num
           limit: { type: 'string' },
           pin: { type: 'boolean' },
           agents: { type: 'boolean' },
+          probe: { type: 'boolean' },
           help: { type: 'boolean', short: 'h' },
         },
       });
@@ -100,6 +104,13 @@ export async function runCli(argv: string[], opts: CliOptions = {}): Promise<num
     if (!cmd || cmd === 'help' || values.help) {
       io.out(HELP);
       return 0;
+    }
+
+    if (cmd === 'doctor') {
+      const cfg = config();
+      const checks = await runDoctor(realDoctorEnv(cfg.rootDir, { apiPort: cfg.port, ...(token() ? { token: token() } : {}), probe: values.probe ?? false }));
+      for (const line of formatChecks(checks)) io.out(line);
+      return checks.some((c) => c.status === 'fail') ? 1 : 0;
     }
 
     if (cmd === 'agents') {
